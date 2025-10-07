@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut, User as UserIcon } from 'lucide-react-native';
 import { User } from '../types';
 import { authService } from '../services/authService';
+import HomeScreen from '../Home/HomeScreen';
 
 type Props = {
   user: User;
@@ -13,18 +14,12 @@ type Props = {
 
 export default function SocialApp({ user, onLogout }: Props) {
   const [loading, setLoading] = useState(false);
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ padding: 24, gap: 16 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <UserIcon size={20} color="#111827" />
-          <Text style={{ fontSize: 18, fontWeight: '600', color: '#111827' }}>
-            Welcome, {user.name || user.email}
-          </Text>
-        </View>
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <HomeScreen user={user} />
 
-        <Text style={{ color: '#6B7280' }}>You are signed in.</Text>
-
+      <SafeAreaView edges={['bottom']} style={{ position: 'absolute', right: 16, bottom: 90 }}>
         <TouchableOpacity
           onPress={async () => {
             if (loading) return;
@@ -33,21 +28,22 @@ export default function SocialApp({ user, onLogout }: Props) {
             setLoading(false);
             onLogout();
           }}
+          accessibilityLabel="Logout"
           style={{
-            height: 48,
-            borderRadius: 12,
+            height: 44,
+            borderRadius: 22,
             backgroundColor: '#ef4444',
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'row',
-            gap: 8,
-            marginTop: 8,
+            paddingHorizontal: 14,
+            gap: 6,
           }}
         >
           <LogOut color="#fff" size={18} />
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{loading ? 'Logging out...' : 'Log out'}</Text>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>{loading ? 'Logging out...' : 'Logout'}</Text>
         </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
