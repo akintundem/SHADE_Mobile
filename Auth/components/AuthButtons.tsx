@@ -2,10 +2,19 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Music, Sparkles } from 'lucide-react-native';
 import { styles } from '../styles';
+import { User } from '../../types';
 
-export const AuthButtons = () => (
+type Props = { onLogin?: (user: User) => void };
+
+export const AuthButtons = ({ onLogin }: Props) => (
   <View style={styles.actionsWrap}>
-    <TouchableOpacity activeOpacity={0.9} style={styles.spotifyBtn}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={styles.spotifyBtn}
+      onPress={() =>
+        onLogin?.({ id: 'spotify', email: 'spotify_user@soundverse.app', name: 'Spotify User', provider: 'spotify' })
+      }
+    >
       <View style={styles.spotifyBtnInner}>
         <Music size={18} color="#0a3d1e" style={styles.leftIcon} />
         <Text style={styles.spotifyTextCentered}>Continue with Spotify</Text>
@@ -18,4 +27,3 @@ export const AuthButtons = () => (
     </View>
   </View>
 );
-

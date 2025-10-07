@@ -95,21 +95,28 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 12,
     height: 52,
     paddingHorizontal: 14,
     marginBottom: 12,
+  },
+  inputWrapLight: {
     backgroundColor: '#fff',
+    borderColor: '#E5E7EB',
+  },
+  inputWrapDark: {
+    backgroundColor: '#0B0B0B',
+    borderColor: '#2A2E35',
   },
   leadingIconSvg: { marginRight: 8 },
   input: {
     flex: 1,
-    color: '#111827',
     fontSize: 16,
     paddingVertical: 0,
     marginHorizontal: 8,
   },
+  inputTextLight: { color: '#111827' },
+  inputTextDark: { color: '#F9FAFB' },
   trailingIconWrap: { paddingLeft: 6, paddingVertical: 6 },
 
   signInBtn: {
@@ -122,6 +129,21 @@ export const styles = StyleSheet.create({
   },
   signInBtnDisabled: { backgroundColor: '#9CA3AF' },
   signInText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+
+  // Inverted primary button (e.g., Create account in dark mode)
+  primaryInvertedBtn: {
+    height: 56,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    marginTop: 8,
+  },
+  primaryInvertedText: {
+    color: '#111827',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 
   signupRow: {
     flexDirection: 'row',

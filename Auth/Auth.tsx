@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,10 +10,17 @@ import { styles } from './styles';
 import { Header } from './components/Header';
 import { AuthButtons } from './components/AuthButtons';
 import { OrDivider } from './components/OrDivider';
-import { AuthForm } from './components/AuthForm';
+import { SignInForm } from './components/SignInForm';
+import { SignUpForm } from './components/SignUpForm';
+import { CompleteProfile } from './components/CompleteProfile';
 import { Footer } from './components/Footer';
+import { User } from '../types';
 
-export default function Auth() {
+type Props = { onLogin?: (user: User) => void };
+
+export default function Auth({ onLogin }: Props) {
+  const [mode, setMode] = useState<'signIn' | 'signUp' | 'completeProfile'>('signIn');
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -25,9 +32,27 @@ export default function Auth() {
           keyboardShouldPersistTaps="handled"
         >
           <Header />
-          <AuthButtons />
+          <AuthButtons onLogin={onLogin} />
           <OrDivider />
-          <AuthForm />
+          {mode === 'signIn' ? (
+            <SignInForm onLogin={onLogin} onSwitchToSignUp={() => setMode('signUp')} />
+          ) : mode === 'signUp' ? (
+            <SignUpForm
+              onSignedUp={({ email }) => {
+                setPendingEmail(email);
+                setMode('completeProfile');
+              }}
+              onSwitchToSignIn={() => setMode('signIn')}
+            />
+          ) : (
+            <CompleteProfile
+              email={pendingEmail || ''}
+              onBack={() => setMode('signUp')}
+              onComplete={({ name, username }) =>
+                onLogin?.({ id: 'password', email: pendingEmail || 'user@soundverse.app', name, provider: 'password' })
+              }
+            />
+          )}
           <Footer />
         </ScrollView>
       </KeyboardAvoidingView>
