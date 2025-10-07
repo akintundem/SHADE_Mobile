@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { Menu, Plus, Settings } from 'lucide-react-native';
+import { Settings, Pencil } from 'lucide-react-native';
 import { User } from '../../types';
 
 type Props = {
   user: User;
-  onOpenMenu?: () => void;
-  onCreate?: () => void;
+  onOpenMenu?: () => void; // deprecated
+  onCreate?: () => void; // deprecated
   onEditProfile?: () => void;
   onOpenSettings?: () => void;
 };
@@ -14,12 +14,12 @@ type Props = {
 export const ProfileHeader = ({ user, onOpenMenu, onCreate, onEditProfile, onOpenSettings }: Props) => {
   return (
     <View style={{ backgroundColor: '#FFFFFF' }}>
-      <View style={{ height: 48, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <TouchableOpacity onPress={onOpenMenu} hitSlop={10}>
-          <Menu size={22} color="#111827" />
+      <View style={{ height: 48, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>
+        <TouchableOpacity onPress={onEditProfile} hitSlop={10} accessibilityLabel="Edit profile">
+          <Pencil size={20} color="#111827" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={onCreate} hitSlop={10}>
-          <Plus size={22} color="#111827" />
+        <TouchableOpacity onPress={onOpenSettings} hitSlop={10} accessibilityLabel="Open settings">
+          <Settings size={20} color="#111827" />
         </TouchableOpacity>
       </View>
 
@@ -46,16 +46,8 @@ export const ProfileHeader = ({ user, onOpenMenu, onCreate, onEditProfile, onOpe
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-          <TouchableOpacity onPress={onEditProfile} style={{ height: 36, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#111827', fontWeight: '600' }}>Edit profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onOpenSettings} style={{ height: 36, width: 36, borderRadius: 18, borderWidth: 1, borderColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
-            <Settings size={18} color="#111827" />
-          </TouchableOpacity>
-        </View>
+        {/* Top actions moved to header; keep area clean below */}
       </View>
     </View>
   );
 };
-

@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Menu, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { User } from '../../types';
 
 type Props = {
   user: User;
-  onOpenMenu?: () => void;
+  onOpenMenu?: () => void; // no longer used; left area shows brand
   onCreatePost?: () => void;
 };
 
@@ -22,9 +22,9 @@ export const HomeHeader = ({ user, onOpenMenu, onCreatePost }: Props) => {
           justifyContent: 'space-between',
         }}
       >
-        <TouchableOpacity onPress={onOpenMenu} hitSlop={10}>
-          <Menu size={22} color="#111827" />
-        </TouchableOpacity>
+        <View style={{ paddingHorizontal: 2 }}>
+          <Text style={{ color: '#111827', fontWeight: '800', fontSize: 18 }}>Auree</Text>
+        </View>
         <TouchableOpacity onPress={onCreatePost} hitSlop={10}>
           <Plus size={22} color="#111827" />
         </TouchableOpacity>
@@ -41,4 +41,3 @@ export const HomeHeader = ({ user, onOpenMenu, onCreatePost }: Props) => {
     </View>
   );
 };
-
