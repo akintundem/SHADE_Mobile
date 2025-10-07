@@ -15,9 +15,10 @@ type Props = {
   onCreatePost?: () => void;
   onOpenMenu?: () => void;
   showExampleWhenEmpty?: boolean;
+  onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void;
 };
 
-export default function HomeScreen({ user, events = [], onCreatePost, onOpenMenu, showExampleWhenEmpty = true }: Props) {
+export default function HomeScreen({ user, events = [], onCreatePost, onOpenMenu, showExampleWhenEmpty = true, onTabChange }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
@@ -36,7 +37,7 @@ export default function HomeScreen({ user, events = [], onCreatePost, onOpenMenu
         </View>
       </ScrollView>
 
-      <TabBar active="home" />
+      <TabBar active="home" onChange={onTabChange} />
     </SafeAreaView>
   );
 }

@@ -31,5 +31,10 @@ target 'capsule' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Ensure MapLibre Native SPM dependency is attached to the app target
+    if defined?($MLRN) && $MLRN.respond_to?(:post_install)
+      $MLRN.post_install(installer)
+    end
   end
 end
