@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { View, TextInput, Pressable, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, TextInput, Pressable, Text, TouchableOpacity, useColorScheme, ActivityIndicator } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import { styles } from '../styles';
-import { User } from '../../types';
+import { authService } from '../../services/authService';
 
 type Props = {
-  onSignedUp?: (payload: { email: string; token?: string }) => void;
+  onSignedUp?: (payload: { email: string; requiresProfile: boolean; user: import('../../services/authService').UserDTO }) => void;
   onSwitchToSignIn?: () => void;
 };
 
@@ -16,6 +16,8 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
   const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const canCreate = useMemo(() => !!email && !!password && password === confirm, [email, password, confirm]);
 
@@ -105,13 +107,34 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
         </Pressable>
       </View>
 
+      {error ? (
+        <Text style={{ color: '#ef4444', textAlign: 'center', marginBottom: 6 }}>{error}</Text>
+      ) : null}
+
       <TouchableOpacity
-        activeOpacity={canCreate ? 0.8 : 1}
-        style={[styles.primaryInvertedBtn, !canCreate && styles.signInBtnDisabled]}
-        disabled={!canCreate}
-        onPress={() => onSignedUp?.({ email, token: 'fake-token' })}
+        activeOpacity={canCreate && !submitting ? 0.8 : 1}
+        style={[styles.primaryInvertedBtn, (!canCreate || submitting) && styles.signInBtnDisabled]}
+        disabled={!canCreate || submitting}
+        onPress={async () => {
+          try {
+            setSubmitting(true);
+            setError(null);
+            const res = await authService.register(email, password);
+            const { setUser } = await import('../../storage/authStorage');
+            await setUser(res.user);
+            onSignedUp?.({ email, requiresProfile: !!res.requiresProfile, user: res.user });
+          } catch (e: any) {
+            setError(e?.message || 'Failed to create account');
+          } finally {
+            setSubmitting(false);
+          }
+        }}
       >
-        <Text style={styles.primaryInvertedText}>Create account</Text>
+        {submitting ? (
+          <ActivityIndicator color="#111827" />
+        ) : (
+          <Text style={styles.primaryInvertedText}>Create account</Text>
+        )}
       </TouchableOpacity>
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>

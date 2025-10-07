@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut, User as UserIcon } from 'lucide-react-native';
 import { User } from '../types';
+import { authService } from '../services/authService';
 
 type Props = {
   user: User;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function SocialApp({ user, onLogout }: Props) {
+  const [loading, setLoading] = useState(false);
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ padding: 24, gap: 16 }}>
@@ -21,12 +23,16 @@ export default function SocialApp({ user, onLogout }: Props) {
           </Text>
         </View>
 
-        <Text style={{ color: '#6B7280' }}>
-          This is a placeholder for the main app screen.
-        </Text>
+        <Text style={{ color: '#6B7280' }}>You are signed in.</Text>
 
         <TouchableOpacity
-          onPress={onLogout}
+          onPress={async () => {
+            if (loading) return;
+            setLoading(true);
+            await authService.logout();
+            setLoading(false);
+            onLogout();
+          }}
           style={{
             height: 48,
             borderRadius: 12,
@@ -39,10 +45,9 @@ export default function SocialApp({ user, onLogout }: Props) {
           }}
         >
           <LogOut color="#fff" size={18} />
-          <Text style={{ color: '#fff', fontWeight: '600' }}>Log out</Text>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>{loading ? 'Logging out...' : 'Log out'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
-

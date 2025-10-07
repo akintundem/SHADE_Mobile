@@ -5,15 +5,26 @@ import ThemeProvider from './theme/ThemeProvider';
 import LoadingState from './components/LoadingState';
 import SocialApp from './SocialApp';
 import { User } from './types';
+import { getToken, getUser as getCachedUser } from './storage/authStorage';
+import { UserDTO } from './services/authService';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Simulate an auth/session check
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
+    (async () => {
+      try {
+        // Attempt to restore session from storage
+        const token = await getToken();
+        if (token) {
+          const cached = await getCachedUser<UserDTO>();
+          if (cached) setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   }, []);
 
   const handleLogin = (u: User) => setUser(u);

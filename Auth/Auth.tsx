@@ -32,26 +32,21 @@ export default function Auth({ onLogin }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <Header />
-          <AuthButtons onLogin={onLogin} />
+          <AuthButtons />
           <OrDivider />
           {mode === 'signIn' ? (
             <SignInForm onLogin={onLogin} onSwitchToSignUp={() => setMode('signUp')} />
           ) : mode === 'signUp' ? (
             <SignUpForm
-              onSignedUp={({ email }) => {
+              onSignedUp={({ email, requiresProfile, user }) => {
                 setPendingEmail(email);
-                setMode('completeProfile');
+                if (requiresProfile) setMode('completeProfile');
+                else onLogin?.({ id: user.userId, email: user.email, name: user.username, provider: 'password' });
               }}
               onSwitchToSignIn={() => setMode('signIn')}
             />
           ) : (
-            <CompleteProfile
-              email={pendingEmail || ''}
-              onBack={() => setMode('signUp')}
-              onComplete={({ name, username }) =>
-                onLogin?.({ id: 'password', email: pendingEmail || 'user@soundverse.app', name, provider: 'password' })
-              }
-            />
+            <CompleteProfile email={pendingEmail || ''} onBack={() => setMode('signUp')} />
           )}
           <Footer />
         </ScrollView>

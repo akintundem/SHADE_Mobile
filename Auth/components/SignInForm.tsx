@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { View, TextInput, Pressable, Text, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, TextInput, Pressable, Text, TouchableOpacity, useColorScheme, ActivityIndicator } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import { styles } from '../styles';
 import { User } from '../../types';
+import { authService } from '../../services/authService';
+import { setUser } from '../../storage/authStorage';
 
 type Props = {
   onLogin?: (user: User) => void;
@@ -14,6 +16,8 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const canSignIn = useMemo(() => !!email && !!password, [email, password]);
 
@@ -71,15 +75,35 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
         </Pressable>
       </View>
 
+      {error ? (
+        <Text style={{ color: '#ef4444', textAlign: 'center', marginBottom: 6 }}>{error}</Text>
+      ) : null}
+
       <TouchableOpacity
-        activeOpacity={canSignIn ? 0.8 : 1}
-        style={[styles.signInBtn, !canSignIn && styles.signInBtnDisabled]}
-        disabled={!canSignIn}
-        onPress={() =>
-          onLogin?.({ id: 'password', email, name: email.split('@')[0] || 'User', provider: 'password' })
-        }
+        activeOpacity={canSignIn && !submitting ? 0.8 : 1}
+        style={[styles.signInBtn, (!canSignIn || submitting) && styles.signInBtnDisabled]}
+        disabled={!canSignIn || submitting}
+        onPress={async () => {
+          try {
+            setSubmitting(true);
+            setError(null);
+            const { user } = await authService.signIn(email, password);
+            // Persist a lightweight user cache
+            await setUser(user);
+            const mapped: User = { id: user.userId, email: user.email, name: user.username, provider: 'password' };
+            onLogin?.(mapped);
+          } catch (e: any) {
+            setError(e?.message || 'Failed to sign in');
+          } finally {
+            setSubmitting(false);
+          }
+        }}
       >
-        <Text style={styles.signInText}>Sign in</Text>
+        {submitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.signInText}>Sign in</Text>
+        )}
       </TouchableOpacity>
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
@@ -94,4 +118,3 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
     </View>
   );
 };
-
