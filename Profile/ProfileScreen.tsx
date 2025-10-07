@@ -8,9 +8,9 @@ import SettingsScreen from './SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { User } from '../types';
 
-type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void };
+type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void; onOpenCompose?: () => void };
 
-export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
+export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompose }: Props) {
   const [view, setView] = useState<'profile' | 'settings' | 'edit'>('profile');
   const [section, setSection] = useState<'posts' | 'events'>('events');
 
