@@ -9,6 +9,8 @@ import DiscoverScreen from '../Discover/DiscoverScreen';
 const LazyMapScreen = React.lazy(() => import('../Map/MapScreen'));
 const ProfileScreen = React.lazy(() => import('../Profile/ProfileScreen'));
 const ComposeScreen = React.lazy(() => import('../Compose/ComposeScreen'));
+const CameraScreen = React.lazy(() => import('../Camera/CameraScreen'));
+const VideoEditorScreen = React.lazy(() => import('../Editor/VideoEditorScreen'));
 const CreateEventScreen = React.lazy(() => import('../Create/CreateEventScreen'));
 const CreateCollectionScreen = React.lazy(() => import('../Create/CreateCollectionScreen'));
 
@@ -24,6 +26,9 @@ export default function SocialApp({ user, onLogout }: Props) {
   const [isComposeOpen, setComposeOpen] = useState(false);
   const [isCreateEventOpen, setCreateEventOpen] = useState(false);
   const [isCreateCollectionOpen, setCreateCollectionOpen] = useState(false);
+  const [isCameraOpen, setCameraOpen] = useState(false);
+  const [captured, setCaptured] = useState<{ path: string; type: 'photo' | 'video' } | null>(null);
+  const [isEditorOpen, setEditorOpen] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
@@ -56,7 +61,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       {isComposeOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#FFFFFF', zIndex: 100 }}>
           <React.Suspense fallback={null}>
-            <ComposeScreen onClose={() => setComposeOpen(false)} />
+            <ComposeScreen onClose={() => setComposeOpen(false)} onOpenCamera={() => setCameraOpen(true)} />
           </React.Suspense>
         </View>
       ) : null}
@@ -73,6 +78,45 @@ export default function SocialApp({ user, onLogout }: Props) {
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000000', zIndex: 100 }}>
           <React.Suspense fallback={null}>
             <CreateCollectionScreen onClose={() => setCreateCollectionOpen(false)} />
+          </React.Suspense>
+        </View>
+      ) : null}
+
+      {isCameraOpen ? (
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000', zIndex: 110 }}>
+          <React.Suspense fallback={null}>
+            <CameraScreen
+              onClose={() => setCameraOpen(false)}
+              onCapture={asset => {
+                setCaptured(asset);
+                // Only open editor for local file paths; library URIs on simulator (ph://) are not supported by the native trimmer
+                const isFile = asset.path?.startsWith('file:') || asset.path?.startsWith('/') || asset.path?.startsWith('content:');
+                if (asset.type === 'video' && isFile) {
+                  setCameraOpen(false);
+                  setEditorOpen(true);
+                } else {
+                  setCameraOpen(false);
+                }
+              }}
+            />
+          </React.Suspense>
+        </View>
+      ) : null}
+
+      {isEditorOpen && captured ? (
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000', zIndex: 120 }}>
+          <React.Suspense fallback={null}>
+            <VideoEditorScreen
+              path={captured.path}
+              onClose={() => {
+                setEditorOpen(false);
+                setCaptured(null);
+              }}
+              onSaved={() => {
+                setEditorOpen(false);
+                setCaptured(null);
+              }}
+            />
           </React.Suspense>
         </View>
       ) : null}
