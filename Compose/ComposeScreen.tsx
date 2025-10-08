@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { X, Camera, ImagePlus, MapPin, Search, Hash, Users, Globe, Lock } from 'lucide-react-native';
+import { X, Camera, ImagePlus, Search, Hash, Users, Globe, Lock } from 'lucide-react-native';
 import { recentExamples } from '../Discover/examples';
 
 type Props = {
@@ -53,7 +53,6 @@ export default function ComposeScreen({ onClose, onPost }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* Order: Caption -> Media -> Events for Moment; Thought -> Events for Thought */}
         {mode === 'moment' ? (
           <>
             {/* Caption first */}
@@ -223,3 +222,4 @@ function renderAttachEvent(selectedEventId?: string, onSelect?: (id: string) => 
     </View>
   );
 }
+

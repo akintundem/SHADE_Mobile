@@ -9,7 +9,8 @@ import DiscoverScreen from '../Discover/DiscoverScreen';
 const LazyMapScreen = React.lazy(() => import('../Map/MapScreen'));
 const ProfileScreen = React.lazy(() => import('../Profile/ProfileScreen'));
 const ComposeScreen = React.lazy(() => import('../Compose/ComposeScreen'));
-import EdgeSwipeToCompose from '../gestures/EdgeSwipeToCompose';
+const CreateEventScreen = React.lazy(() => import('../Create/CreateEventScreen'));
+const CreateCollectionScreen = React.lazy(() => import('../Create/CreateCollectionScreen'));
 
 type Props = {
   user: User;
@@ -21,13 +22,21 @@ export default function SocialApp({ user, onLogout }: Props) {
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'home' | 'discover' | 'map' | 'profile'>('home');
   const [isComposeOpen, setComposeOpen] = useState(false);
+  const [isCreateEventOpen, setCreateEventOpen] = useState(false);
+  const [isCreateCollectionOpen, setCreateCollectionOpen] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       {tab === 'home' ? (
         <HomeScreen user={user} onTabChange={setTab} onCreatePost={() => setComposeOpen(true)} />
       ) : tab === 'discover' ? (
-        <DiscoverScreen user={user} onTabChange={setTab} />
+        <DiscoverScreen
+          user={user}
+          onTabChange={setTab}
+          onPlus={() => setComposeOpen(true)}
+          onCreateEvent={() => setCreateEventOpen(true)}
+          onCreateCollection={() => setCreateCollectionOpen(true)}
+        />
       ) : tab === 'map' ? (
         <React.Suspense fallback={null}>
           <LazyMapScreen user={user} onTabChange={setTab} />
@@ -44,15 +53,26 @@ export default function SocialApp({ user, onLogout }: Props) {
         </React.Suspense>
       )}
 
-      {/* Edge-swipe opener like stories (left-edge → right swipe) */}
-      {!isComposeOpen && tab === 'home' ? (
-        <EdgeSwipeToCompose enabled onOpen={() => setComposeOpen(true)} />
-      ) : null}
-
       {isComposeOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#FFFFFF', zIndex: 100 }}>
           <React.Suspense fallback={null}>
             <ComposeScreen onClose={() => setComposeOpen(false)} />
+          </React.Suspense>
+        </View>
+      ) : null}
+
+      {isCreateEventOpen ? (
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000000', zIndex: 100 }}>
+          <React.Suspense fallback={null}>
+            <CreateEventScreen onClose={() => setCreateEventOpen(false)} />
+          </React.Suspense>
+        </View>
+      ) : null}
+
+      {isCreateCollectionOpen ? (
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000000', zIndex: 100 }}>
+          <React.Suspense fallback={null}>
+            <CreateCollectionScreen onClose={() => setCreateCollectionOpen(false)} />
           </React.Suspense>
         </View>
       ) : null}

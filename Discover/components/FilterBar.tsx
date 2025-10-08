@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, UIManager, findNodeHandle } from 'react-native';
-import { Globe, Smile, LayoutGrid } from 'lucide-react-native';
+import { Globe, Smile, Search } from 'lucide-react-native';
 import { DropdownMenu, DropdownItem } from './DropdownMenu';
 
-export const FilterBar = () => {
+export const FilterBar = ({ theme = 'light' as 'light' | 'dark' }) => {
+  const dark = theme === 'dark';
   const [country, setCountry] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
   const [countryVisible, setCountryVisible] = useState(false);
@@ -45,30 +46,29 @@ export const FilterBar = () => {
 
   return (
     <View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
         <TouchableOpacity
           ref={countryRef}
           onPress={() => openFrom(countryRef, setCountryAnchor, setCountryVisible)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
         >
-          <Globe size={16} color="#111827" />
-          <Text style={{ color: '#111827' }}>{countryLabel}</Text>
+          <Globe size={16} color={dark ? '#E5E7EB' : '#111827'} />
+          <Text style={{ color: dark ? '#E5E7EB' : '#111827' }}>{countryLabel}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           ref={typeRef}
           onPress={() => openFrom(typeRef, setTypeAnchor, setTypeVisible)}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
         >
-          <Smile size={16} color="#111827" />
-          <Text style={{ color: '#111827' }}>{typeLabel}</Text>
+          <Smile size={16} color={dark ? '#E5E7EB' : '#111827'} />
+          <Text style={{ color: dark ? '#E5E7EB' : '#111827' }}>{typeLabel}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
-        <View style={{ flex: 1, height: 36, borderRadius: 10, backgroundColor: '#F3F4F6', borderWidth: 1, borderColor: '#E5E7EB' }} />
-        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }}>
-          <LayoutGrid size={14} color="#111827" />
-          <Text style={{ color: '#111827' }}>Collections</Text>
+        <View style={{ flex: 1, height: 36, borderRadius: 10, backgroundColor: dark ? '#111827' : '#F3F4F6', borderWidth: 1, borderColor: dark ? '#1F2937' : '#E5E7EB' }} />
+        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: dark ? '#1F2937' : '#E5E7EB', backgroundColor: dark ? '#0B0B0B' : '#FFFFFF' }}>
+          <Search size={16} color={dark ? '#E5E7EB' : '#111827'} />
         </TouchableOpacity>
       </View>
 
