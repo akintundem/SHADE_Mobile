@@ -32,7 +32,16 @@ export default function Auth({ onLogin }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <Header />
-          <AuthButtons />
+          <AuthButtons
+            onSpotifyPress={() =>
+              onLogin?.({
+                id: 'spotify-dev',
+                email: 'dev+spotify@auree.app',
+                name: 'Auree Tester',
+                provider: 'spotify',
+              })
+            }
+          />
           <OrDivider />
           {mode === 'signIn' ? (
             <SignInForm onLogin={onLogin} onSwitchToSignUp={() => setMode('signUp')} />

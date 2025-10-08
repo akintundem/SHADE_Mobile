@@ -7,9 +7,10 @@ import { recentExamples } from '../Discover/examples';
 type Props = {
   onClose: () => void;
   onPost?: (payload: { caption: string; tags: string[]; eventId?: string }) => void;
+  onOpenCamera?: () => void;
 };
 
-export default function ComposeScreen({ onClose, onPost }: Props) {
+export default function ComposeScreen({ onClose, onPost, onOpenCamera }: Props) {
   const [mode, setMode] = useState<'moment' | 'thought'>('moment');
   const [caption, setCaption] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -74,7 +75,9 @@ export default function ComposeScreen({ onClose, onPost }: Props) {
             <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
               <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Media</Text>
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <QuickAction icon={<Camera size={16} color="#111827" />} label="Open Camera" />
+                <TouchableOpacity onPress={onOpenCamera}>
+                  <QuickAction icon={<Camera size={16} color="#111827" />} label="Open Camera" />
+                </TouchableOpacity>
                 <QuickAction icon={<ImagePlus size={16} color="#111827" />} label="Add from Library" />
               </View>
 
@@ -222,4 +225,3 @@ function renderAttachEvent(selectedEventId?: string, onSelect?: (id: string) => 
     </View>
   );
 }
-
