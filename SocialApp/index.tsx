@@ -69,7 +69,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       {isCreateEventOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000000', zIndex: 100 }}>
           <React.Suspense fallback={null}>
-            <CreateEventScreen onClose={() => setCreateEventOpen(false)} />
+            <CreateEventScreen onClose={() => setCreateEventOpen(false)} onCreate={() => setCreateEventOpen(false)} />
           </React.Suspense>
         </View>
       ) : null}

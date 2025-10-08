@@ -6,15 +6,17 @@ import { styles } from '../styles';
 type Props = {
   email?: string;
   onBack?: () => void;
-  onComplete?: (payload: { name: string; username: string }) => void;
+  onComplete?: (payload: { name: string; username: string; dateOfBirth: string; profilePictureUrl?: string }) => void;
 };
 
 export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
   const isDark = useColorScheme() === 'dark';
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState(''); // YYYY-MM-DD
+  const [profilePictureUrl, setProfilePictureUrl] = useState('');
 
-  const canSubmit = useMemo(() => name.trim().length > 0 && username.trim().length > 0, [name, username]);
+  const canSubmit = useMemo(() => name.trim().length > 0 && username.trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth.trim()), [name, username, dateOfBirth]);
 
   return (
     <View style={{ marginTop: 16 }}>
@@ -92,15 +94,44 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
         />
       </View>
 
+      <View
+        style={[styles.inputWrap, isDark ? styles.inputWrapDark : styles.inputWrapLight]}
+      >
+        <UserIcon size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
+        <TextInput
+          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
+          value={dateOfBirth}
+          onChangeText={setDateOfBirth}
+          placeholder="Date of birth (YYYY-MM-DD)"
+          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+          autoCapitalize="none"
+          returnKeyType="next"
+        />
+      </View>
+
+      <View
+        style={[styles.inputWrap, isDark ? styles.inputWrapDark : styles.inputWrapLight]}
+      >
+        <UserIcon size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
+        <TextInput
+          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
+          value={profilePictureUrl}
+          onChangeText={setProfilePictureUrl}
+          placeholder="Profile picture URL (optional)"
+          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+          autoCapitalize="none"
+          returnKeyType="done"
+        />
+      </View>
+
       <TouchableOpacity
         activeOpacity={canSubmit ? 0.8 : 1}
         style={[styles.primaryInvertedBtn, !canSubmit && styles.signInBtnDisabled, { marginTop: 12 }]}
         disabled={!canSubmit}
-        onPress={() => onComplete?.({ name, username })}
+        onPress={() => onComplete?.({ name, username, dateOfBirth, profilePictureUrl: profilePictureUrl || undefined })}
       >
         <Text style={styles.primaryInvertedText}>Complete profile</Text>
       </TouchableOpacity>
     </View>
   );
 };
-

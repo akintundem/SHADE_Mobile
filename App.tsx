@@ -5,8 +5,9 @@ import ThemeProvider from './theme/ThemeProvider';
 import LoadingState from './components/LoadingState';
 import SocialApp from './SocialApp';
 import { User } from './types';
-import { getToken, getUser as getCachedUser } from './storage/authStorage';
+import { getToken, getUser as getCachedUser, setUser as setCachedUser } from './storage/authStorage';
 import { UserDTO } from './services/authService';
+import { userService } from './services/userService';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,8 +19,14 @@ function App() {
         // Attempt to restore session from storage
         const token = await getToken();
         if (token) {
-          const cached = await getCachedUser<UserDTO>();
-          if (cached) setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+          try {
+            const me = await userService.getCurrentUser();
+            await setCachedUser(me);
+            setUser({ id: me.userId || 'me', email: me.email, name: me.username, provider: 'password' });
+          } catch {
+            const cached = await getCachedUser<UserDTO>();
+            if (cached) setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+          }
         }
       } finally {
         setIsLoading(false);

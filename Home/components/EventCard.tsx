@@ -1,6 +1,9 @@
-import React from 'react';
-import { Image, Text, View } from 'react-native';
-import { CalendarClock, MapPin, MessageCircle, Heart, MessageSquareText, Music } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Text, View, TouchableOpacity } from 'react-native';
+import { CalendarClock, MapPin, MessageCircle, Heart, MessageSquareText, Music, Star } from 'lucide-react-native';
+import { mediaInteractionService } from '../../services/mediaInteractionService';
+import { getUser } from '../../storage/authStorage';
+import type { UserDTO } from '../../services/authService';
 
 export type EventItem = {
   id: string;
@@ -21,6 +24,59 @@ export type EventItem = {
 type Props = { item: EventItem };
 
 export const EventCard = ({ item }: Props) => {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [faved, setFaved] = useState(false);
+  const [likeId, setLikeId] = useState<number | null>(null);
+  const [favId, setFavId] = useState<number | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const u = await getUser<UserDTO>();
+      if (u?.userId) setUserId(u.userId);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (userId) {
+        try {
+          await mediaInteractionService.viewMedia(userId, item.id);
+        } catch {}
+      }
+    })();
+  }, [userId, item.id]);
+
+  const toggleLike = async () => {
+    if (!userId) return;
+    try {
+      if (liked && likeId) {
+        await mediaInteractionService.deleteInteraction(likeId);
+        setLiked(false);
+        setLikeId(null);
+      } else {
+        const res = await mediaInteractionService.likeMedia(userId, item.id);
+        if (res?.interactionId != null) setLikeId(res.interactionId);
+        setLiked(true);
+      }
+    } catch {}
+  };
+
+  const toggleFav = async () => {
+    if (!userId) return;
+    try {
+      if (faved && favId) {
+        await mediaInteractionService.deleteInteraction(favId);
+        setFaved(false);
+        setFavId(null);
+      } else {
+        const res = await mediaInteractionService.favoriteMedia(userId, item.id);
+        if (res?.interactionId != null) setFavId(res.interactionId);
+        setFaved(true);
+      }
+    } catch {}
+  };
+
   return (
     <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB' }}>
       {item.imageUrl ? (
@@ -71,10 +127,14 @@ export const EventCard = ({ item }: Props) => {
               <MessageCircle size={16} color="#6B7280" />
               <Text style={{ color: '#6B7280' }}>{item.stats.comments ?? 0}</Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Heart size={16} color="#6B7280" />
+            <TouchableOpacity onPress={toggleLike} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Heart size={16} color={liked ? '#ef4444' : '#6B7280'} />
               <Text style={{ color: '#6B7280' }}>{item.stats.likes ?? 0}</Text>
-            </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={toggleFav} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Star size={16} color={faved ? '#F59E0B' : '#6B7280'} />
+              <Text style={{ color: '#6B7280' }}>Save</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
 

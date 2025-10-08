@@ -13,6 +13,7 @@ type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'pr
 export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompose }: Props) {
   const [view, setView] = useState<'profile' | 'settings' | 'edit'>('profile');
   const [section, setSection] = useState<'posts' | 'events'>('events');
+  const [localUser, setLocalUser] = useState<User>(user);
 
   if (view === 'settings') {
     return (
@@ -26,7 +27,13 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
   if (view === 'edit') {
     return (
       <View style={{ flex: 1 }}>
-        <EditProfileScreen user={user} onBack={() => setView('profile')} />
+        <EditProfileScreen
+          user={localUser}
+          onBack={() => setView('profile')}
+          onSave={({ name, username }) => {
+            setLocalUser(prev => ({ ...prev, name: username || name || prev.name }));
+          }}
+        />
         <TabBar active="profile" onChange={onTabChange} />
       </View>
     );
@@ -35,7 +42,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
-        <ProfileHeader user={user} onEditProfile={() => setView('edit')} onOpenSettings={() => setView('settings')} />
+        <ProfileHeader user={localUser} onEditProfile={() => setView('edit')} onOpenSettings={() => setView('settings')} />
 
         <View style={{ paddingHorizontal: 16, marginTop: 8 }}>
           {/* Segmented control */}

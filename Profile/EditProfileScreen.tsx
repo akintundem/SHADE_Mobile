@@ -3,6 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { User } from '../types';
+import { userService } from '../services/userService';
+import { setUser as setCachedUser } from '../storage/authStorage';
 
 type Props = {
   user: User;
@@ -28,7 +30,16 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
           </TouchableOpacity>
           <Text style={{ color: '#111827', fontWeight: '700' }}>Edit Profile</Text>
           <TouchableOpacity
-            onPress={() => onSave?.({ name, username, bio, website, location })}
+            onPress={async () => {
+              try {
+                const updated = await userService.updateCurrentUser({ fullName: name, username });
+                await setCachedUser(updated);
+                onSave?.({ name, username, bio, website, location });
+                onBack?.();
+              } catch (e) {
+                // No-op; in production, show a toast
+              }
+            }}
             style={{ backgroundColor: '#111827', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}
           >
             <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Save</Text>
@@ -114,4 +125,3 @@ function LabeledTextArea({ label, maxLength = 150, value, onChangeText }: any) {
     </View>
   );
 }
-

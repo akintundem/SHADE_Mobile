@@ -1,14 +1,37 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch } from 'react-native';
 import { X, Globe, Users, CalendarDays, Clock, MapPin, Plus } from 'lucide-react-native';
+import { eventService } from '../services/eventService';
 
 type Props = { onClose: () => void; onCreate?: () => void };
 
 export default function CreateEventScreen({ onClose, onCreate }: Props) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [location, setLocation] = useState('');
   const [isPublic, setPublic] = useState(true);
   const [free, setFree] = useState(true);
   const [tags, setTags] = useState<string[]>(['Music', 'Amapiano', 'Fashion', 'Food', 'Culture', 'Dance']);
+  const [tagText, setTagText] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canCreate = useMemo(() => title.trim().length > 0 && startDate.trim().length > 0, [title, startDate]);
+
+  function toIso(date: string, time?: string) {
+    const d = date?.trim();
+    const t = (time || '').trim();
+    if (!d) return '';
+    // naive compose; if time missing, use 00:00:00
+    // strip spaces/AM PM if user typed them; rely on backend to parse strict seconds
+    const timePart = t ? t.replace(/\s*(AM|PM)$/i, '') + (t.includes(':') && t.split(':').length === 2 ? ':00' : '') : '00:00:00';
+    return `${d}T${timePart}`;
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0B0B0B' }}>
@@ -22,26 +45,41 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+        <Section title="Details">
+          <Input placeholder="Event title" dark highlighted value={title} onChangeText={setTitle} />
+          <View style={{ height: 8 }} />
+          <View style={{ borderWidth: 1, borderColor: '#1F2937', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Description (optional)"
+              placeholderTextColor="#9CA3AF"
+              multiline
+              numberOfLines={3}
+              style={{ color: '#E5E7EB', minHeight: 68 }}
+            />
+          </View>
+        </Section>
         {/* Date & Time laid out in two columns like the mock */}
         <Section title="Date & Time">
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<CalendarDays size={16} color="#E5E7EB" />} label="Start Date" />
-              <Input placeholder="yyyy-mm-dd" dark />
+              <Input placeholder="yyyy-mm-dd" dark value={startDate} onChangeText={setStartDate} />
             </View>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<Clock size={16} color="#E5E7EB" />} label="Start Time" />
-              <Input placeholder="--:-- --" dark highlighted />
+              <Input placeholder="--:-- --" dark highlighted value={startTime} onChangeText={setStartTime} />
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<CalendarDays size={16} color="#E5E7EB" />} label="End Date (Optional)" />
-              <Input placeholder="yyyy-mm-dd" dark />
+              <Input placeholder="yyyy-mm-dd" dark value={endDate} onChangeText={setEndDate} />
             </View>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<Clock size={16} color="#E5E7EB" />} label="End Time (Optional)" />
-              <Input placeholder="--:-- --" dark />
+              <Input placeholder="--:-- --" dark value={endTime} onChangeText={setEndTime} />
             </View>
           </View>
         </Section>
@@ -49,7 +87,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         {/* Location block boxed as in mock */}
         <Section title="Location">
           <View style={{ borderWidth: 1, borderColor: '#1F2937', borderRadius: 12, padding: 12 }}>
-            <Input placeholder="Enter location name" dark />
+            <Input placeholder="Enter location name" dark value={location} onChangeText={setLocation} />
             <Input placeholder="Full address (optional)" dark style={{ marginTop: 8 }} />
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 }}>
               <MapPin size={16} color="#E5E7EB" />
@@ -89,8 +127,17 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         {/* Tags */}
         <Section title="Tags">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Input placeholder="Add a tag..." dark style={{ flex: 1 }} />
-            <TouchableOpacity style={{ backgroundColor: '#111827', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}>
+            <Input placeholder="Add a tag..." dark style={{ flex: 1 }} value={tagText} onChangeText={setTagText} />
+            <TouchableOpacity
+              onPress={() => {
+                const t = tagText.trim();
+                if (!t) return;
+                if (tags.includes(t)) return;
+                setTags([...tags, t]);
+                setTagText('');
+              }}
+              style={{ backgroundColor: '#111827', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999 }}
+            >
               <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Add</Text>
             </TouchableOpacity>
           </View>
@@ -105,8 +152,37 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       </ScrollView>
 
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 16, backgroundColor: '#0B0B0B' }}>
-        <TouchableOpacity onPress={onCreate} style={{ height: 48, borderRadius: 999, backgroundColor: '#E5E7EB', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ color: '#111827', fontWeight: '700' }}>Create Event</Text>
+        {error ? (
+          <Text style={{ color: '#ef4444', textAlign: 'center', marginBottom: 6 }}>{error}</Text>
+        ) : null}
+        <TouchableOpacity
+          disabled={!canCreate || saving}
+          onPress={async () => {
+            if (!canCreate || saving) return;
+            setSaving(true);
+            setError(null);
+            try {
+              const payload = {
+                title: title.trim(),
+                description: description || undefined,
+                startDate: toIso(startDate, startTime) || `${startDate}T00:00:00`,
+                endDate: toIso(endDate, endTime) || `${startDate}T00:00:00`,
+                location: location || undefined,
+                isPrivate: !isPublic,
+                tags: tags,
+              } as const;
+              await eventService.createEvent(payload);
+              onCreate?.();
+              onClose();
+            } catch (e: any) {
+              setError(e?.message || 'Failed to create event');
+            } finally {
+              setSaving(false);
+            }
+          }}
+          style={{ height: 48, borderRadius: 999, backgroundColor: canCreate && !saving ? '#E5E7EB' : '#9CA3AF', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Text style={{ color: '#111827', fontWeight: '700' }}>{saving ? 'Creating…' : 'Create Event'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -134,7 +210,7 @@ function Row({ label, icon, children }: any) {
   );
 }
 
-function Input({ placeholder, dark, style, highlighted = false }: any) {
+function Input({ placeholder, dark, style, highlighted = false, value, onChangeText }: any) {
   return (
     <View
       style={[
@@ -150,7 +226,7 @@ function Input({ placeholder, dark, style, highlighted = false }: any) {
         style,
       ]}
     >
-      <TextInput placeholder={placeholder} placeholderTextColor={dark ? '#9CA3AF' : '#6B7280'} style={{ color: dark ? '#E5E7EB' : '#111827' }} />
+      <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor={dark ? '#9CA3AF' : '#6B7280'} style={{ color: dark ? '#E5E7EB' : '#111827' }} />
     </View>
   );
 }

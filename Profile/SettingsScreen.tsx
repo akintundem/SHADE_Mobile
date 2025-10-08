@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity, Switch } from 'react-native';
 import { ChevronRight, Lock, Bell, Shield, User, Globe, HardDrive, Accessibility, HelpCircle, Info, FlagTriangleRight, LogOut, Download, XCircle, Trash2, Palette } from 'lucide-react-native';
+import { userService } from '../services/userService';
+import { authService } from '../services/authService';
 
 type RowProps = {
   icon: any;
@@ -64,7 +66,22 @@ export default function SettingsScreen({ onClose, onLogout }: { onClose?: () => 
         <Section title="Danger Zone" />
         <Row icon={Download} title="Download Your Data" subtitle="Request a copy of your information" />
         <Row icon={XCircle} title="Deactivate Account" subtitle="Temporarily disable your account" />
-        <Row icon={Trash2} title="Delete Account" subtitle="Permanently delete your account and data" danger />
+        <Row
+          icon={Trash2}
+          title="Delete Account"
+          subtitle="Permanently delete your account and data"
+          danger
+          onPress={async () => {
+            try {
+              await userService.deleteCurrentUser();
+            } catch (e) {
+              // ignore errors, still logout
+            } finally {
+              await authService.logout();
+              onLogout?.();
+            }
+          }}
+        />
 
         <View style={{ alignItems: 'center', paddingVertical: 24 }}>
           <Text style={{ color: '#6B7280' }}>Auree v1.0.0</Text>
@@ -81,4 +98,3 @@ const Section = ({ title }: { title: string }) => (
     <Text style={{ color: '#6B7280', fontWeight: '600' }}>{title}</Text>
   </View>
 );
-

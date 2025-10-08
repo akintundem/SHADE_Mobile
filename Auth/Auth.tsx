@@ -14,6 +14,8 @@ import { SignInForm } from './components/SignInForm';
 import { SignUpForm } from './components/SignUpForm';
 import { CompleteProfile } from './components/CompleteProfile';
 import { Footer } from './components/Footer';
+import { userService } from '../services/userService';
+import { setUser } from '../storage/authStorage';
 import { User } from '../types';
 
 type Props = { onLogin?: (user: User) => void };
@@ -55,7 +57,15 @@ export default function Auth({ onLogin }: Props) {
               onSwitchToSignIn={() => setMode('signIn')}
             />
           ) : (
-            <CompleteProfile email={pendingEmail || ''} onBack={() => setMode('signUp')} />
+            <CompleteProfile
+              email={pendingEmail || ''}
+              onBack={() => setMode('signUp')}
+              onComplete={async ({ name, username, dateOfBirth, profilePictureUrl }) => {
+                const updated = await userService.completeProfile({ fullName: name, username, dateOfBirth, profilePictureUrl });
+                await setUser(updated);
+                onLogin?.({ id: updated.userId, email: updated.email, name: updated.username || name, provider: 'password' });
+              }}
+            />
           )}
           <Footer />
         </ScrollView>
