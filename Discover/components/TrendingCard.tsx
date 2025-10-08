@@ -15,13 +15,16 @@ export type TrendingItem = {
   hashtags?: string[];
 };
 
-export const TrendingCard = ({ item }: { item: TrendingItem }) => {
+type Props = { item: TrendingItem; variant?: 'light' | 'dark' };
+
+export const TrendingCard = ({ item, variant = 'light' }: Props) => {
+  const isDark = variant === 'dark';
   return (
-    <View style={{ borderRadius: 14, overflow: 'hidden', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB' }}>
+    <View style={{ borderRadius: 14, overflow: 'hidden', backgroundColor: isDark ? '#111827' : '#FFFFFF', borderWidth: 1, borderColor: isDark ? '#1F2937' : '#E5E7EB' }}>
       <ImageBackground source={{ uri: item.imageUrl }} style={{ height: 200 }}>
         <View style={{ ...StyleSheet.absoluteFillObject } as any} />
-        {/* Subtle overlay for text readability */}
-        <View style={{ position: 'absolute', inset: 0 as any, backgroundColor: 'rgba(0,0,0,0.28)' }} />
+        {/* Overlay for text readability */}
+        <View style={{ position: 'absolute', inset: 0 as any, backgroundColor: isDark ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.28)' }} />
 
         {/* Top labels */}
         <View style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -54,26 +57,26 @@ export const TrendingCard = ({ item }: { item: TrendingItem }) => {
         </View>
       </ImageBackground>
 
-      <View style={{ padding: 12, gap: 8, backgroundColor: '#FFFFFF' }}>
+      <View style={{ padding: 12, gap: 8, backgroundColor: isDark ? '#111827' : '#FFFFFF' }}>
         {item.description ? (
-          <Text style={{ color: '#374151' }}>{item.description}</Text>
+          <Text style={{ color: isDark ? '#D1D5DB' : '#374151' }}>{item.description}</Text>
         ) : null}
         <View style={{ flexDirection: 'row', gap: 18, alignItems: 'center', marginTop: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Users size={14} color="#6B7280" />
-            <Text style={{ color: '#6B7280' }}>{item.stats?.attendees?.toLocaleString() ?? 0}</Text>
+            <Users size={14} color={isDark ? '#9CA3AF' : '#6B7280'} />
+            <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}>{item.stats?.attendees?.toLocaleString() ?? 0}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Camera size={14} color="#6B7280" />
-            <Text style={{ color: '#6B7280' }}>{item.stats?.posts ?? 0}</Text>
+            <Camera size={14} color={isDark ? '#9CA3AF' : '#6B7280'} />
+            <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}>{item.stats?.posts ?? 0}</Text>
           </View>
         </View>
 
         {item.hashtags && item.hashtags.length > 0 ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
             {item.hashtags.map(tag => (
-              <View key={tag} style={{ backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
-                <Text style={{ color: '#111827', fontSize: 12 }}>#{tag}</Text>
+              <View key={tag} style={{ backgroundColor: isDark ? '#0B0B0B' : '#FFFFFF', borderWidth: 1, borderColor: isDark ? '#1F2937' : '#E5E7EB', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
+                <Text style={{ color: isDark ? '#E5E7EB' : '#111827', fontSize: 12 }}>#{tag}</Text>
               </View>
             ))}
           </View>

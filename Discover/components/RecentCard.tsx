@@ -13,9 +13,12 @@ export type RecentItem = {
   status?: 'upcoming' | 'live' | 'archived';
 };
 
-export const RecentCard = ({ item }: { item: RecentItem }) => {
+type Props = { item: RecentItem; variant?: 'light' | 'dark' };
+
+export const RecentCard = ({ item, variant = 'light' }: Props) => {
+  const isDark = variant === 'dark';
   return (
-    <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }}>
+    <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: isDark ? '#1F2937' : '#E5E7EB', backgroundColor: isDark ? '#0F1216' : '#FFFFFF' }}>
       <ImageBackground source={{ uri: item.imageUrl }} style={{ height: 140 }}>
         {/* overlay */}
         <View style={{ position: 'absolute', inset: 0 as any, backgroundColor: 'rgba(0,0,0,0.22)' }} />
@@ -33,21 +36,21 @@ export const RecentCard = ({ item }: { item: RecentItem }) => {
       </ImageBackground>
 
       <View style={{ padding: 12 }}>
-        <Text style={{ color: '#111827', fontWeight: '700', fontSize: 16 }}>{item.title}</Text>
+        <Text style={{ color: isDark ? '#F3F4F6' : '#111827', fontWeight: '700', fontSize: 16 }}>{item.title}</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <CalendarDays size={14} color="#111827" />
-            <Text style={{ color: '#111827' }}>{item.date}</Text>
+            <CalendarDays size={14} color={isDark ? '#E5E7EB' : '#111827'} />
+            <Text style={{ color: isDark ? '#E5E7EB' : '#111827' }}>{item.date}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <MapPin size={14} color="#111827" />
-            <Text style={{ color: '#111827' }}>{item.location}</Text>
+            <MapPin size={14} color={isDark ? '#E5E7EB' : '#111827'} />
+            <Text style={{ color: isDark ? '#E5E7EB' : '#111827' }}>{item.location}</Text>
           </View>
         </View>
 
         {item.description ? (
-          <Text style={{ color: '#6B7280', marginTop: 8 }}>{item.description}</Text>
+          <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280', marginTop: 8 }}>{item.description}</Text>
         ) : null}
       </View>
     </View>
