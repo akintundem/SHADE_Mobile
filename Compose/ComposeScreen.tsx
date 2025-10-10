@@ -1,39 +1,52 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { X, Camera, ImagePlus, Search, Hash, Users, Globe, Lock } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
+import { X, Camera, ImagePlus, Search, Hash, Users, Globe, Lock, Save } from 'lucide-react-native';
+import { useTheme } from '../theme/ThemeProvider';
 import { recentExamples } from '../Discover/examples';
 
 type Props = {
   onClose: () => void;
   onPost?: (payload: { caption: string; tags: string[]; eventId?: string }) => void;
   onOpenCamera?: () => void;
+  hasDraft?: boolean;
+  onContinueDraft?: () => void;
+  onClearDraft?: () => void;
+  onSaveDraft?: () => void;
 };
 
-export default function ComposeScreen({ onClose, onPost, onOpenCamera }: Props) {
+export default function ComposeScreen({ onClose, onPost, onOpenCamera, hasDraft, onContinueDraft, onClearDraft, onSaveDraft }: Props) {
+  const { colors } = useTheme();
   const [mode, setMode] = useState<'moment' | 'thought'>('moment');
   const [caption, setCaption] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'followers' | 'private'>('public');
   const [selectedEventId, setSelectedEventId] = useState<string | undefined>();
+  const [mediaPaths, setMediaPaths] = useState<string[]>([]);
 
-  const canPost = useMemo(() => (mode === 'thought' ? caption.trim().length > 0 : true), [mode, caption]);
+  useEffect(() => {
+    (async () => {
+      const { getCaptureClips } = await import('../storage/captureSession');
+      const clips = getCaptureClips();
+      if (clips.length > 0) {
+        setMediaPaths(clips.map(c => c.path));
+      }
+    })();
+  }, []);
+
+  const canPost = useMemo(() => (mode === 'thought' ? caption.trim().length > 0 : mediaPaths.length > 0 || caption.trim().length > 0), [mode, caption, mediaPaths]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: '#E5E7EB' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
         <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
-          <X size={20} color="#111827" />
+          <X size={20} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={{ color: '#111827', fontWeight: '700' }}>Create</Text>
-        <TouchableOpacity
-          disabled={!canPost}
-          onPress={() => onPost?.({ caption, tags, eventId: selectedEventId })}
-          style={{ backgroundColor: canPost ? '#111827' : '#9CA3AF', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}
-        >
-          <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Post</Text>
+        <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>Create</Text>
+        <TouchableOpacity onPress={onOpenCamera} style={{ padding: 4 }}>
+          <Camera size={22} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -53,39 +66,59 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera }: Props) 
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         {mode === 'moment' ? (
           <>
             {/* Caption first */}
             <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
-              <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Caption</Text>
-              <View style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FFFFFF' }}>
+              <Text style={{ color: colors.textPrimary, fontWeight: '700', marginBottom: 8 }}>Caption</Text>
+              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.surface }}>
                 <TextInput
                   value={caption}
                   onChangeText={setCaption}
                   placeholder="Say something about this moment..."
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textSecondary}
                   multiline
-                  style={{ minHeight: 80, color: '#111827' }}
+                  style={{ minHeight: 80, color: colors.textPrimary }}
                 />
               </View>
             </View>
 
             {/* Media second */}
             <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-              <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Media</Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                <TouchableOpacity onPress={onOpenCamera}>
-                  <QuickAction icon={<Camera size={16} color="#111827" />} label="Open Camera" />
-                </TouchableOpacity>
-                <QuickAction icon={<ImagePlus size={16} color="#111827" />} label="Add from Library" />
-              </View>
+              <Text style={{ color: colors.textPrimary, fontWeight: '700', marginBottom: 8 }}>Media</Text>
 
-              <View style={{ height: 140, borderWidth: 1, borderColor: '#E5E7EB', borderStyle: 'dashed', borderRadius: 12, marginTop: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAFAFA' }}>
-                <ImagePlus size={22} color="#6B7280" />
-                <Text style={{ color: '#6B7280', marginTop: 6 }}>Upload photos or videos</Text>
-                <Text style={{ color: '#9CA3AF', marginTop: 2, fontSize: 12 }}>Tap to select multiple</Text>
-              </View>
+              {mediaPaths.length > 0 ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {mediaPaths.map((path, idx) => (
+                      <View key={idx} style={{ width: 100, height: 100, borderRadius: 12, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
+                        <Image source={{ uri: path }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+              ) : (
+                <View style={{ height: 140, borderWidth: 1, borderColor: colors.border, borderStyle: 'dashed', borderRadius: 12, marginTop: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.card }}>
+                  <ImagePlus size={22} color={colors.textSecondary} />
+                  <Text style={{ color: colors.textSecondary, marginTop: 6 }}>Upload photos or videos</Text>
+                  <Text style={{ color: colors.textSecondary, marginTop: 2, fontSize: 12 }}>Tap camera icon above</Text>
+                </View>
+              )}
+
+              {hasDraft ? (
+                <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
+                  <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>You have an unsent draft</Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity onPress={onClearDraft} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.card }}>
+                      <Text style={{ color: colors.textPrimary }}>Discard</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onContinueDraft} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.tint }}>
+                      <Text style={{ color: colors.bg, fontWeight: '600' }}>Continue</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : null}
             </View>
 
             {/* Events last */}
@@ -115,15 +148,15 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera }: Props) 
 
         {/* Tags */}
         <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-          <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Tags</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 999, paddingHorizontal: 12, height: 40, backgroundColor: '#FFFFFF' }}>
-            <Hash size={16} color="#6B7280" />
+          <Text style={{ color: colors.textPrimary, fontWeight: '700', marginBottom: 8 }}>Tags</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 999, paddingHorizontal: 12, height: 40, backgroundColor: colors.surface }}>
+            <Hash size={16} color={colors.textSecondary} />
             <TextInput
               value={tagInput}
               onChangeText={setTagInput}
               placeholder="Add a tag"
-              placeholderTextColor="#9CA3AF"
-              style={{ marginLeft: 8, flex: 1, color: '#111827' }}
+              placeholderTextColor={colors.textSecondary}
+              style={{ marginLeft: 8, flex: 1, color: colors.textPrimary }}
               onSubmitEditing={() => {
                 if (!tagInput.trim()) return;
                 if (tags.includes(tagInput.trim())) return;
@@ -138,19 +171,19 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera }: Props) 
                 setTags([...tags, tagInput.trim()]);
                 setTagInput('');
               }}
-              style={{ backgroundColor: '#111827', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 }}
+              style={{ backgroundColor: colors.tint, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 }}
             >
-              <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Add</Text>
+              <Text style={{ color: colors.bg, fontWeight: '600' }}>Add</Text>
             </TouchableOpacity>
           </View>
 
           {tags.length > 0 ? (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
               {tags.map(t => (
-                <View key={t} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#FFFFFF', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 }}>
-                  <Text style={{ color: '#111827' }}>#{t}</Text>
+                <View key={t} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 6 }}>
+                  <Text style={{ color: colors.textPrimary }}>#{t}</Text>
                   <TouchableOpacity onPress={() => setTags(tags.filter(x => x !== t))}>
-                    <X size={14} color="#6B7280" />
+                    <X size={14} color={colors.textSecondary} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -160,29 +193,44 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera }: Props) 
 
         {/* Privacy */}
         <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-          <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Visibility</Text>
+          <Text style={{ color: colors.textPrimary, fontWeight: '700', marginBottom: 8 }}>Visibility</Text>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Segment
               active={privacy === 'public'}
               onPress={() => setPrivacy('public')}
-              icon={<Globe size={14} color={privacy === 'public' ? '#FFFFFF' : '#111827'} />}
+              icon={<Globe size={14} color={privacy === 'public' ? colors.bg : colors.textPrimary} />}
               label="Public"
             />
             <Segment
               active={privacy === 'followers'}
               onPress={() => setPrivacy('followers')}
-              icon={<Users size={14} color={privacy === 'followers' ? '#FFFFFF' : '#111827'} />}
+              icon={<Users size={14} color={privacy === 'followers' ? colors.bg : colors.textPrimary} />}
               label="Followers"
             />
             <Segment
               active={privacy === 'private'}
               onPress={() => setPrivacy('private')}
-              icon={<Lock size={14} color={privacy === 'private' ? '#FFFFFF' : '#111827'} />}
+              icon={<Lock size={14} color={privacy === 'private' ? colors.bg : colors.textPrimary} />}
               label="Private"
             />
           </View>
         </View>
       </ScrollView>
+
+      {/* Bottom action bar */}
+      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, borderTopWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', gap: 10 }}>
+        <TouchableOpacity onPress={onSaveDraft} style={{ flex: 1, backgroundColor: colors.card, paddingVertical: 12, borderRadius: 999, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 }}>
+          <Save size={18} color={colors.textPrimary} />
+          <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>Save Draft</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          disabled={!canPost}
+          onPress={() => onPost?.({ caption, tags, eventId: selectedEventId })}
+          style={{ flex: 1, backgroundColor: canPost ? colors.tint : '#9CA3AF', paddingVertical: 12, borderRadius: 999, alignItems: 'center' }}
+        >
+          <Text style={{ color: colors.bg, fontWeight: '600' }}>Post</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }

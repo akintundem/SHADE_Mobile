@@ -12,6 +12,7 @@ import { DiscoverHeaderHero } from './components/DiscoverHeaderHero';
 import { TabBar } from '../Home/components/TabBar';
 import { User } from '../types';
 import { trendingExamples, recentExamples } from './examples';
+import { useTheme } from '../theme/ThemeProvider';
 
 type Props = {
   user: User;
@@ -23,16 +24,17 @@ type Props = {
   onPlus?: () => void;
 };
 
-export default function DiscoverScreen({ user, trending = trendingExamples, recent = recentExamples, onCreateEvent, onTabChange, onPlus }: Props) {
+export default function DiscoverScreen({ user, trending = trendingExamples, recent = recentExamples, onCreateEvent, onCreateCollection, onTabChange, onPlus }: Props) {
+  const { colors } = useTheme();
   const [seg, setSeg] = useState<'events' | 'collections'>('events');
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      <TopBar onPlus={onPlus} theme="light" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      <TopBar onPlus={onPlus} theme={colors.bg === '#FFFFFF' ? 'light' : 'dark'} />
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        <DiscoverHeaderHero theme="light" />
+        <DiscoverHeaderHero theme={colors.bg === '#FFFFFF' ? 'light' : 'dark'} />
 
         <View style={{ paddingHorizontal: 16 }}>
-          <FilterBar theme="light" />
+          <FilterBar theme={colors.bg === '#FFFFFF' ? 'light' : 'dark'} />
         </View>
 
         <SegSwitch value={seg} onChange={setSeg} />

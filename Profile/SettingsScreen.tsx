@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity, Switch } from 'react-native';
 import { ChevronRight, Lock, Bell, Shield, User, Globe, HardDrive, Accessibility, HelpCircle, Info, FlagTriangleRight, LogOut, Download, XCircle, Trash2, Palette } from 'lucide-react-native';
+import { useTheme } from '../theme/ThemeProvider';
 
 type RowProps = {
   icon: any;
@@ -28,13 +29,14 @@ const Row = ({ icon: Icon, title, subtitle, end, onPress, danger }: RowProps) =>
 export default function SettingsScreen({ onClose, onLogout }: { onClose?: () => void; onLogout?: () => void }) {
   const [isPrivate, setIsPrivate] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(true);
+  const { isDark, setDark } = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#0B0F14' : '#F9FAFB' }}>
       <ScrollView>
-        <View style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#F3F4F6' }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111827' }}>Settings</Text>
-          <Text style={{ color: '#6B7280', marginTop: 4 }}>@aure-guest</Text>
+        <View style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: isDark ? '#111827' : '#FFFFFF', borderBottomWidth: 1, borderColor: isDark ? '#1F2937' : '#F3F4F6' }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: isDark ? '#F9FAFB' : '#111827' }}>Settings</Text>
+          <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280', marginTop: 4 }}>@aure-guest</Text>
         </View>
 
         <Section title="Account" />
@@ -46,7 +48,7 @@ export default function SettingsScreen({ onClose, onLogout }: { onClose?: () => 
         <Section title="Quick Settings" />
         <Row icon={Lock} title="Private Account" subtitle="Only followers can see your posts" end={<Switch value={isPrivate} onValueChange={setIsPrivate} />} />
         <Row icon={Bell} title="Push Notifications" subtitle="Get notified about activity" end={<Switch value={pushEnabled} onValueChange={setPushEnabled} />} />
-        <Row icon={Palette} title="Theme" subtitle="System" end={<Text style={{ color: '#111827' }}>Auto</Text>} />
+        <Row icon={Palette} title="Theme" subtitle={isDark ? 'Dark' : 'Light'} onPress={() => setDark(!isDark)} end={<Switch value={isDark} onValueChange={setDark} />} />
 
         <Section title="App Preferences" />
         <Row icon={Globe} title="Language" subtitle="English (US)" />

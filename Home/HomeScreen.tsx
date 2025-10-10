@@ -7,6 +7,7 @@ import { EventCard, EventItem } from './components/EventCard';
 import { EmptyFeed } from './components/EmptyFeed';
 import { TabBar } from './components/TabBar';
 import { examplePost } from './examples/examplePost';
+import { useTheme } from '../theme/ThemeProvider';
 import { User } from '../types';
 
 type Props = {
@@ -19,8 +20,9 @@ type Props = {
 };
 
 export default function HomeScreen({ user, events = [], onCreatePost, onOpenMenu, showExampleWhenEmpty = true, onTabChange }: Props) {
+  const { colors } = useTheme();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
         <HomeHeader user={user} onOpenMenu={onOpenMenu} onCreatePost={onCreatePost} />
 
