@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Camera } from 'lucide-react-native';
+import { useTheme } from '../../theme/ThemeProvider';
 
 type Props = { onPress?: () => void };
 
 export const SharePostCard = ({ onPress }: Props) => {
+  const { colors } = useTheme();
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -12,9 +14,9 @@ export const SharePostCard = ({ onPress }: Props) => {
       style={{
         borderWidth: 1,
         borderStyle: 'dashed',
-        borderColor: '#CBD5E1',
+        borderColor: colors.border,
         borderRadius: 12,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
         paddingVertical: 20,
       }}
     >
@@ -24,16 +26,16 @@ export const SharePostCard = ({ onPress }: Props) => {
             height: 48,
             width: 48,
             borderRadius: 24,
-            backgroundColor: '#F3F4F6',
+            backgroundColor: colors.card,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 8,
           }}
         >
-          <Camera size={20} color="#111827" />
+          <Camera size={20} color={colors.textPrimary} />
         </View>
-        <Text style={{ fontWeight: '600', color: '#111827' }}>Share a Post</Text>
-        <Text style={{ color: '#6B7280', marginTop: 6, textAlign: 'center' }}>
+        <Text style={{ fontWeight: '600', color: colors.textPrimary }}>Share a Post</Text>
+        <Text style={{ color: colors.textSecondary, marginTop: 6, textAlign: 'center' }}>
           Connect a moment to music or an event and share it
         </Text>
       </View>

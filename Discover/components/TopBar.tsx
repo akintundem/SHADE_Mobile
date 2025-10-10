@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Menu, Plus } from 'lucide-react-native';
+import { useTheme } from '../../theme/ThemeProvider';
 
 type Props = { onPlus?: () => void; theme?: 'light' | 'dark' };
 
-export const TopBar = ({ onPlus, theme = 'dark' }: Props) => {
-  const dark = theme === 'dark';
+export const TopBar = ({ onPlus }: Props) => {
+  const { colors } = useTheme();
   return (
     <View
       style={{
@@ -14,16 +15,16 @@ export const TopBar = ({ onPlus, theme = 'dark' }: Props) => {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: dark ? '#0B0B0B' : '#FFFFFF',
-        borderBottomWidth: dark ? 0 : 1,
-        borderColor: '#F3F4F6',
+        backgroundColor: colors.surface,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
       }}
     >
       <TouchableOpacity hitSlop={10}>
-        <Menu size={22} color={dark ? '#E5E7EB' : '#111827'} />
+        <Menu size={22} color={colors.textPrimary} />
       </TouchableOpacity>
       <TouchableOpacity hitSlop={10} onPress={onPlus}>
-        <Plus size={22} color={dark ? '#E5E7EB' : '#111827'} />
+        <Plus size={22} color={colors.textPrimary} />
       </TouchableOpacity>
     </View>
   );

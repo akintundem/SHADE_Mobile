@@ -29,22 +29,21 @@ export default function DiscoverScreen({ user, trending = trendingExamples, rece
   const [seg, setSeg] = useState<'events' | 'collections'>('events');
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TopBar onPlus={onPlus} theme={colors.bg === '#FFFFFF' ? 'light' : 'dark'} />
+      <TopBar onPlus={onPlus} />
       <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-        <DiscoverHeaderHero theme={colors.bg === '#FFFFFF' ? 'light' : 'dark'} />
+        <DiscoverHeaderHero />
 
         <View style={{ paddingHorizontal: 16 }}>
-          <FilterBar theme={colors.bg === '#FFFFFF' ? 'light' : 'dark'} />
+          <FilterBar />
         </View>
 
         <SegSwitch value={seg} onChange={setSeg} />
 
         {seg === 'events' ? (
           <>
-            <View style={{ height: 180, borderRadius: 12, overflow: 'hidden', marginHorizontal: 16, marginTop: 12, backgroundColor: '#F3F4F6' }} />
+            <View style={{ height: 180, borderRadius: 12, overflow: 'hidden', marginHorizontal: 16, marginTop: 12, backgroundColor: colors.card }} />
             <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
               <SectionHeader
-                theme="light"
                 icon="trending"
                 title="Trending Events"
                 badge={`${trending.length} events`}
@@ -54,16 +53,16 @@ export default function DiscoverScreen({ user, trending = trendingExamples, rece
 
               <View style={{ marginTop: 12, gap: 16 }}>
                 {trending.map(item => (
-                  <TrendingCard key={item.id} item={item} variant="light" />
+                  <TrendingCard key={item.id} item={item} />
                 ))}
               </View>
             </View>
 
             <View style={{ paddingHorizontal: 16, marginTop: 24 }}>
-              <SectionHeader theme="light" icon="clock" title="Recent Global Events" />
+              <SectionHeader icon="clock" title="Recent Global Events" />
               <View style={{ marginTop: 12, gap: 16 }}>
                 {recent.map(item => (
-                  <RecentCard key={item.id} item={item} variant="light" />
+                  <RecentCard key={item.id} item={item} />
                 ))}
               </View>
             </View>
@@ -71,13 +70,13 @@ export default function DiscoverScreen({ user, trending = trendingExamples, rece
         ) : (
           <>
             <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-              <SectionHeader theme="light" icon="trending" title="Curated Collections" badge={`3 collections`} ctaLabel="New Collection" onPressCta={onCreateCollection} />
+              <SectionHeader icon="trending" title="Curated Collections" badge={`3 collections`} ctaLabel="New Collection" onPressCta={onCreateCollection} />
               <View style={{ marginTop: 12, gap: 16 }}>
                 <CollectionCard
                   title="Grammy Awards Through Time"
                   description="The complete archive of Grammy ceremonies, performances, and behind-the-scenes moments"
                   imageUrl="https://images.unsplash.com/photo-1506158775495-ecf6f1f1b1b5?q=80&w=1400&auto=format&fit=crop"
-                  meta="1958 - 2024    127 events    Auree Archive"
+                  meta="1958 - 2024    127 events    Shade Archive"
                 />
               </View>
             </View>

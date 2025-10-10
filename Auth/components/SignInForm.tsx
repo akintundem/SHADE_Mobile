@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { View, TextInput, Pressable, Text, TouchableOpacity, useColorScheme, ActivityIndicator } from 'react-native';
+import { View, TextInput, Pressable, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
-import { styles } from '../styles';
+import { useAuthStyles } from '../styles';
 import { User } from '../../types';
 import { authService } from '../../services/authService';
 import { setUser } from '../../storage/authStorage';
@@ -12,7 +12,7 @@ type Props = {
 };
 
 export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
-  const isDark = useColorScheme() === 'dark';
+  const styles = useAuthStyles();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,19 +23,14 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
 
   return (
     <View style={styles.formWrap}>
-      <View
-        style={[
-          styles.inputWrap,
-          isDark ? styles.inputWrapDark : styles.inputWrapLight,
-        ]}
-      >
-        <Mail size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
+      <View style={styles.inputWrap}>
+        <Mail size={18} color={styles.signupMuted.color as any} style={styles.leadingIconSvg} />
         <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
+          style={styles.input}
           value={email}
           onChangeText={setEmail}
           placeholder="Email"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+          placeholderTextColor={styles.signupMuted.color as any}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -43,19 +38,14 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
         />
       </View>
 
-      <View
-        style={[
-          styles.inputWrap,
-          isDark ? styles.inputWrapDark : styles.inputWrapLight,
-        ]}
-      >
-        <Lock size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
+      <View style={styles.inputWrap}>
+        <Lock size={18} color={styles.signupMuted.color as any} style={styles.leadingIconSvg} />
         <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
+          style={styles.input}
           value={password}
           onChangeText={setPassword}
           placeholder="Password"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+          placeholderTextColor={styles.signupMuted.color as any}
           secureTextEntry={!showPassword}
           autoCapitalize="none"
           autoCorrect={false}
@@ -68,9 +58,9 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
           style={styles.trailingIconWrap}
         >
           {showPassword ? (
-            <EyeOff size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
+            <EyeOff size={18} color={styles.signupMuted.color as any} />
           ) : (
-            <Eye size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
+            <Eye size={18} color={styles.signupMuted.color as any} />
           )}
         </Pressable>
       </View>
@@ -107,10 +97,10 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
       </TouchableOpacity>
 
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-        <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280', fontSize: 15 }}>Don't have an account? </Text>
+        <Text style={styles.signupMuted}>Don't have an account? </Text>
         <Text
           onPress={onSwitchToSignUp}
-          style={{ color: '#1DB954', fontSize: 15, fontWeight: '600' }}
+          style={styles.signupLink}
         >
           Sign up
         </Text>

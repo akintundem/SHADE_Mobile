@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { styles } from './styles';
+import { useAuthStyles } from './styles';
 import { Header } from './components/Header';
 import { AuthButtons } from './components/AuthButtons';
 import { OrDivider } from './components/OrDivider';
@@ -21,6 +21,7 @@ type Props = { onLogin?: (user: User) => void };
 export default function Auth({ onLogin }: Props) {
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'completeProfile'>('signIn');
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const styles = useAuthStyles();
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -37,7 +38,7 @@ export default function Auth({ onLogin }: Props) {
               onLogin?.({
                 id: 'spotify-dev',
                 email: 'dev+spotify@auree.app',
-                name: 'Auree Tester',
+                name: 'Shade Tester',
                 provider: 'spotify',
               })
             }

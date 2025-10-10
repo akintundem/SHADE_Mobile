@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { User } from '../types';
+import { useTheme } from '../theme/ThemeProvider';
 
 type Props = {
   visible: boolean;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function EditProfileModal({ visible, onClose, onSave, user }: Props) {
+  const { colors } = useTheme();
   const [tab, setTab] = useState<'basic' | 'professional' | 'privacy'>('basic');
   const [name, setName] = useState(user.name || '');
   const [username, setUsername] = useState((user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-'));
@@ -20,15 +22,15 @@ export default function EditProfileModal({ visible, onClose, onSave, user }: Pro
   return (
     <Modal animationType="slide" visible={visible} onRequestClose={onClose} transparent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.25)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '88%' }}>
+        <View style={{ flex: 1, backgroundColor: colors.scrim, justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '88%' }}>
             {/* Header */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: '#E5E7EB' }}>
-              <TouchableOpacity onPress={onClose}><Text style={{ color: '#111827' }}>Close</Text></TouchableOpacity>
-              <Text style={{ color: '#111827', fontWeight: '700' }}>Edit Profile</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: colors.border }}>
+              <TouchableOpacity onPress={onClose}><Text style={{ color: colors.textPrimary }}>Close</Text></TouchableOpacity>
+              <Text style={{ color: colors.textPrimary, fontWeight: '700' }}>Edit Profile</Text>
               <TouchableOpacity
                 onPress={() => onSave?.({ name, username, bio, website, location })}
-                style={{ backgroundColor: '#111827', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}
+                style={{ backgroundColor: colors.textPrimary, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}
               >
                 <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Save</Text>
               </TouchableOpacity>
@@ -44,9 +46,9 @@ export default function EditProfileModal({ visible, onClose, onSave, user }: Pro
                 <TouchableOpacity
                   key={t.key}
                   onPress={() => setTab(t.key as any)}
-                  style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: tab === t.key ? '#111827' : '#F3F4F6' }}
+                  style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: tab === t.key ? colors.textPrimary : colors.card }}
                 >
-                  <Text style={{ color: tab === t.key ? '#FFFFFF' : '#111827', fontWeight: '600' }}>{t.label}</Text>
+                  <Text style={{ color: tab === t.key ? '#FFFFFF' : colors.textPrimary, fontWeight: '600' }}>{t.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -64,13 +66,13 @@ export default function EditProfileModal({ visible, onClose, onSave, user }: Pro
 
               {tab === 'professional' ? (
                 <View style={{ paddingHorizontal: 16 }}>
-                  <Text style={{ color: '#6B7280' }}>Professional settings coming soon.</Text>
+                  <Text style={{ color: colors.textSecondary }}>Professional settings coming soon.</Text>
                 </View>
               ) : null}
 
               {tab === 'privacy' ? (
                 <View style={{ paddingHorizontal: 16 }}>
-                  <Text style={{ color: '#6B7280' }}>Privacy controls will live here.</Text>
+                  <Text style={{ color: colors.textSecondary }}>Privacy controls will live here.</Text>
                 </View>
               ) : null}
             </ScrollView>

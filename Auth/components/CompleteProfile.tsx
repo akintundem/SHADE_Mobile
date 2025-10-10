@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { ArrowLeft, Camera, User as UserIcon } from 'lucide-react-native';
-import { styles } from '../styles';
+import { useAuthStyles } from '../styles';
 
 type Props = {
   email?: string;
@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
-  const isDark = useColorScheme() === 'dark';
+  const styles = useAuthStyles();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
 
@@ -19,13 +19,13 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
   return (
     <View style={{ marginTop: 16 }}>
       <TouchableOpacity onPress={onBack} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <ArrowLeft size={18} color={isDark ? '#E5E7EB' : '#111827'} />
-        <Text style={{ color: isDark ? '#E5E7EB' : '#111827' }}>Back to credentials</Text>
+        <ArrowLeft size={18} color={styles.footerLink.color as any} />
+        <Text style={styles.footerLink}>Back to credentials</Text>
       </TouchableOpacity>
 
       <View style={{ alignItems: 'center', marginBottom: 16 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: isDark ? '#F9FAFB' : '#111827' }}>Complete your profile</Text>
-        <Text style={{ marginTop: 6, color: '#6B7280' }}>Tell us a bit about yourself</Text>
+        <Text style={styles.title}>Complete your profile</Text>
+        <Text style={styles.subtitle}>Tell us a bit about yourself</Text>
       </View>
 
       <View style={{ alignItems: 'center', marginBottom: 16 }}>
@@ -34,14 +34,14 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
             height: 100,
             width: 100,
             borderRadius: 50,
-            backgroundColor: isDark ? '#111827' : '#F3F4F6',
+            backgroundColor: '#00000000',
             borderWidth: 1,
-            borderColor: isDark ? '#2A2E35' : '#E5E7EB',
+            borderColor: styles.hr.backgroundColor as any,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <UserIcon size={36} color={isDark ? '#9CA3AF' : '#6B7280'} />
+          <UserIcon size={36} color={styles.signupMuted.color as any} />
           <View
             style={{
               position: 'absolute',
@@ -54,39 +54,35 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              borderColor: '#E5E7EB',
+              borderColor: styles.hr.backgroundColor as any,
             }}
           >
-            <Camera size={16} color="#111827" />
+            <Camera size={16} color={styles.footerLink.color as any} />
           </View>
         </View>
-        <Text style={{ marginTop: 8, color: '#9CA3AF' }}>Add a profile picture</Text>
+        <Text style={{ marginTop: 8, color: styles.signupMuted.color as any }}>Add a profile picture</Text>
       </View>
 
-      <View
-        style={[styles.inputWrap, isDark ? styles.inputWrapDark : styles.inputWrapLight]}
-      >
-        <UserIcon size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
+      <View style={styles.inputWrap}>
+        <UserIcon size={18} color={styles.signupMuted.color as any} style={styles.leadingIconSvg} />
         <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
+          style={styles.input}
           value={name}
           onChangeText={setName}
           placeholder="Full name"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+          placeholderTextColor={styles.signupMuted.color as any}
           returnKeyType="next"
         />
       </View>
 
-      <View
-        style={[styles.inputWrap, isDark ? styles.inputWrapDark : styles.inputWrapLight]}
-      >
-        <UserIcon size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
+      <View style={styles.inputWrap}>
+        <UserIcon size={18} color={styles.signupMuted.color as any} style={styles.leadingIconSvg} />
         <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
+          style={styles.input}
           value={username}
           onChangeText={setUsername}
           placeholder="Username"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
+          placeholderTextColor={styles.signupMuted.color as any}
           autoCapitalize="none"
           returnKeyType="done"
         />

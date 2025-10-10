@@ -59,9 +59,9 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera, hasDraft,
           <TouchableOpacity
             key={t.key}
             onPress={() => setMode(t.key as any)}
-            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: mode === t.key ? '#111827' : '#F3F4F6' }}
+            style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: mode === t.key ? colors.textPrimary : colors.card }}
           >
-            <Text style={{ color: mode === t.key ? '#FFFFFF' : '#111827', fontWeight: '600' }}>{t.label}</Text>
+            <Text style={{ color: mode === t.key ? '#FFFFFF' : colors.textPrimary, fontWeight: '600' }}>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -122,27 +122,27 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera, hasDraft,
             </View>
 
             {/* Events last */}
-            {renderAttachEvent(selectedEventId, setSelectedEventId)}
+            {renderAttachEvent(selectedEventId, setSelectedEventId, colors)}
           </>
         ) : (
           <>
             {/* Thought first */}
             <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
-              <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Write a thought</Text>
-              <View style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FFFFFF' }}>
+              <Text style={{ color: colors.textPrimary, fontWeight: '700', marginBottom: 8 }}>Write a thought</Text>
+              <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: colors.surface }}>
                 <TextInput
                   value={caption}
                   onChangeText={setCaption}
                   placeholder="Share a thought..."
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={colors.textSecondary}
                   multiline
-                  style={{ minHeight: 100, color: '#111827' }}
+                  style={{ minHeight: 100, color: colors.textPrimary }}
                 />
               </View>
             </View>
 
             {/* Events next */}
-            {renderAttachEvent(selectedEventId, setSelectedEventId)}
+            {renderAttachEvent(selectedEventId, setSelectedEventId, colors)}
           </>
         )}
 
@@ -200,18 +200,21 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera, hasDraft,
               onPress={() => setPrivacy('public')}
               icon={<Globe size={14} color={privacy === 'public' ? colors.bg : colors.textPrimary} />}
               label="Public"
+              colors={colors}
             />
             <Segment
               active={privacy === 'followers'}
               onPress={() => setPrivacy('followers')}
               icon={<Users size={14} color={privacy === 'followers' ? colors.bg : colors.textPrimary} />}
               label="Followers"
+              colors={colors}
             />
             <Segment
               active={privacy === 'private'}
               onPress={() => setPrivacy('private')}
               icon={<Lock size={14} color={privacy === 'private' ? colors.bg : colors.textPrimary} />}
               label="Private"
+              colors={colors}
             />
           </View>
         </View>
@@ -235,27 +238,21 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera, hasDraft,
   );
 }
 
-const QuickAction = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
-  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }}>
+const Segment = ({ active, onPress, icon, label, colors }: { active: boolean; onPress: () => void; icon: React.ReactNode; label: string; colors: any }) => (
+  <TouchableOpacity onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: active ? colors.textPrimary : colors.card }}>
     {icon}
-    <Text style={{ color: '#111827', fontWeight: '600' }}>{label}</Text>
-  </View>
-);
-
-const Segment = ({ active, onPress, icon, label }: { active: boolean; onPress: () => void; icon: React.ReactNode; label: string }) => (
-  <TouchableOpacity onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: active ? '#111827' : '#F3F4F6' }}>
-    {icon}
-    <Text style={{ color: active ? '#FFFFFF' : '#111827', fontWeight: '600' }}>{label}</Text>
+    <Text style={{ color: active ? '#FFFFFF' : colors.textPrimary, fontWeight: '600' }}>{label}</Text>
   </TouchableOpacity>
 );
 
-function renderAttachEvent(selectedEventId?: string, onSelect?: (id: string) => void) {
+function renderAttachEvent(selectedEventId?: string, onSelect?: (id: string) => void, colors?: any) {
+  if (!colors) return null;
   return (
     <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-      <Text style={{ color: '#111827', fontWeight: '700', marginBottom: 8 }}>Attach to Event</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingHorizontal: 12, height: 42, backgroundColor: '#FFFFFF' }}>
-        <Search size={16} color="#6B7280" />
-        <Text style={{ color: '#9CA3AF', marginLeft: 8 }}>Search events by name or location</Text>
+      <Text style={{ color: colors.textPrimary, fontWeight: '700', marginBottom: 8 }}>Attach to Event</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, height: 42, backgroundColor: colors.surface }}>
+        <Search size={16} color={colors.textSecondary} />
+        <Text style={{ color: colors.textSecondary, marginLeft: 8 }}>Search events by name or location</Text>
       </View>
 
       <View style={{ marginTop: 10, gap: 10 }}>
@@ -263,10 +260,10 @@ function renderAttachEvent(selectedEventId?: string, onSelect?: (id: string) => 
           <TouchableOpacity
             key={ev.id}
             onPress={() => onSelect?.(ev.id)}
-            style={{ borderWidth: 1, borderColor: selectedEventId === ev.id ? '#111827' : '#E5E7EB', backgroundColor: '#FFFFFF', borderRadius: 10, padding: 12 }}
+            style={{ borderWidth: 1, borderColor: selectedEventId === ev.id ? colors.textPrimary : colors.border, backgroundColor: colors.surface, borderRadius: 10, padding: 12 }}
           >
-            <Text style={{ color: '#111827', fontWeight: '600' }}>{ev.title}</Text>
-            <Text style={{ color: '#6B7280', marginTop: 2 }}>{ev.location}</Text>
+            <Text style={{ color: colors.textPrimary, fontWeight: '600' }}>{ev.title}</Text>
+            <Text style={{ color: colors.textSecondary, marginTop: 2 }}>{ev.location}</Text>
           </TouchableOpacity>
         ))}
       </View>

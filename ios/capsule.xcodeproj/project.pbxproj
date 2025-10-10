@@ -274,8 +274,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.reactjs.native.example.capsule.dev;
-				PRODUCT_NAME = capsule;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shade.app;
+				PRODUCT_NAME = shade;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -302,8 +302,8 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.reactjs.native.example.capsule.dev;
-				PRODUCT_NAME = capsule;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shade.app;
+				PRODUCT_NAME = shade;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};

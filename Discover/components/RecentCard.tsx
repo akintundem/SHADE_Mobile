@@ -1,5 +1,6 @@
 import React from 'react';
 import { ImageBackground, Text, View } from 'react-native';
+import { useTheme } from '../../theme/ThemeProvider';
 import { CalendarDays, MapPin, Music } from 'lucide-react-native';
 
 export type RecentItem = {
@@ -15,10 +16,10 @@ export type RecentItem = {
 
 type Props = { item: RecentItem; variant?: 'light' | 'dark' };
 
-export const RecentCard = ({ item, variant = 'light' }: Props) => {
-  const isDark = variant === 'dark';
+export const RecentCard = ({ item }: Props) => {
+  const { colors, isDark } = useTheme();
   return (
-    <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: isDark ? '#1F2937' : '#E5E7EB', backgroundColor: isDark ? '#0F1216' : '#FFFFFF' }}>
+    <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
       <ImageBackground source={{ uri: item.imageUrl }} style={{ height: 140 }}>
         {/* overlay */}
         <View style={{ position: 'absolute', inset: 0 as any, backgroundColor: 'rgba(0,0,0,0.22)' }} />
@@ -29,28 +30,28 @@ export const RecentCard = ({ item, variant = 'light' }: Props) => {
         </View>
 
         {item.status === 'upcoming' ? (
-          <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#FFFFFF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#E5E7EB' }}>
-            <Text style={{ color: '#111827', fontSize: 12 }}>Upcoming</Text>
+          <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: colors.surface, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: colors.border }}>
+            <Text style={{ color: colors.textPrimary, fontSize: 12 }}>Upcoming</Text>
           </View>
         ) : null}
       </ImageBackground>
 
       <View style={{ padding: 12 }}>
-        <Text style={{ color: isDark ? '#F3F4F6' : '#111827', fontWeight: '700', fontSize: 16 }}>{item.title}</Text>
+        <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 16 }}>{item.title}</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <CalendarDays size={14} color={isDark ? '#E5E7EB' : '#111827'} />
-            <Text style={{ color: isDark ? '#E5E7EB' : '#111827' }}>{item.date}</Text>
+            <CalendarDays size={14} color={colors.textPrimary} />
+            <Text style={{ color: colors.textPrimary }}>{item.date}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <MapPin size={14} color={isDark ? '#E5E7EB' : '#111827'} />
-            <Text style={{ color: isDark ? '#E5E7EB' : '#111827' }}>{item.location}</Text>
+            <MapPin size={14} color={colors.textPrimary} />
+            <Text style={{ color: colors.textPrimary }}>{item.location}</Text>
           </View>
         </View>
 
         {item.description ? (
-          <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280', marginTop: 8 }}>{item.description}</Text>
+          <Text style={{ color: colors.textSecondary, marginTop: 8 }}>{item.description}</Text>
         ) : null}
       </View>
     </View>

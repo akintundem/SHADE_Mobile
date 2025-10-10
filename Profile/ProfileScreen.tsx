@@ -50,11 +50,11 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
                 key={t.key}
                 onPress={() => setSection(t.key as any)}
                 style={{
-                  color: section === t.key ? '#111827' : '#6B7280',
+                  color: section === t.key ? colors.textPrimary : colors.textSecondary,
                   fontWeight: section === t.key ? '700' : '400',
                   paddingBottom: 6,
                   borderBottomWidth: section === t.key ? 2 : 0,
-                  borderColor: '#111827',
+                  borderColor: colors.textPrimary,
                 }}
               >
                 {t.label}
@@ -84,11 +84,11 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
             </View>
           ) : section === 'posts' ? (
             <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ color: '#6B7280' }}>No posts yet</Text>
+              <Text style={{ color: colors.textSecondary }}>No posts yet</Text>
             </View>
           ) : (
             <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ color: '#6B7280' }}>No posts yet</Text>
+              <Text style={{ color: colors.textSecondary }}>No posts yet</Text>
             </View>
           )}
         </View>

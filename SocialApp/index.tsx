@@ -76,7 +76,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       )}
 
       {isComposeOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#FFFFFF', zIndex: 100 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.surface, zIndex: 100 }}>
           <React.Suspense fallback={null}>
             <ComposeScreen
               onClose={() => setComposeOpen(false)}
@@ -110,7 +110,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       ) : null}
 
       {isCreateEventOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000000', zIndex: 100 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 100 }}>
           <React.Suspense fallback={null}>
             <CreateEventScreen onClose={() => setCreateEventOpen(false)} />
           </React.Suspense>
@@ -118,7 +118,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       ) : null}
 
       {isCreateCollectionOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000000', zIndex: 100 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 100 }}>
           <React.Suspense fallback={null}>
             <CreateCollectionScreen onClose={() => setCreateCollectionOpen(false)} />
           </React.Suspense>
@@ -126,7 +126,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       ) : null}
 
       {isCameraOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000', zIndex: 110 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 110 }}>
           <React.Suspense fallback={null}>
             <CameraScreen
               onClose={() => setCameraOpen(false)}
@@ -146,7 +146,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       ) : null}
 
       {isEditorOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#000', zIndex: 120 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.bg, zIndex: 120 }}>
           <React.Suspense fallback={null}>
             <VideoEditorScreen
               onClose={() => {
@@ -163,7 +163,7 @@ export default function SocialApp({ user, onLogout }: Props) {
       ) : null}
 
       {isSettingsOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000066', zIndex: 130 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.scrim, zIndex: 130 }}>
           <React.Suspense fallback={null}>
             <SettingsScreen onClose={() => setSettingsOpen(false)} />
           </React.Suspense>

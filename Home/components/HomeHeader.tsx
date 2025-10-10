@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { User } from '../../types';
+import { useTheme } from '../../theme/ThemeProvider';
 
 type Props = {
   user: User;
@@ -11,8 +12,9 @@ type Props = {
 
 export const HomeHeader = ({ user, onOpenMenu, onCreatePost }: Props) => {
   const name = user.name || user.email;
+  const { colors } = useTheme();
   return (
-    <View style={{ backgroundColor: '#FFFFFF' }}>
+    <View style={{ backgroundColor: colors.surface }}>
       <View
         style={{
           height: 48,
@@ -23,18 +25,18 @@ export const HomeHeader = ({ user, onOpenMenu, onCreatePost }: Props) => {
         }}
       >
         <View style={{ paddingHorizontal: 2 }}>
-          <Text style={{ color: '#111827', fontWeight: '800', fontSize: 18 }}>Auree</Text>
+          <Text style={{ color: colors.textPrimary, fontWeight: '800', fontSize: 18 }}>Shade</Text>
         </View>
         <TouchableOpacity onPress={onCreatePost} hitSlop={10}>
-          <Plus size={22} color="#111827" />
+          <Plus size={22} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
       <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: '#111827', textAlign: 'center' }}>
+        <Text style={{ fontSize: 22, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}>
           Welcome back, {name}
         </Text>
-        <Text style={{ marginTop: 6, color: '#6B7280', textAlign: 'center' }}>
+        <Text style={{ marginTop: 6, color: colors.textSecondary, textAlign: 'center' }}>
           Discover amazing events happening around you
         </Text>
       </View>

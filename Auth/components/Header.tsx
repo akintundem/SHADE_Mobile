@@ -1,15 +1,18 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Music } from 'lucide-react-native';
-import { styles } from '../styles';
+import { AppIcon } from '../../components/AppIcon';
+import { useAuthStyles } from '../styles';
 
-export const Header = () => (
-  <View style={styles.headerWrap}>
-    <View style={styles.logoCircle}>
-      <Music color="#fff" size={28} />
+export const Header = () => {
+  const styles = useAuthStyles();
+  return (
+    <View style={styles.headerWrap}>
+      <View style={styles.logoCircle}>
+        <AppIcon size={28} color="#fff" />
+      </View>
+      <Text style={styles.title}>Shade</Text>
+      <Text style={styles.subtitle}>Your personal sanctuary</Text>
     </View>
-    <Text style={styles.title}>SoundVerse</Text>
-    <Text style={styles.subtitle}>Music discovery reimagined</Text>
-  </View>
-);
+  );
+};
 

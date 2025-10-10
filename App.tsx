@@ -33,19 +33,15 @@ function App() {
 
   return (
     <SafeAreaProvider>
-      {isLoading ? (
-        <ThemeProvider>
+      <ThemeProvider>
+        {isLoading ? (
           <LoadingState message="Welcome to SoundVerse..." />
-        </ThemeProvider>
-      ) : !user ? (
-        <ThemeProvider>
+        ) : !user ? (
           <Auth onLogin={handleLogin} />
-        </ThemeProvider>
-      ) : (
-        <ThemeProvider>
+        ) : (
           <SocialApp user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
-        </ThemeProvider>
-      )}
+        )}
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

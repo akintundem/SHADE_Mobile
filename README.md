@@ -86,6 +86,54 @@ You've successfully run and modified your React Native App. :partying_face:
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
+# Theme System
+
+Shade uses a centralized theme system with full dark/light mode support.
+
+## Using the Theme
+
+Import and use the `useTheme` hook in any component:
+
+```tsx
+import { useTheme } from '../theme/ThemeProvider';
+
+function MyComponent() {
+  const { colors, isDark, setDark } = useTheme();
+  
+  return (
+    <View style={{ backgroundColor: colors.bg }}>
+      <Text style={{ color: colors.textPrimary }}>Hello</Text>
+    </View>
+  );
+}
+```
+
+## Available Color Tokens
+
+- `colors.bg` - Main background
+- `colors.surface` - Card/surface background
+- `colors.card` - Lighter card background
+- `colors.border` - Border color
+- `colors.textPrimary` - Primary text
+- `colors.textSecondary` - Secondary/muted text
+- `colors.tint` - Primary accent color
+- `colors.scrim` - Modal overlay background
+
+## Modifying Colors
+
+All color definitions are in `theme/tokens.ts`. To change the app's color scheme:
+
+1. Open `theme/tokens.ts`
+2. Modify `lightColors` and `darkColors` objects
+3. Colors will automatically update throughout the app
+
+## Theme Switching
+
+Users can toggle between light and dark mode in Settings. The preference is:
+- Persisted via AsyncStorage
+- Respects system preference on first launch
+- Can be manually toggled via `setDark(boolean)`
+
 # Learn More
 
 To learn more about React Native, take a look at the following resources:
