@@ -7,10 +7,12 @@ import { TabBar } from '../Home/components/TabBar';
 import SettingsScreen from './SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { User } from '../types';
+import { useTheme } from '../theme/ThemeProvider';
 
 type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void; onOpenCompose?: () => void };
 
 export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompose }: Props) {
+  const { colors } = useTheme();
   const [view, setView] = useState<'profile' | 'settings' | 'edit'>('profile');
   const [section, setSection] = useState<'posts' | 'events'>('events');
 
@@ -33,7 +35,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
         <ProfileHeader user={user} onEditProfile={() => setView('edit')} onOpenSettings={() => setView('settings')} />
 

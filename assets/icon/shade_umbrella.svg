@@ -1,0 +1,18 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .stroke{stroke:#111827;stroke-width:80;stroke-linecap:round;stroke-linejoin:round;fill:none}
+      .fill{fill:#111827}
+    </style>
+  </defs>
+  <!-- Umbrella canopy with subtle segmented ribs -->
+  <path class="stroke" d="M128 520c88-216 296-328 384-328s296 112 384 328"/>
+  <path class="stroke" d="M512 192v328"/>
+  <path class="stroke" d="M320 232c48 64 112 176 112 288"/>
+  <path class="stroke" d="M704 232c-48 64-112 176-112 288"/>
+  <!-- Drip notch variant detail under canopy center -->
+  <path class="fill" d="M488 556c0-13 11-24 24-24s24 11 24 24-11 48-24 48-24-35-24-48z"/>
+  <!-- Handle -->
+  <path class="stroke" d="M512 520v232c0 62-50 112-112 112-36 0-68-18-88-44"/>
+</svg>
+

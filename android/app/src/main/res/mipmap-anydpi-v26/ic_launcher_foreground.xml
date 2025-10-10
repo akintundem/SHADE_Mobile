@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <!-- Scaled umbrella variant path -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="80"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:pathData="M128,520c88,-216 296,-328 384,-328 88,0 296,112 384,328 M512,192v328 M320,232c48,64 112,176 112,288 M704,232c-48,64 -112,176 -112,288 M512,520v232c0,62 -50,112 -112,112 -36,0 -68,-18 -88,-44" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M488,556a24,24 0 1 1 48,0c0,13 -11,48 -24,48s-24,-35 -24,-48z" />
+</vector>
+

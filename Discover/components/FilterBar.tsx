@@ -11,8 +11,8 @@ export const FilterBar = ({ theme = 'light' as 'light' | 'dark' }) => {
   const [typeVisible, setTypeVisible] = useState(false);
   const [countryAnchor, setCountryAnchor] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [typeAnchor, setTypeAnchor] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const countryRef = useRef<TouchableOpacity>(null);
-  const typeRef = useRef<TouchableOpacity>(null);
+  const countryRef = useRef<View | null>(null);
+  const typeRef = useRef<View | null>(null);
 
   const countryOptions: DropdownItem[] = [
     { key: 'us', label: 'United States', emojiLeft: '🇺🇸' },
@@ -32,7 +32,7 @@ export const FilterBar = ({ theme = 'light' as 'light' | 'dark' }) => {
     { key: 'workshop', label: 'Workshop' },
   ];
 
-  function openFrom(ref: React.RefObject<TouchableOpacity>, setAnchor: (a: any) => void, setVisible: (v: boolean) => void) {
+  function openFrom(ref: React.RefObject<View | null>, setAnchor: (a: any) => void, setVisible: (v: boolean) => void) {
     const handle = findNodeHandle(ref.current);
     if (!handle) return;
     UIManager.measureInWindow(handle, (x, y, width, height) => {

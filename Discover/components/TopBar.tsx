@@ -2,7 +2,9 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Menu, Plus } from 'lucide-react-native';
 
-export const TopBar = ({ onPlus, theme = 'dark' as 'light' | 'dark' }) => {
+type Props = { onPlus?: () => void; theme?: 'light' | 'dark' };
+
+export const TopBar = ({ onPlus, theme = 'dark' }: Props) => {
   const dark = theme === 'dark';
   return (
     <View
