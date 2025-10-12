@@ -3,8 +3,11 @@ import { View, Text, TouchableOpacity, UIManager, findNodeHandle } from 'react-n
 import { Globe, Smile, Search } from 'lucide-react-native';
 import { DropdownMenu, DropdownItem } from './DropdownMenu';
 
-export const FilterBar = ({ theme = 'light' as 'light' | 'dark' }) => {
-  const dark = theme === 'dark';
+import { useTheme } from '../../theme/ThemeProvider';
+
+export const FilterBar = () => {
+  const { isDark } = useTheme();
+  const dark = isDark;
   const [country, setCountry] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
   const [countryVisible, setCountryVisible] = useState(false);

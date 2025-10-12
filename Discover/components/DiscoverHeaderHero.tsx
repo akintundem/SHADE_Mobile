@@ -1,18 +1,60 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { Sparkles } from 'lucide-react-native';
+import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
 
-export const DiscoverHeaderHero = ({ theme = 'dark' as 'dark' | 'light' }) => {
-  const dark = theme === 'dark';
+export const DiscoverHeaderHero = () => {
+  const { colors, brand, typography, spacing, borderRadius } = useTheme();
+  const { t } = useI18n();
+  
   return (
-    <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16 }}>
-      <View style={{ alignSelf: 'center', backgroundColor: dark ? '#1F2937' : '#F3F4F6', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999 }}>
-        <Text style={{ color: dark ? '#F3F4F6' : '#111827', fontWeight: '600' }}>Event Archive Platform</Text>
+    <View style={{ 
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.xl,
+    }}>
+      <View style={{ 
+        alignSelf: 'center',
+        backgroundColor: `${brand.primary}15`,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.sm,
+        borderRadius: borderRadius.full,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.xs,
+      }}>
+        <Sparkles size={14} color={brand.primary} />
+        <Text style={{ 
+          color: brand.primary,
+          fontWeight: typography.weight.semibold,
+          fontSize: typography.size.sm,
+        }}>
+          {t('EventPlatformTag')}
+        </Text>
       </View>
-      <Text style={{ color: dark ? '#F9FAFB' : '#111827', fontWeight: '800', fontSize: 18, textAlign: 'center', marginTop: 10 }}>Discover History</Text>
-      <Text style={{ color: '#6B7280', marginTop: 8, textAlign: 'center' }}>
-        Explore the world's most significant events, curated collections, and moments that shaped our culture
+      
+      <Text style={{ 
+        color: colors.text.primary,
+        fontWeight: typography.weight.bold,
+        fontSize: typography.size['3xl'],
+        textAlign: 'center',
+        marginTop: spacing.lg,
+        letterSpacing: -0.5,
+      }}>
+        {t('DiscoverTitle')}
       </Text>
-      <Text style={{ color: '#9CA3AF', marginTop: 12 }}>Search events, collections, locations...</Text>
+      
+      <Text style={{ 
+        color: colors.text.secondary,
+        marginTop: spacing.md,
+        textAlign: 'center',
+        fontSize: typography.size.base,
+        lineHeight: 24,
+        paddingHorizontal: spacing.md,
+      }}>
+        {t('DiscoverSubtitle')}
+      </Text>
     </View>
   );
 };

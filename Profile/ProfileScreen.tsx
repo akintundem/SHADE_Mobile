@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { ProfileHeader } from './components/ProfileHeader';
 import { EventMiniCard } from './components/EventMiniCard';
 import { TabBar } from '../Home/components/TabBar';
@@ -12,13 +12,13 @@ import { useTheme } from '../theme/ThemeProvider';
 type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void; onOpenCompose?: () => void };
 
 export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompose }: Props) {
-  const { colors } = useTheme();
+  const { colors, brand, typography, spacing, borderRadius } = useTheme();
   const [view, setView] = useState<'profile' | 'settings' | 'edit'>('profile');
   const [section, setSection] = useState<'posts' | 'events'>('events');
 
   if (view === 'settings') {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
         <SettingsScreen onClose={() => setView('profile')} onLogout={onLogout} />
         <TabBar active="profile" onChange={onTabChange} />
       </View>
@@ -27,7 +27,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
 
   if (view === 'edit') {
     return (
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
         <EditProfileScreen user={user} onBack={() => setView('profile')} />
         <TabBar active="profile" onChange={onTabChange} />
       </View>
@@ -35,35 +35,52 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 96 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      <ScrollView 
+        contentContainerStyle={{ paddingBottom: spacing['3xl'] }}
+        showsVerticalScrollIndicator={false}
+      >
         <ProfileHeader user={user} onEditProfile={() => setView('edit')} onOpenSettings={() => setView('settings')} />
 
-        <View style={{ paddingHorizontal: 16, marginTop: 8 }}>
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
           {/* Segmented control */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginVertical: 12 }}>
+          <View style={{ 
+            flexDirection: 'row',
+            backgroundColor: colors.surface,
+            borderRadius: borderRadius.lg,
+            padding: spacing.xs,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}>
             {[
               { key: 'posts', label: 'Posts' },
               { key: 'events', label: 'Events' },
             ].map(t => (
-              <Text
+              <TouchableOpacity
                 key={t.key}
                 onPress={() => setSection(t.key as any)}
+                activeOpacity={0.7}
                 style={{
-                  color: section === t.key ? '#111827' : '#6B7280',
-                  fontWeight: section === t.key ? '700' : '400',
-                  paddingBottom: 6,
-                  borderBottomWidth: section === t.key ? 2 : 0,
-                  borderColor: '#111827',
+                  flex: 1,
+                  paddingVertical: spacing.md,
+                  borderRadius: borderRadius.md,
+                  backgroundColor: section === t.key ? brand.primary : 'transparent',
+                  alignItems: 'center',
                 }}
               >
-                {t.label}
-              </Text>
+                <Text style={{
+                  color: section === t.key ? '#FFFFFF' : colors.text.secondary,
+                  fontWeight: section === t.key ? typography.weight.semibold : typography.weight.medium,
+                  fontSize: typography.size.sm,
+                }}>
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
             ))}
           </View>
 
           {section === 'events' ? (
-            <View>
+            <View style={{ marginTop: spacing.lg, gap: spacing.md }}>
               <EventMiniCard
                 title="Tech Conference 2024"
                 date="Nov 14, 2024"
@@ -72,7 +89,6 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
                 tagRight="Creator"
                 imageUrl="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop"
               />
-              <View style={{ height: 12 }} />
               <EventMiniCard
                 title="Live Sessions Night"
                 date="May 22, 2025"
@@ -82,13 +98,17 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
                 imageUrl="https://images.unsplash.com/photo-1461784180009-21121b2f2045?q=80&w=1400&auto=format&fit=crop"
               />
             </View>
-          ) : section === 'posts' ? (
-            <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ color: '#6B7280' }}>No posts yet</Text>
-            </View>
           ) : (
-            <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-              <Text style={{ color: '#6B7280' }}>No posts yet</Text>
+            <View style={{ 
+              alignItems: 'center',
+              paddingVertical: spacing['5xl'],
+            }}>
+              <Text style={{ 
+                color: colors.text.tertiary,
+                fontSize: typography.size.base,
+              }}>
+                No posts yet
+              </Text>
             </View>
           )}
         </View>

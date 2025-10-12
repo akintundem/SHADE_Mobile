@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { View, TextInput, Pressable, Text, TouchableOpacity, useColorScheme, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
-import { styles } from '../styles';
 import { authService } from '../../services/authService';
+import { useTheme } from '../../theme/ThemeProvider';
+import Input from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
+import { useI18n } from '../../i18n/I18nProvider';
 
 type Props = {
   onSignedUp?: (payload: { email: string; requiresProfile: boolean; user: import('../../services/authService').UserDTO }) => void;
@@ -10,7 +13,8 @@ type Props = {
 };
 
 export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
-  const isDark = useColorScheme() === 'dark';
+  const { colors, brand, typography, spacing } = useTheme();
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -22,99 +26,77 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
   const canCreate = useMemo(() => !!email && !!password && password === confirm, [email, password, confirm]);
 
   return (
-    <View style={styles.formWrap}>
-      <View
-        style={[
-          styles.inputWrap,
-          isDark ? styles.inputWrapDark : styles.inputWrapLight,
-        ]}
-      >
-        <Mail size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
-        <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Email"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="next"
-        />
-      </View>
+    <View style={{ gap: spacing.lg }}>
+      <Input
+        value={email}
+        onChangeText={(text) => {
+          setEmail(text);
+          setError(null);
+        }}
+        placeholder={t('EmailAddress')}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="next"
+        leftIcon={<Mail size={20} color={colors.text.tertiary} />}
+      />
 
-      <View
-        style={[
-          styles.inputWrap,
-          isDark ? styles.inputWrapDark : styles.inputWrapLight,
-        ]}
-      >
-        <Lock size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
-        <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="Password"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-          secureTextEntry={!showPassword}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="next"
-        />
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setShowPassword(v => !v)}
-          hitSlop={10}
-          style={styles.trailingIconWrap}
-        >
-          {showPassword ? (
-            <EyeOff size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
+      <Input
+        value={password}
+        onChangeText={(text) => {
+          setPassword(text);
+          setError(null);
+        }}
+        placeholder={t('Password')}
+        secureTextEntry={!showPassword}
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="next"
+        leftIcon={<Lock size={20} color={colors.text.tertiary} />}
+        rightIcon={
+          showPassword ? (
+            <EyeOff size={20} color={colors.text.tertiary} />
           ) : (
-            <Eye size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
-          )}
-        </Pressable>
-      </View>
+            <Eye size={20} color={colors.text.tertiary} />
+          )
+        }
+        onRightIconPress={() => setShowPassword(v => !v)}
+      />
 
-      <View
-        style={[
-          styles.inputWrap,
-          isDark ? styles.inputWrapDark : styles.inputWrapLight,
-        ]}
-      >
-        <Lock size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
-        <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
-          value={confirm}
-          onChangeText={setConfirm}
-          placeholder="Confirm password"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-          secureTextEntry={!showConfirm}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="done"
-        />
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setShowConfirm(v => !v)}
-          hitSlop={10}
-          style={styles.trailingIconWrap}
-        >
-          {showConfirm ? (
-            <EyeOff size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
+      <Input
+        value={confirm}
+        onChangeText={(text) => {
+          setConfirm(text);
+          setError(null);
+        }}
+        placeholder={t('ConfirmPassword')}
+        secureTextEntry={!showConfirm}
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="done"
+        leftIcon={<Lock size={20} color={colors.text.tertiary} />}
+        rightIcon={
+          showConfirm ? (
+            <EyeOff size={20} color={colors.text.tertiary} />
           ) : (
-            <Eye size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
-          )}
-        </Pressable>
-      </View>
+            <Eye size={20} color={colors.text.tertiary} />
+          )
+        }
+        onRightIconPress={() => setShowConfirm(v => !v)}
+        error={password && confirm && password !== confirm ? t('ConfirmPassword') : undefined}
+      />
 
       {error ? (
-        <Text style={{ color: '#ef4444', textAlign: 'center', marginBottom: 6 }}>{error}</Text>
+        <Text style={{ 
+          color: colors.semantic.error, 
+          textAlign: 'center',
+          fontSize: typography.size.sm,
+        }}>
+          {error}
+        </Text>
       ) : null}
 
-      <TouchableOpacity
-        activeOpacity={canCreate && !submitting ? 0.8 : 1}
-        style={[styles.primaryInvertedBtn, (!canCreate || submitting) && styles.signInBtnDisabled]}
-        disabled={!canCreate || submitting}
+      <Button
         onPress={async () => {
           try {
             setSubmitting(true);
@@ -124,27 +106,42 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             await setUser(res.user);
             onSignedUp?.({ email, requiresProfile: !!res.requiresProfile, user: res.user });
           } catch (e: any) {
-            setError(e?.message || 'Failed to create account');
+            setError(e?.message || t('CreateAccount'));
           } finally {
             setSubmitting(false);
           }
         }}
+        disabled={!canCreate || submitting}
+        loading={submitting}
+        variant="primary"
+        size="lg"
+        fullWidth
+        style={{ marginTop: spacing.sm }}
       >
-        {submitting ? (
-          <ActivityIndicator color="#111827" />
-        ) : (
-          <Text style={styles.primaryInvertedText}>Create account</Text>
-        )}
-      </TouchableOpacity>
+        {t('CreateAccount')}
+      </Button>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-        <Text style={{ color: isDark ? '#9CA3AF' : '#6B7280', fontSize: 15 }}>Already have an account? </Text>
-        <Text
-          onPress={onSwitchToSignIn}
-          style={{ color: '#1DB954', fontSize: 15, fontWeight: '600' }}
-        >
-          Sign in
+      <View style={{ 
+        flexDirection: 'row', 
+        justifyContent: 'center', 
+        marginTop: spacing.md,
+        gap: spacing.xs,
+      }}>
+        <Text style={{ 
+          color: colors.text.secondary,
+          fontSize: typography.size.base,
+        }}>
+          {t('AlreadyHaveAccount')}
         </Text>
+        <TouchableOpacity onPress={onSwitchToSignIn}>
+          <Text style={{ 
+            color: brand.primary,
+            fontSize: typography.size.base,
+            fontWeight: typography.weight.semibold,
+          }}>
+            {t('SignIn')}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

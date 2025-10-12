@@ -1,107 +1,163 @@
-import React from 'react';
-import { Image, Text, View } from 'react-native';
-import { CalendarClock, MapPin, MessageCircle, Heart, MessageSquareText, Music } from 'lucide-react-native';
+import React, { useRef, useEffect } from 'react';
+import { Image, Text, View, TouchableOpacity, Animated } from 'react-native';
+import { CalendarClock, MapPin, MessageCircle, Heart, MessageSquareText, Sparkles } from 'lucide-react-native';
+import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
+import { useNavigation } from '@react-navigation/native';
 
 export type EventItem = {
   id: string;
   title: string;
   description?: string;
-  startAt?: string; // ISO string or formatted
+  startAt?: string;
+  endAt?: string;
   venue?: string;
   city?: string;
   state?: string;
   imageUrl?: string;
   stats?: { posts?: number; comments?: number; likes?: number };
-  tag?: string; // e.g., Festival
-  hashtags?: string[]; // e.g., ["music", "festival"]
-  cosigners?: string[]; // initials e.g., ["C1","C2"]
-  cosignedCount?: number; // total people who cosigned
+  tag?: string;
+  hashtags?: string[];
+  cosigners?: string[];
+  cosignedCount?: number;
 };
 
 type Props = { item: EventItem };
 
 export const EventCard = ({ item }: Props) => {
+  const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
+  const { t } = useI18n();
+  const navigation = useNavigation<any>();
+  const isLive = !!item.startAt && !item.endAt; // demo condition
+
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!isLive) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 0.3, duration: 600, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isLive, pulse]);
+
   return (
-    <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB' }}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() => navigation.navigate('EventProfile', { title: item.title, imageUrl: item.imageUrl, bio: item.description })}
+      style={{ 
+        backgroundColor: colors.card,
+        borderRadius: borderRadius.xl,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: colors.border,
+        ...shadows.md,
+      }}
+    >
       {item.imageUrl ? (
         <View>
-          <Image source={{ uri: item.imageUrl }} style={{ height: 240, width: '100%' }} />
+          <Image 
+            source={{ uri: item.imageUrl }} 
+            style={{ height: 240, width: '100%' }}
+            resizeMode="cover"
+          />
+          {/* Live indicator top-left */}
+          {isLive ? (
+            <View style={{ position: 'absolute', top: spacing.md, left: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <Animated.View style={{ opacity: pulse }}>
+                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#ef4444' }} />
+              </Animated.View>
+              <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, fontWeight: typography.weight.semibold }}>LIVE</Text>
+            </View>
+          ) : null}
+
           {item.tag ? (
-            <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#111827', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Music size={14} color="#FFFFFF" />
-              <Text style={{ color: '#FFFFFF', fontSize: 12 }}>{item.tag}</Text>
+            <View style={{ position: 'absolute', top: spacing.md, right: spacing.md, backgroundColor: brand.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.md, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, ...shadows.lg }}>
+              <Sparkles size={14} color="#FFFFFF" />
+              <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, fontWeight: typography.weight.semibold }}>
+                {item.tag}
+              </Text>
             </View>
           ) : null}
         </View>
       ) : null}
 
-      <View style={{ padding: 16 }}>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: '#111827' }}>{item.title}</Text>
+      <View style={{ padding: spacing.lg }}>
+        <Text style={{ fontSize: typography.size.xl, fontWeight: typography.weight.bold, color: colors.text.primary }}>
+          {item.title}
+        </Text>
         {item.description ? (
-          <Text style={{ marginTop: 6, color: '#6B7280' }}>{item.description}</Text>
+          <Text style={{ marginTop: spacing.sm, color: colors.text.secondary, fontSize: typography.size.sm, lineHeight: 20 }}>
+            {item.description}
+          </Text>
         ) : null}
-
         {item.startAt ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 8 }}>
-            <CalendarClock size={16} color="#111827" />
-            <Text style={{ color: '#111827' }}>{item.startAt}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, gap: spacing.sm }}>
+            <CalendarClock size={18} color={brand.primary} strokeWidth={2} />
+            <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+              {item.startAt}
+            </Text>
           </View>
         ) : null}
-
         {(item.venue || item.city) ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8 }}>
-            <MapPin size={16} color="#111827" />
-            <Text style={{ color: '#111827' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm }}>
+            <MapPin size={18} color={brand.primary} strokeWidth={2} />
+            <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, flex: 1 }}>
               {item.venue}
               {item.city ? `  •  ${item.city}${item.state ? `, ${item.state}` : ''}` : ''}
             </Text>
           </View>
         ) : null}
-
-        {/* divider */}
-        <View style={{ height: 1, backgroundColor: '#E5E7EB', marginVertical: 12 }} />
-
+        <View style={{ height: 1, backgroundColor: colors.divider, marginVertical: spacing.lg }} />
         {item.stats ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <MessageSquareText size={16} color="#6B7280" />
-              <Text style={{ color: '#6B7280' }}>{item.stats.posts ?? 0} posts</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xl }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <MessageSquareText size={18} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                {item.stats.posts ?? 0}
+              </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <MessageCircle size={16} color="#6B7280" />
-              <Text style={{ color: '#6B7280' }}>{item.stats.comments ?? 0}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <MessageCircle size={18} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                {item.stats.comments ?? 0}
+              </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Heart size={16} color="#6B7280" />
-              <Text style={{ color: '#6B7280' }}>{item.stats.likes ?? 0}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+              <Heart size={18} color={colors.text.tertiary} strokeWidth={2} />
+              <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                {item.stats.likes ?? 0}
+              </Text>
             </View>
           </View>
         ) : null}
-
-        {/* Co-signed row */}
         {(item.cosigners && item.cosigners.length > 0) || item.cosignedCount ? (
-          <View style={{ marginTop: 12 }}>
-            <Text style={{ fontWeight: '600', color: '#111827' }}>
+          <View style={{ marginTop: spacing.md }}>
+            <Text style={{ fontWeight: typography.weight.semibold, color: colors.text.primary, fontSize: typography.size.sm }}>
               {item.cosigners?.slice(0, 3).join(' ')}
               {item.cosigners && item.cosigners.length > 3 ? ` +${item.cosigners.length - 3}` : ''}
             </Text>
             {item.cosignedCount ? (
-              <Text style={{ color: '#6B7280', marginTop: 2 }}>Co-signed by {item.cosignedCount} people</Text>
+              <Text style={{ color: colors.text.tertiary, marginTop: spacing.xs, fontSize: typography.size.xs }}>
+                {t('AttendedBy', { count: String(item.cosignedCount) })}
+              </Text>
             ) : null}
           </View>
         ) : null}
-
-        {/* Tags */}
         {item.hashtags && item.hashtags.length > 0 ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
             {item.hashtags.map(tag => (
-              <View key={tag} style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: '#FFFFFF' }}>
-                <Text style={{ color: '#111827', fontSize: 12 }}>#{tag}</Text>
+              <View key={tag} style={{ backgroundColor: `${brand.primary}15`, borderRadius: borderRadius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.xs }}>
+                <Text style={{ color: brand.primary, fontSize: typography.size.xs, fontWeight: typography.weight.medium }}>
+                  #{tag}
+                </Text>
               </View>
             ))}
           </View>
         ) : null}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };

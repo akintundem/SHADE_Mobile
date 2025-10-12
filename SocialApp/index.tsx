@@ -15,6 +15,8 @@ const VideoEditorScreen = React.lazy(() => import('../Editor/VideoEditorScreen')
 const CreateEventScreen = React.lazy(() => import('../Create/CreateEventScreen'));
 const CreateCollectionScreen = React.lazy(() => import('../Create/CreateCollectionScreen'));
 const SettingsScreen = React.lazy(() => import('../Settings/SettingsScreen'));
+import { EventThreadScreen } from '../Home/components/EventThreadScreen';
+import type { ThreadPost } from '../Home/components/EventThreadModal';
 
 type Props = {
   user: User;
@@ -35,6 +37,8 @@ export default function SocialApp({ user, onLogout }: Props) {
   const [isSettingsOpen, setSettingsOpen] = useState(false);
   const [hasDraft, setHasDraft] = useState(false);
 
+  const [threadOpen, setThreadOpen] = useState<null | { title: string; posts: ThreadPost[] }>(null);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -50,7 +54,11 @@ export default function SocialApp({ user, onLogout }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {tab === 'home' ? (
-        <HomeScreen user={user} onTabChange={setTab} onCreatePost={() => setComposeOpen(true)} />
+        <HomeScreen
+          user={user}
+          onTabChange={setTab}
+          onCreatePost={() => setComposeOpen(true)}
+        />
       ) : tab === 'discover' ? (
         <DiscoverScreen
           user={user}
@@ -132,13 +140,11 @@ export default function SocialApp({ user, onLogout }: Props) {
               onClose={() => setCameraOpen(false)}
               onCapture={asset => {
                 setCaptured(asset);
-                // Only open editor for video; keep camera open for photos
                 const isFile = asset.path?.startsWith('file:') || asset.path?.startsWith('/') || asset.path?.startsWith('content:');
                 if (asset.type === 'video' && isFile) {
                   setCameraOpen(false);
                   setEditorOpen(true);
                 }
-                // For photos, keep camera open (don't call setCameraOpen(false))
               }}
             />
           </React.Suspense>
@@ -168,6 +174,10 @@ export default function SocialApp({ user, onLogout }: Props) {
             <SettingsScreen onClose={() => setSettingsOpen(false)} />
           </React.Suspense>
         </View>
+      ) : null}
+
+      {threadOpen ? (
+        <EventThreadScreen visible={true} onClose={() => setThreadOpen(null)} title={threadOpen.title} posts={threadOpen.posts} />
       ) : null}
     </View>
   );

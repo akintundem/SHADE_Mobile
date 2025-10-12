@@ -1,41 +1,60 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Plus } from 'lucide-react-native';
+import { View, Text } from 'react-native';
 import { User } from '../../types';
+import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
 
 type Props = {
   user: User;
-  onOpenMenu?: () => void; // no longer used; left area shows brand
-  onCreatePost?: () => void;
+  onOpenMenu?: () => void;
 };
 
-export const HomeHeader = ({ user, onOpenMenu, onCreatePost }: Props) => {
+export const HomeHeader = ({ user }: Props) => {
+  const { colors, typography, spacing } = useTheme();
+  const { t } = useI18n();
   const name = user.name || user.email;
+  
   return (
-    <View style={{ backgroundColor: '#FFFFFF' }}>
+    <View style={{ backgroundColor: colors.background }}>
       <View
         style={{
-          height: 48,
-          paddingHorizontal: 12,
+          height: 56,
+          paddingHorizontal: spacing.lg,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
         }}
       >
-        <View style={{ paddingHorizontal: 2 }}>
-          <Text style={{ color: '#111827', fontWeight: '800', fontSize: 18 }}>Auree</Text>
-        </View>
-        <TouchableOpacity onPress={onCreatePost} hitSlop={10}>
-          <Plus size={22} color="#111827" />
-        </TouchableOpacity>
+        <Text style={{
+          color: colors.text.primary,
+          fontWeight: typography.weight.bold,
+          fontSize: typography.size.xl,
+          letterSpacing: -0.5,
+        }}>
+          Shade
+        </Text>
       </View>
 
-      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: '#111827', textAlign: 'center' }}>
-          Welcome back, {name}
+      <View style={{ 
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.lg,
+      }}>
+        <Text style={{
+          fontSize: typography.size['2xl'],
+          fontWeight: typography.weight.bold,
+          color: colors.text.primary,
+          textAlign: 'center',
+        }}>
+          {t('WelcomeBack', { name })}
         </Text>
-        <Text style={{ marginTop: 6, color: '#6B7280', textAlign: 'center' }}>
-          Discover amazing events happening around you
+        <Text style={{ 
+          marginTop: spacing.xs,
+          color: colors.text.secondary,
+          textAlign: 'center',
+          fontSize: typography.size.base,
+        }}>
+          {t('HomeTagline')}
         </Text>
       </View>
     </View>

@@ -1,17 +1,22 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
 import { Home, Compass, MapPinned, User } from 'lucide-react-native';
 
 type Props = { active: 'home' | 'discover' | 'map' | 'profile'; onChange?: (tab: Props['active']) => void };
 
-const Item = ({ label, active, onPress, Icon }: { label: string; active: boolean; onPress?: () => void; Icon: any }) => {
-  const { colors } = useTheme();
+const Item = ({ active, onPress, Icon }: { active: boolean; onPress?: () => void; Icon: any }) => {
+  const { colors, brand } = useTheme();
   return (
-    <TouchableOpacity onPress={onPress} style={{ flex: 1, alignItems: 'center', paddingVertical: 8 }}>
-      <Icon size={20} color={active ? colors.tint : colors.textSecondary} />
-      <Text style={{ marginTop: 4, color: active ? colors.tint : colors.textSecondary, fontSize: 12 }}>{label}</Text>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+      hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
+    >
+      <Icon size={24} color={active ? brand.primary : colors.text.tertiary} strokeWidth={active ? 2.4 : 2} />
     </TouchableOpacity>
   );
 };
@@ -19,12 +24,23 @@ const Item = ({ label, active, onPress, Icon }: { label: string; active: boolean
 export const TabBar = ({ active, onChange }: Props) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  useI18n(); // keep i18n wired for future labels if needed
+
   return (
-    <View style={{ paddingBottom: Math.max(10, insets.bottom), height: 64 + Math.max(10, insets.bottom), borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface, flexDirection: 'row' }}>
-      <Item label="Home" active={active === 'home'} onPress={() => onChange?.('home')} Icon={Home} />
-      <Item label="Discover" active={active === 'discover'} onPress={() => onChange?.('discover')} Icon={Compass} />
-      <Item label="Map" active={active === 'map'} onPress={() => onChange?.('map')} Icon={MapPinned} />
-      <Item label="Profile" active={active === 'profile'} onPress={() => onChange?.('profile')} Icon={User} />
+    <View
+      style={{
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+        backgroundColor: colors.surface,
+        flexDirection: 'row',
+        height: 48 + Math.max(insets.bottom, 0),
+        paddingBottom: Math.max(insets.bottom, 0),
+      }}
+    >
+      <Item active={active === 'home'} onPress={() => onChange?.('home')} Icon={Home} />
+      <Item active={active === 'discover'} onPress={() => onChange?.('discover')} Icon={Compass} />
+      <Item active={active === 'map'} onPress={() => onChange?.('map')} Icon={MapPinned} />
+      <Item active={active === 'profile'} onPress={() => onChange?.('profile')} Icon={User} />
     </View>
   );
 };

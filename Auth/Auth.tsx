@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { styles } from './styles';
+import { useTheme } from '../theme/ThemeProvider';
 import { Header } from './components/Header';
 import { AuthButtons } from './components/AuthButtons';
 import { OrDivider } from './components/OrDivider';
@@ -19,17 +19,24 @@ import { User } from '../types';
 type Props = { onLogin?: (user: User) => void };
 
 export default function Auth({ onLogin }: Props) {
+  const { colors, spacing } = useTheme();
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'completeProfile'>('signIn');
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: 'padding', android: undefined })}
-        style={styles.flex}
+        style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{
+            paddingHorizontal: spacing['2xl'],
+            paddingTop: spacing['4xl'],
+            paddingBottom: spacing['3xl'],
+          }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           <Header />
           <AuthButtons

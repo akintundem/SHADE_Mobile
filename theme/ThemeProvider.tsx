@@ -1,21 +1,37 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { StatusBar, useColorScheme, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getThemedColors, Spacing, BorderRadius, Typography, Shadows, Colors, Components } from './designSystem';
 
 type Props = { children: React.ReactNode };
 
-type ThemeColors = {
-  bg: string;
-  surface: string;
-  card: string;
-  border: string;
-  textPrimary: string;
-  textSecondary: string;
-  tint: string;
+export type ThemeColors = ReturnType<typeof getThemedColors>;
+
+type ThemeContextType = { 
+  isDark: boolean; 
+  setDark: (v: boolean) => void; 
+  colors: ThemeColors;
+  spacing: typeof Spacing;
+  borderRadius: typeof BorderRadius;
+  typography: typeof Typography;
+  shadows: typeof Shadows;
+  brand: typeof Colors.brand;
+  components: typeof Components;
 };
 
-type ThemeContextType = { isDark: boolean; setDark: (v: boolean) => void; colors: ThemeColors };
-const ThemeContext = createContext<ThemeContextType>({ isDark: false, setDark: () => {}, colors: { bg: '#fff', surface: '#fff', card: '#f9fafb', border: '#e5e7eb', textPrimary: '#111827', textSecondary: '#6B7280', tint: '#111827' } });
+const defaultColors = getThemedColors(false);
+
+const ThemeContext = createContext<ThemeContextType>({ 
+  isDark: false, 
+  setDark: () => {}, 
+  colors: defaultColors,
+  spacing: Spacing,
+  borderRadius: BorderRadius,
+  typography: Typography,
+  shadows: Shadows,
+  brand: Colors.brand,
+  components: Components,
+});
 
 export function useTheme() {
   return useContext(ThemeContext);
@@ -39,32 +55,24 @@ export default function ThemeProvider({ children }: Props) {
     await AsyncStorage.setItem('pref:theme', v ? 'dark' : 'light');
   };
 
-  const colors: ThemeColors = isDark
-    ? {
-        bg: '#000000',
-        surface: '#0B0F14',
-        card: '#111827',
-        border: '#1F2937',
-        textPrimary: '#F9FAFB',
-        textSecondary: '#9CA3AF',
-        tint: '#FACC15',
-      }
-    : {
-        bg: '#FFFFFF',
-        surface: '#FFFFFF',
-        card: '#F9FAFB',
-        border: '#E5E7EB',
-        textPrimary: '#111827',
-        textSecondary: '#6B7280',
-        tint: '#111827',
-      };
+  const colors = useMemo(() => getThemedColors(isDark), [isDark]);
 
-  const value = useMemo<ThemeContextType>(() => ({ isDark, setDark, colors }), [isDark]);
+  const value = useMemo<ThemeContextType>(() => ({ 
+    isDark, 
+    setDark, 
+    colors,
+    spacing: Spacing,
+    borderRadius: BorderRadius,
+    typography: Typography,
+    shadows: Shadows,
+    brand: Colors.brand,
+    components: Components,
+  }), [isDark, colors]);
 
   return (
     <ThemeContext.Provider value={value}>
-      <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
         {children}
       </View>
     </ThemeContext.Provider>

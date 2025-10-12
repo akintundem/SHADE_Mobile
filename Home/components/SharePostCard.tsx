@@ -1,41 +1,74 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Camera } from 'lucide-react-native';
+import { Camera, Sparkles } from 'lucide-react-native';
+import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
 
 type Props = { onPress?: () => void };
 
 export const SharePostCard = ({ onPress }: Props) => {
+  const { colors, brand, typography, spacing, borderRadius } = useTheme();
+  const { t } = useI18n();
+  
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.9}
+      activeOpacity={0.8}
       style={{
-        borderWidth: 1,
+        borderWidth: 2,
         borderStyle: 'dashed',
-        borderColor: '#CBD5E1',
-        borderRadius: 12,
-        backgroundColor: '#FFFFFF',
-        paddingVertical: 20,
+        borderColor: brand.primary + '40',
+        borderRadius: borderRadius.xl,
+        backgroundColor: brand.primary + '08',
+        paddingVertical: spacing['2xl'],
+        paddingHorizontal: spacing.lg,
       }}
     >
       <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <View
           style={{
-            height: 48,
-            width: 48,
-            borderRadius: 24,
-            backgroundColor: '#F3F4F6',
+            height: 56,
+            width: 56,
+            borderRadius: 28,
+            backgroundColor: brand.primary,
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 8,
+            marginBottom: spacing.md,
           }}
         >
-          <Camera size={20} color="#111827" />
+          <Camera size={24} color="#FFFFFF" strokeWidth={2} />
         </View>
-        <Text style={{ fontWeight: '600', color: '#111827' }}>Share a Post</Text>
-        <Text style={{ color: '#6B7280', marginTop: 6, textAlign: 'center' }}>
-          Connect a moment to music or an event and share it
+        <Text style={{ 
+          fontWeight: typography.weight.semibold,
+          color: colors.text.primary,
+          fontSize: typography.size.lg,
+        }}>
+          {t('ShareMoment')}
         </Text>
+        <Text style={{ 
+          color: colors.text.secondary,
+          marginTop: spacing.xs,
+          textAlign: 'center',
+          fontSize: typography.size.sm,
+          lineHeight: 20,
+        }}>
+          {t('ShareMomentSub')}
+        </Text>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.xs,
+          marginTop: spacing.md,
+        }}>
+          <Sparkles size={14} color={brand.primary} />
+          <Text style={{
+            color: brand.primary,
+            fontSize: typography.size.xs,
+            fontWeight: typography.weight.medium,
+          }}>
+            {t('PremiumSecure')}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );

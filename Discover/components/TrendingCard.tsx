@@ -1,5 +1,6 @@
 import React from 'react';
 import { ImageBackground, Text, View } from 'react-native';
+import { useTheme } from '../../theme/ThemeProvider';
 import { CalendarClock, MapPin, Users, Camera, Music, Archive } from 'lucide-react-native';
 
 export type TrendingItem = {
@@ -18,7 +19,7 @@ export type TrendingItem = {
 type Props = { item: TrendingItem; variant?: 'light' | 'dark' };
 
 export const TrendingCard = ({ item, variant = 'light' }: Props) => {
-  const isDark = variant === 'dark';
+  const { isDark } = useTheme();
   return (
     <View style={{ borderRadius: 14, overflow: 'hidden', backgroundColor: isDark ? '#111827' : '#FFFFFF', borderWidth: 1, borderColor: isDark ? '#1F2937' : '#E5E7EB' }}>
       <ImageBackground source={{ uri: item.imageUrl }} style={{ height: 200 }}>
@@ -29,7 +30,7 @@ export const TrendingCard = ({ item, variant = 'light' }: Props) => {
         {/* Top labels */}
         <View style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
           {item.typeLabel ? (
-            <View style={{ backgroundColor: 'rgba(17,24,39,0.6)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
+            <View style={{ backgroundColor: 'rgba(17,24,39,0.7)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 }}>
               <Text style={{ color: '#FFFFFF', fontSize: 12 }}>{item.typeLabel}</Text>
             </View>
           ) : <View />}
@@ -43,7 +44,7 @@ export const TrendingCard = ({ item, variant = 'light' }: Props) => {
 
         {/* Title + meta */}
         <View style={{ flex: 1, justifyContent: 'flex-end', padding: 12, gap: 8 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: '700' }}>{item.title}</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '700' }}>{item.title}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <CalendarClock size={14} color="#FFFFFF" />
