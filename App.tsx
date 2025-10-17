@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider } from './i18n/I18nProvider';
+import { AgentProvider } from './Agent/AgentProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Auth from './Auth/Auth';
@@ -11,6 +12,7 @@ import { User } from './types';
 import { getToken, getUser as getCachedUser } from './storage/authStorage';
 import { UserDTO } from './services/authService';
 import { EventProfileRoute } from './Home/screens/EventProfileRoute';
+import EventManageScreen from './Home/screens/EventManageScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -40,8 +42,9 @@ function App() {
   return (
     <SafeAreaProvider>
       <I18nProvider>
-        <ThemeProvider>
-          <NavigationContainer>
+        <AgentProvider>
+          <ThemeProvider>
+            <NavigationContainer>
             {isLoading ? (
               <LoadingState message="Welcome to Shade..." />
             ) : !user ? (
@@ -51,7 +54,7 @@ function App() {
                 screenOptions={{
                   headerShown: false,
                   gestureEnabled: true,
-                  fullScreenSwipeEnabled: true,
+                  fullScreenGestureEnabled: true,
                 }}
               >
                 <Stack.Screen name="Main">
@@ -65,14 +68,29 @@ function App() {
                   options={{
                     headerShown: false,
                     gestureEnabled: true,
-                    fullScreenSwipeEnabled: true,
+                    fullScreenGestureEnabled: true,
                     animation: 'slide_from_right',
                   }}
                 />
+                <Stack.Screen
+                  name="EventManage"
+                  options={{
+                    headerShown: false,
+                    gestureEnabled: true,
+                    fullScreenGestureEnabled: true,
+                    animation: 'slide_from_right',
+                  }}
+                >
+                  {(props) => (
+                    // Render-as-child to avoid strict typing mismatch on route props
+                    <EventManageScreen {...(props as any)} />
+                  )}
+                </Stack.Screen>
               </Stack.Navigator>
             )}
-          </NavigationContainer>
-        </ThemeProvider>
+            </NavigationContainer>
+          </ThemeProvider>
+        </AgentProvider>
       </I18nProvider>
     </SafeAreaProvider>
   );

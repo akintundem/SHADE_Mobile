@@ -3,9 +3,9 @@ import { View, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useI18n } from '../../i18n/I18nProvider';
-import { Home, Compass, MapPinned, User } from 'lucide-react-native';
+import { Home, ClipboardList, User } from 'lucide-react-native';
 
-type Props = { active: 'home' | 'discover' | 'map' | 'profile'; onChange?: (tab: Props['active']) => void };
+type Props = { active: 'home' | 'discover' | 'profile'; onChange?: (tab: Props['active']) => void };
 
 const Item = ({ active, onPress, Icon }: { active: boolean; onPress?: () => void; Icon: any }) => {
   const { colors, brand } = useTheme();
@@ -38,8 +38,7 @@ export const TabBar = ({ active, onChange }: Props) => {
       }}
     >
       <Item active={active === 'home'} onPress={() => onChange?.('home')} Icon={Home} />
-      <Item active={active === 'discover'} onPress={() => onChange?.('discover')} Icon={Compass} />
-      <Item active={active === 'map'} onPress={() => onChange?.('map')} Icon={MapPinned} />
+      <Item active={active === 'discover'} onPress={() => onChange?.('discover')} Icon={ClipboardList} />
       <Item active={active === 'profile'} onPress={() => onChange?.('profile')} Icon={User} />
     </View>
   );

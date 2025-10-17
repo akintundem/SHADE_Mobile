@@ -5,8 +5,6 @@ import { HomeHeader } from './components/HomeHeader';
 import { EventCard, EventItem } from './components/EventCard';
 import { EmptyFeed } from './components/EmptyFeed';
 import { TabBar } from './components/TabBar';
-import { examplePost } from './examples/examplePost';
-import { demoEvents } from './examples/eventsDemo';
 import { useTheme } from '../theme/ThemeProvider';
 import { User } from '../types';
 import { Flame, Clock } from 'lucide-react-native';
@@ -24,7 +22,7 @@ export default function HomeScreen({ user, events = [], onOpenMenu, showExampleW
   const { colors, spacing, brand, borderRadius, typography, shadows } = useTheme();
   const [seg, setSeg] = useState<'live' | 'past'>('live');
 
-  const dataset = events.length ? events : demoEvents;
+  const dataset = events;
   const liveEvents = dataset.filter(e => !!e.startAt && !e.endAt);
   const pastEvents = dataset.filter(e => !!e.endAt);
 
@@ -116,7 +114,7 @@ export default function HomeScreen({ user, events = [], onOpenMenu, showExampleW
         {/* Feed */}
         <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.lg }}>
           {(seg === 'live' ? liveEvents : pastEvents).length === 0 ? (
-            showExampleWhenEmpty ? <EventCard item={examplePost} /> : <EmptyFeed />
+            <EmptyFeed />
           ) : (
             (seg === 'live' ? liveEvents : pastEvents).map(item => <EventCard key={item.id} item={item} />)
           )}

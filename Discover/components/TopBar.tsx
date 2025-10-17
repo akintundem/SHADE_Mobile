@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
-import { Search, Plus } from 'lucide-react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
+import { Plus } from 'lucide-react-native';
 
-type Props = { onPlus?: () => void };
+type Props = { onCreate?: () => void };
 
-export const TopBar = ({ onPlus }: Props) => {
-  const { colors, brand, typography, spacing, shadows } = useTheme();
-  
+export const TopBar = ({ onCreate }: Props) => {
+  const { colors, typography, spacing } = useTheme();
+  const { t } = useI18n();
+
   return (
     <View
       style={{
@@ -27,42 +29,11 @@ export const TopBar = ({ onPlus }: Props) => {
         fontSize: typography.size.xl,
         letterSpacing: -0.5,
       }}>
-        Discover
+        {t('Manage')}
       </Text>
-      
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-        <TouchableOpacity 
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.surface,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-        >
-          <Search size={20} color={colors.text.secondary} strokeWidth={2} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          onPress={onPlus}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: brand.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...shadows.md,
-          }}
-        >
-          <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity onPress={onCreate} activeOpacity={0.8} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <Plus size={22} color={colors.text.primary} />
+      </TouchableOpacity>
     </View>
   );
 };
