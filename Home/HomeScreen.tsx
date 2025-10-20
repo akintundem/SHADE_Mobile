@@ -90,8 +90,8 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.brand.primary}
-            colors={[colors.brand.primary]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
       >
@@ -120,16 +120,16 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
                 gap: spacing.xs,
                 paddingVertical: spacing.md,
                 borderRadius: borderRadius.full,
-                backgroundColor: seg === 'live' ? brand.primary : 'transparent',
+                backgroundColor: seg === 'live' ? colors.primary : 'transparent',
                 ...(seg === 'live' ? shadows.sm : {}),
               }}
             >
               <Animated.View style={{ opacity: pulse }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: seg === 'live' ? '#FFFFFF' : brand.primary }} />
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: seg === 'live' ? colors.text.inverse : colors.primary }} />
               </Animated.View>
-              <Flame size={16} color={seg === 'live' ? '#FFFFFF' : colors.text.secondary} />
+              <Flame size={16} color={seg === 'live' ? colors.text.inverse : colors.text.secondary} />
               <Text style={{
-                color: seg === 'live' ? '#FFFFFF' : colors.text.secondary,
+                color: seg === 'live' ? colors.text.inverse : colors.text.secondary,
                 fontWeight: seg === 'live' ? typography.weight.semibold : typography.weight.medium,
                 fontSize: typography.size.sm,
               }}>Live</Text>
@@ -147,13 +147,13 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
                 gap: spacing.xs,
                 paddingVertical: spacing.md,
                 borderRadius: borderRadius.full,
-                backgroundColor: seg === 'past' ? brand.primary : 'transparent',
+                backgroundColor: seg === 'past' ? colors.primary : 'transparent',
                 ...(seg === 'past' ? shadows.sm : {}),
               }}
             >
-              <Clock size={16} color={seg === 'past' ? '#FFFFFF' : colors.text.secondary} />
+              <Clock size={16} color={seg === 'past' ? colors.text.inverse : colors.text.secondary} />
               <Text style={{
-                color: seg === 'past' ? '#FFFFFF' : colors.text.secondary,
+                color: seg === 'past' ? colors.text.inverse : colors.text.secondary,
                 fontWeight: seg === 'past' ? typography.weight.semibold : typography.weight.medium,
                 fontSize: typography.size.sm,
               }}>Past</Text>

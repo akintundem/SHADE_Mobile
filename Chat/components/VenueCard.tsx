@@ -34,11 +34,12 @@ export default function VenueCard({ venue, onPress }: VenueCardProps) {
         source={{ uri: venue.image }}
         style={{
           width: '100%',
-          height: 200,
+          height: 160,
           borderTopLeftRadius: borderRadius.lg,
           borderTopRightRadius: borderRadius.lg,
         }}
         resizeMode="cover"
+        defaultSource={{ uri: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=400&h=300&fit=crop' }}
       />
       <View style={{
         position: 'absolute',
@@ -51,7 +52,7 @@ export default function VenueCard({ venue, onPress }: VenueCardProps) {
         flexDirection: 'row',
         alignItems: 'center',
       }}>
-        <Star size={12} color="#FFD700" fill="#FFD700" />
+        <Star size={12} color={colors.brand.secondary} fill={colors.brand.secondary} />
         <Text style={{
           color: colors.surfaceElevated,
           fontSize: typography.size.sm,
@@ -61,12 +62,12 @@ export default function VenueCard({ venue, onPress }: VenueCardProps) {
           {venue.rating}
         </Text>
       </View>
-      <View style={{ padding: spacing.lg }}>
+      <View style={{ padding: spacing.md }}>
         <Text style={{
           color: colors.text.primary,
           fontSize: typography.size.lg,
           fontWeight: typography.weight.bold,
-          marginBottom: spacing.sm,
+          marginBottom: spacing.xs,
         }}>
           {venue.name}
         </Text>
@@ -80,7 +81,7 @@ export default function VenueCard({ venue, onPress }: VenueCardProps) {
             {venue.location}
           </Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
           <Users size={14} color={colors.text.secondary} />
           <Text style={{
             color: colors.text.secondary,

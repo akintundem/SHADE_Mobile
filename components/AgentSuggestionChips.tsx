@@ -13,7 +13,7 @@ export const AgentSuggestionChips = ({ onSelect }: { onSelect: (suggestionText: 
       {suggestions.slice(0, 4).map((s, idx) => (
         <TouchableOpacity key={idx} onPress={() => onSelect(s.text)} activeOpacity={0.85}>
           <View style={{ borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.full }}>
-            <Text style={{ color: s.type === 'risk' ? '#ef4444' : colors.text.primary, fontWeight: typography.weight.medium }} numberOfLines={1}>
+            <Text style={{ color: s.type === 'risk' ? colors.semantic.error : colors.text.primary, fontWeight: typography.weight.medium }} numberOfLines={1}>
               {s.text}
             </Text>
           </View>

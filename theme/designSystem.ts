@@ -4,59 +4,59 @@
  */
 
 export const Colors = {
-  // Brand Colors - Premium and sophisticated
+  // Brand Colors - Improved accessibility and contrast
   brand: {
-    primary: '#0F172A',      // Slate - ultra premium, sophisticated
-    primaryDark: '#020617',  // Deeper slate
-    primaryLight: '#334155', // Light slate
+    primary: '#1E40AF',      // Blue - high contrast, accessible
+    primaryDark: '#1E3A8A',  // Darker blue
+    primaryLight: '#3B82F6', // Lighter blue
     secondary: '#F59E0B',    // Amber accent - luxury and warmth
     secondaryDark: '#D97706',
     secondaryLight: '#FCD34D',
   },
 
-  // Neutral Palette - Softer, more sophisticated
+  // Neutral Palette - Improved accessibility and contrast
   light: {
-    background: '#FEFEFE',        // Warm off-white instead of harsh white
+    background: '#FFFFFF',        // Pure white for better contrast
     surface: '#F8F9FA',          // Soft gray surface
-    surfaceElevated: '#FFFFFF',   // Pure white only for elevated elements
+    surfaceElevated: '#FFFFFF',   // Pure white for elevated elements
     card: '#F1F3F4',             // Warm card background
     cardElevated: '#FFFFFF',      // Pure white for elevated cards
-    border: '#E1E5E9',           // Softer border color
-    borderLight: '#F0F2F5',      // Very light borders
-    divider: '#E8EAED',          // Subtle dividers
+    border: '#D1D5DB',           // Better contrast border
+    borderLight: '#E5E7EB',      // Light borders with better visibility
+    divider: '#E5E7EB',          // More visible dividers
     
     text: {
-      primary: '#1A1D21',        // Softer black, less harsh
-      secondary: '#5F6368',      // Warmer gray
-      tertiary: '#80868B',       // Medium gray
-      disabled: '#BDC1C6',       // Disabled state
+      primary: '#111827',        // High contrast black
+      secondary: '#374151',      // Better contrast gray
+      tertiary: '#6B7280',       // Accessible medium gray
+      disabled: '#9CA3AF',       // Accessible disabled state
       inverse: '#FFFFFF',
     },
     
-    overlay: 'rgba(0, 0, 0, 0.4)',
-    overlayLight: 'rgba(0, 0, 0, 0.15)',
+    overlay: 'rgba(0, 0, 0, 0.5)',
+    overlayLight: 'rgba(0, 0, 0, 0.2)',
   },
 
   dark: {
-    background: '#0D1117',        // GitHub-style dark, not pure black
-    surface: '#161B22',          // Slightly lighter surface
-    surfaceElevated: '#21262D',   // Elevated elements
-    card: '#1C2128',             // Card background
-    cardElevated: '#262C36',      // Elevated cards
-    border: '#30363D',           // Visible but subtle borders
-    borderLight: '#21262D',       // Light borders
-    divider: '#21262D',          // Dividers
+    background: '#000000',        // Pure black for better contrast
+    surface: '#111827',          // Dark gray surface
+    surfaceElevated: '#1F2937',   // Elevated elements with better contrast
+    card: '#1F2937',             // Card background
+    cardElevated: '#374151',      // Elevated cards
+    border: '#374151',           // More visible borders
+    borderLight: '#4B5563',       // Light borders with better visibility
+    divider: '#374151',          // More visible dividers
     
     text: {
-      primary: '#F0F6FC',        // Softer white, easier on eyes
-      secondary: '#8B949E',      // Warm gray
-      tertiary: '#6E7681',       // Medium gray
-      disabled: '#484F58',       // Disabled state
-      inverse: '#0D1117',
+      primary: '#F9FAFB',        // High contrast white
+      secondary: '#D1D5DB',      // Better contrast gray
+      tertiary: '#9CA3AF',       // Accessible medium gray
+      disabled: '#6B7280',       // Accessible disabled state
+      inverse: '#000000',
     },
     
-    overlay: 'rgba(0, 0, 0, 0.6)',
-    overlayLight: 'rgba(0, 0, 0, 0.3)',
+    overlay: 'rgba(0, 0, 0, 0.7)',
+    overlayLight: 'rgba(0, 0, 0, 0.4)',
   },
 
   // Semantic Colors - Modern and accessible
@@ -236,6 +236,10 @@ export const getThemedColors = (isDark: boolean) => {
     brand: Colors.brand,
     semantic: Colors.semantic,
     social: Colors.social,
+    // Primary color system for consistent theming
+    primary: Colors.brand.primary,
+    primaryDark: Colors.brand.primaryDark,
+    primaryLight: Colors.brand.primaryLight,
   };
 };
 

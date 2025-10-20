@@ -37,9 +37,9 @@ export default function DiscoverScreen({ user, trending = [], recent = [], onTab
               <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>{t('NoEventsYet')}</Text>
               <Text style={{ color: colors.text.secondary }}>{t('StartByCreatingEvent')}</Text>
               <View style={{ height: spacing.lg }} />
-              <TouchableOpacity onPress={onCreateEvent} activeOpacity={0.9} style={{ backgroundColor: '#0000' }}>
-                <View style={{ backgroundColor: '#0000' }}>
-                  <View style={{ backgroundColor: '#0000' }} />
+              <TouchableOpacity onPress={onCreateEvent} activeOpacity={0.9} style={{ backgroundColor: colors.primary }}>
+                <View style={{ backgroundColor: colors.primary }}>
+                  <View style={{ backgroundColor: colors.primary }} />
                 </View>
               </TouchableOpacity>
             </View>

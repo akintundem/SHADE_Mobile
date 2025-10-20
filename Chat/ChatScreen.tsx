@@ -14,6 +14,7 @@ import {
 import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { useTheme } from '../theme/ThemeProvider';
 import { ArrowLeft, Moon, Mic, Send, Star, MapPin, Users, Heart, Mail } from 'lucide-react-native';
+import VenueDetailModal from './components/VenueDetailModal';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -40,13 +41,13 @@ interface VenueCard {
 const sampleVenues: VenueCard[] = [
   {
     id: '1',
-    name: 'Grand Ballroom Estate',
-    location: 'Downtown',
-    capacity: '200-300 guests',
-    price: '$8,000 - $12,000',
-    rating: 4.8,
-    reviewCount: 156,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=400&h=300&fit=crop',
+    name: 'Luxury Plaza Hotel',
+    location: 'Historic District',
+    capacity: '250-400 guests',
+    price: '$10,000 - $15,000',
+    rating: 4.9,
+    reviewCount: 203,
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
   },
   {
     id: '2',
@@ -54,9 +55,9 @@ const sampleVenues: VenueCard[] = [
     location: 'Countryside',
     capacity: '150-250 guests',
     price: '$6,500 - $10,000',
-    rating: 4.9,
-    reviewCount: 203,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=400&h=300&fit=crop',
+    rating: 4.8,
+    reviewCount: 156,
+    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
   },
   {
     id: '3',
@@ -66,14 +67,34 @@ const sampleVenues: VenueCard[] = [
     price: '$5,500 - $9,000',
     rating: 4.7,
     reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+  },
+  {
+    id: '4',
+    name: 'Grand Ballroom Palace',
+    location: 'Downtown',
+    capacity: '300-500 guests',
+    price: '$12,000 - $18,000',
+    rating: 4.9,
+    reviewCount: 287,
+    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+  },
+  {
+    id: '5',
+    name: 'Seaside Resort & Spa',
+    location: 'Coastal',
+    capacity: '200-350 guests',
+    price: '$8,500 - $13,000',
+    rating: 4.8,
+    reviewCount: 194,
+    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
   },
 ];
 
 const eventTypes = [
-  { id: 'wedding', label: 'Wedding', icon: '⛪', color: '#8B5CF6' },
-  { id: 'birthday', label: 'Birthday', icon: '🎂', color: '#F59E0B' },
-  { id: 'corporate', label: 'Corp', icon: '💼', color: '#8B5CF6' },
+  { id: 'wedding', label: 'Wedding', icon: '⛪', color: 'primary' },
+  { id: 'birthday', label: 'Birthday', icon: '🎂', color: 'secondary' },
+  { id: 'corporate', label: 'Corp', icon: '💼', color: 'primary' },
 ];
 
 export default function ChatScreen({ onClose }: { onClose: () => void }) {
@@ -89,6 +110,8 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
   const [inputText, setInputText] = useState('');
   const [selectedEventType, setSelectedEventType] = useState('wedding');
   const [showEmailReview, setShowEmailReview] = useState(false);
+  const [selectedVenue, setSelectedVenue] = useState<VenueCard | null>(null);
+  const [showVenueDetail, setShowVenueDetail] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const scrollToBottom = () => {
@@ -117,10 +140,25 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
         text: "OMG, congratulations! 💍✨ This is such an exciting time! I found 5 amazing wedding venues that would be perfect for your special day. Take a look and tap on any venue to see more details!",
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        type: 'venue_card',
-        data: sampleVenues,
       };
       setMessages(prev => [...prev, aiResponse]);
+      
+      // Add venue cards as separate messages
+      sampleVenues.forEach((venue, index) => {
+        setTimeout(() => {
+          const venueMessage: Message = {
+            id: (Date.now() + 2 + index).toString(),
+            text: "",
+            isUser: false,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: 'venue_card',
+            data: [venue],
+          };
+          setMessages(prev => [...prev, venueMessage]);
+          scrollToBottom();
+        }, 1500 + (index * 300));
+      });
+      
       scrollToBottom();
     }, 1000);
 
@@ -128,6 +166,25 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
   };
 
   const handleVenueSelect = (venue: VenueCard) => {
+    setSelectedVenue(venue);
+    setShowVenueDetail(true);
+  };
+
+  const handleSelectVenue = () => {
+    setShowVenueDetail(false);
+    // Add success message
+    const successMessage: Message = {
+      id: Date.now().toString(),
+      text: `Perfect! I've selected ${selectedVenue?.name} for your event. This venue is absolutely stunning and will create the perfect atmosphere for your special day!`,
+      isUser: false,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, successMessage]);
+    scrollToBottom();
+  };
+
+  const handleSendInquiry = () => {
+    setShowVenueDetail(false);
     setShowEmailReview(true);
   };
 
@@ -157,7 +214,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
               width: 32,
               height: 32,
               borderRadius: 16,
-              backgroundColor: colors.brand.primary,
+              backgroundColor: colors.primary,
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: spacing.sm,
@@ -171,30 +228,31 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
               padding: spacing.lg,
               ...shadows.sm,
             }}>
-              <Text style={{
-                color: colors.text.primary,
-                fontSize: typography.size.base,
-                lineHeight: typography.lineHeight.normal * typography.size.base,
-                marginBottom: spacing.md,
-              }}>
-                {message.text}
-              </Text>
+              {message.text && (
+                <Text style={{
+                  color: colors.text.primary,
+                  fontSize: typography.size.base,
+                  lineHeight: typography.lineHeight.normal * typography.size.base,
+                  marginBottom: spacing.md,
+                }}>
+                  {message.text}
+                </Text>
+              )}
               {message.data.map((venue: VenueCard) => (
-                <TouchableOpacity
-                  key={venue.id}
-                  onPress={() => handleVenueSelect(venue)}
-                  style={{
-                    backgroundColor: colors.surfaceElevated,
-                    borderRadius: borderRadius.lg,
-                    marginBottom: spacing.md,
-                    ...shadows.sm,
-                  }}
-                >
+                  <TouchableOpacity
+                    key={venue.id}
+                    onPress={() => handleVenueSelect(venue)}
+                    style={{
+                      backgroundColor: colors.surfaceElevated,
+                      borderRadius: borderRadius.lg,
+                      ...shadows.sm,
+                    }}
+                  >
                   <Image
                     source={{ uri: venue.image }}
                     style={{
                       width: '100%',
-                      height: 200,
+                      height: 160,
                       borderTopLeftRadius: borderRadius.lg,
                       borderTopRightRadius: borderRadius.lg,
                     }}
@@ -211,7 +269,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
                     flexDirection: 'row',
                     alignItems: 'center',
                   }}>
-                    <Star size={12} color="#FFD700" fill="#FFD700" />
+                    <Star size={12} color={colors.brand.secondary} fill={colors.brand.secondary} />
                     <Text style={{
                       color: colors.surfaceElevated,
                       fontSize: typography.size.sm,
@@ -258,7 +316,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
                       {venue.price}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
               ))}
             </View>
           </View>
@@ -283,7 +341,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           width: 32,
           height: 32,
           borderRadius: 16,
-          backgroundColor: message.isUser ? colors.brand.primary : colors.brand.primary,
+          backgroundColor: message.isUser ? colors.primary : colors.primary,
           alignItems: 'center',
           justifyContent: 'center',
           marginHorizontal: spacing.sm,
@@ -301,7 +359,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
         </View>
         <View style={{
           maxWidth: screenWidth * 0.7,
-          backgroundColor: message.isUser ? colors.brand.primary : colors.surfaceElevated,
+          backgroundColor: message.isUser ? colors.primary : colors.surfaceElevated,
           borderRadius: borderRadius.xl,
           padding: spacing.lg,
           ...(message.isUser ? {} : shadows.sm),
@@ -506,6 +564,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           paddingVertical: spacing.md,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
+          backgroundColor: colors.background,
         }}>
           <TouchableOpacity onPress={onClose}>
             <ArrowLeft size={24} color={colors.text.primary} />
@@ -516,7 +575,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
               width: 48,
               height: 48,
               borderRadius: 24,
-              backgroundColor: colors.brand.primary,
+              backgroundColor: colors.primary,
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: spacing.xs,
@@ -539,9 +598,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
             </Text>
           </View>
 
-          <TouchableOpacity>
-            <Moon size={24} color={colors.text.primary} />
-          </TouchableOpacity>
+          <View style={{ width: 24 }} />
         </View>
 
         {/* Messages */}
@@ -642,6 +699,17 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           </View>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Venue Detail Modal */}
+      {selectedVenue && (
+        <VenueDetailModal
+          visible={showVenueDetail}
+          venue={selectedVenue}
+          onClose={() => setShowVenueDetail(false)}
+          onSelectVenue={handleSelectVenue}
+          onSendInquiry={handleSendInquiry}
+        />
+      )}
     </SafeAreaWrapper>
   );
 }
