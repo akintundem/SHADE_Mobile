@@ -1,0 +1,615 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+		"name": "Event Planner - Event Service Testing",
+		"description": "Comprehensive testing collection for the Event Planner Event Service through the API Gateway. This collection includes all event management endpoints, AI integration testing, and Swagger UI access.\n\n## Setup Instructions:\n1. Import this collection into Postman\n2. Set the base URL environment variable (see below)\n3. Follow the testing sequence in order\n\n## Environment Variables:\n- `base_url`: http://localhost:8080 (API Gateway URL)\n- `auth_token`: JWT token from Auth Service (set after login)\n- `event_id`: Will be set automatically after creating an event\n\n## Testing Sequence:\n1. Start with Health Check\n2. Test Swagger UI access\n3. Test OpenAPI documentation\n4. Test direct access (should fail)\n5. Test X-Internal-Auth mechanism",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔍 Health & Status Checks",
+			"item": [
+				{
+					"name": "Gateway Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Gateway is running\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the API Gateway is running and healthy."
+					},
+					"response": []
+				},
+				{
+					"name": "Event Service Health Check (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Event Service is accessible via Gateway\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Response contains service info\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('components');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/events/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"events",
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the Event Service is accessible through the Gateway."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Event Service Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Direct access is blocked\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response indicates forbidden access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('forbidden');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "This should return 403 Forbidden - demonstrates that direct access to services is blocked by X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check endpoints to verify service availability and security."
+		},
+		{
+			"name": "📚 Swagger UI & API Documentation",
+			"item": [
+				{
+					"name": "Event Service Swagger UI",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/swagger-ui/event-service/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"swagger-ui",
+								"event-service",
+								""
+							]
+						},
+						"description": "Access the Event Service Swagger UI through the Gateway. This should return the interactive API documentation."
+					},
+					"response": []
+				},
+				{
+					"name": "Event Service OpenAPI Docs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/events/v3/api-docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"events",
+								"v3",
+								"api-docs"
+							]
+						},
+						"description": "Get the OpenAPI specification for the Event Service in JSON format."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Swagger UI Access (Should Fail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/swagger-ui/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"swagger-ui",
+								""
+							]
+						},
+						"description": "Attempt to access Swagger UI directly - should return 403 Forbidden due to X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing Swagger UI and API documentation access through the Gateway."
+		},
+		{
+			"name": "🛡️ Security Testing",
+			"item": [
+				{
+					"name": "Test X-Internal-Auth Header",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "dev-internal-gateway"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8082/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access to Event Service with the correct X-Internal-Auth header. This should work and demonstrate the internal security mechanism."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Wrong X-Internal-Auth Header",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "wrong-secret"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8082/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access with wrong X-Internal-Auth header - should return 403 Forbidden."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Direct API Access (Should Fail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8082/api/v1/events",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8082",
+							"path": [
+								"api",
+								"v1",
+								"events"
+							]
+						},
+						"description": "Test direct access to Event Service API - should return 403 Forbidden."
+					},
+					"response": []
+				}
+			],
+			"description": "Security testing to verify the X-Internal-Auth mechanism."
+		},
+		{
+			"name": "📅 Event Management Testing",
+			"item": [
+				{
+					"name": "Create Event (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has event data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"    pm.expect(jsonData).to.have.property('date');",
+									"});",
+									"",
+									"// Store event ID for later use",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('event_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{test_event_name}}\",\n    \"type\": \"{{test_event_type}}\",\n    \"date\": \"{{test_event_date}}\",\n    \"organizationId\": \"{{user_id}}\",\n    \"venueId\": null,\n    \"metadata\": {\n        \"description\": \"A test event for Postman testing\",\n        \"maxAttendees\": 100,\n        \"budget\": 50000\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/events",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events"
+							]
+						},
+						"description": "Create a new event through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event by ID (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has event data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"    pm.expect(jsonData).to.have.property('type');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}"
+							]
+						},
+						"description": "Get a specific event by ID through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Event (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}"
+							]
+						},
+						"description": "Delete an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing event management CRUD operations through the Gateway."
+		},
+		{
+			"name": "🔐 Authentication Testing",
+			"item": [
+			],
+			"description": "Testing authentication requirements for protected endpoints."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set default base URL if not already set",
+					"if (!pm.environment.get('base_url')) {",
+					"    pm.environment.set('base_url', 'http://localhost:8080');",
+					"}",
+					"",
+					"// Set default token type if not already set",
+					"if (!pm.environment.get('token_type')) {",
+					"    pm.environment.set('token_type', 'Bearer');",
+					"}",
+					"",
+					"// Generate unique test data for each run",
+					"const timestamp = Date.now();",
+					"const randomId = Math.floor(Math.random() * 10000);",
+					"",
+					"// Set unique test user data",
+					"pm.environment.set('test_email', `eventtest${timestamp}@example.com`);",
+					"pm.environment.set('test_name', `Event Test User ${randomId}`);",
+					"pm.environment.set('test_phone', `+1234567${randomId.toString().padStart(4, '0')}`);",
+					"pm.environment.set('test_password', 'TestPass123@');",
+					"",
+					"// Set test device info",
+					"pm.environment.set('test_device_id', `event-test-device-${timestamp}`);",
+					"pm.environment.set('test_client_id', 'postman-event-test');",
+					"",
+					"// Set test event data",
+					"pm.environment.set('test_event_name', `Test Event ${randomId}`);",
+					"pm.environment.set('test_event_type', 'corporate');",
+					"pm.environment.set('test_event_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString());",
+					"",
+					"console.log('Pre-request: Test data generated for Event Service run', timestamp);",
+					"",
+					"// Auto-authentication for Event Service endpoints",
+					"if (pm.info.requestName.includes('Event') && !pm.info.requestName.includes('Auth') && !pm.info.requestName.includes('Health') && !pm.info.requestName.includes('Swagger') && !pm.info.requestName.includes('OpenAPI') && !pm.info.requestName.includes('Direct') && !pm.info.requestName.includes('X-Internal-Auth')) {",
+					"    ",
+					"    // Check if we already have a valid token",
+					"    if (!pm.environment.get('auth_token') || pm.environment.get('auth_token') === '') {",
+					"        console.log('No auth token found, attempting to login...');",
+					"        ",
+					"        // First try to register a user",
+					"        const registerRequest = {",
+					"            url: pm.environment.get('base_url') + '/api/v1/auth/register',",
+					"            method: 'POST',",
+					"            header: {",
+					"                'Content-Type': 'application/json'",
+					"            },",
+					"            body: {",
+					"                mode: 'raw',",
+					"                raw: JSON.stringify({",
+					"                    email: pm.environment.get('test_email'),",
+					"                    name: pm.environment.get('test_name'),",
+					"                    password: pm.environment.get('test_password'),",
+					"                    confirmPassword: pm.environment.get('test_password'),",
+					"                    phoneNumber: pm.environment.get('test_phone'),",
+					"                    acceptTerms: true,",
+					"                    acceptPrivacy: true,",
+					"                    marketingOptIn: false",
+					"                })",
+					"            }",
+					"        };",
+					"        ",
+					"        try {",
+					"            const registerResponse = pm.sendRequest(registerRequest);",
+					"            if (registerResponse.code === 201) {",
+					"                const registerData = registerResponse.json();",
+					"                pm.environment.set('auth_token', registerData.accessToken);",
+					"                pm.environment.set('refresh_token', registerData.refreshToken);",
+					"                pm.environment.set('token_type', 'Bearer');",
+					"                pm.environment.set('user_id', registerData.user.id);",
+					"                console.log('User registered and token set');",
+					"            }",
+					"        } catch (e) {",
+					"            console.log('Registration failed, trying login...');",
+					"        }",
+					"        ",
+					"        // If registration failed or token still not set, try login",
+					"        if (!pm.environment.get('auth_token') || pm.environment.get('auth_token') === '') {",
+					"            const loginRequest = {",
+					"                url: pm.environment.get('base_url') + '/api/v1/auth/login',",
+					"                method: 'POST',",
+					"                header: {",
+					"                    'Content-Type': 'application/json'",
+					"                },",
+					"                body: {",
+					"                    mode: 'raw',",
+					"                    raw: JSON.stringify({",
+					"                        email: pm.environment.get('test_email'),",
+					"                        password: pm.environment.get('test_password'),",
+					"                        rememberMe: false,",
+					"                        deviceId: pm.environment.get('test_device_id'),",
+					"                        clientId: pm.environment.get('test_client_id'),",
+					"                    })",
+					"                }",
+					"            };",
+					"            ",
+					"            try {",
+					"                const loginResponse = pm.sendRequest(loginRequest);",
+					"                if (loginResponse.code === 200) {",
+					"                    const loginData = loginResponse.json();",
+					"                    pm.environment.set('auth_token', loginData.accessToken);",
+					"                    pm.environment.set('refresh_token', loginData.refreshToken);",
+					"                    pm.environment.set('token_type', 'Bearer');",
+					"                    pm.environment.set('user_id', loginData.user.id);",
+					"                    console.log('User logged in and token set');",
+					"                }",
+					"            } catch (e) {",
+					"                console.log('Login failed:', e);",
+					"            }",
+					"        }",
+					"    }",
+					"    ",
+					"    // Set Authorization header for Event Service requests",
+					"    if (pm.environment.get('auth_token') && pm.environment.get('auth_token') !== '') {",
+					"        pm.request.headers.add({",
+					"            key: 'Authorization',",
+					"            value: pm.environment.get('token_type') + ' ' + pm.environment.get('auth_token')",
+					"        });",
+					"        console.log('Authorization header set for Event Service request');",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test to log response details",
+					"console.log('Response Status:', pm.response.code);",
+					"console.log('Response Time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Log response body for debugging (first 500 chars)",
+					"if (pm.response.text()) {",
+					"    console.log('Response Body:', pm.response.text().substring(0, 500));",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "token_type",
+			"value": "Bearer",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "event_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

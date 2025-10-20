@@ -34,7 +34,16 @@ http.interceptors.response.use(
       // Token invalid — clear it. Upstream UI can decide how to react.
       await clearToken();
     }
-    return Promise.reject(error);
+    
+    // Enhanced error handling
+    const enhancedError = {
+      ...error,
+      message: error?.response?.data?.message || error?.message || 'An unexpected error occurred',
+      status: error?.response?.status,
+      data: error?.response?.data,
+    };
+    
+    return Promise.reject(enhancedError);
   },
 );
 

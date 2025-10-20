@@ -11,6 +11,7 @@ const CameraScreen = React.lazy(() => import('../Camera/CameraScreen'));
 const VideoEditorScreen = React.lazy(() => import('../Editor/VideoEditorScreen'));
 const CreateEventScreen = React.lazy(() => import('../Create/CreateEventScreen'));
 const SettingsScreen = React.lazy(() => import('../Settings/SettingsScreen'));
+const ChatScreen = React.lazy(() => import('../Chat/ChatScreen'));
 import { EventThreadScreen } from '../Home/components/EventThreadScreen';
 import type { ThreadPost } from '../Home/components/EventThreadModal';
 
@@ -23,9 +24,10 @@ type Props = {
 export default function SocialApp({ user, onLogout }: Props) {
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'home' | 'discover' | 'profile'>('home');
+  const [tab, setTab] = useState<'home' | 'discover' | 'map' | 'profile'>('home');
   const [isComposeOpen, setComposeOpen] = useState(false);
   const [isCreateEventOpen, setCreateEventOpen] = useState(false);
+  const [isChatOpen, setChatOpen] = useState(false);
   
   const [isCameraOpen, setCameraOpen] = useState(false);
   const [captured, setCaptured] = useState<{ path: string; type: 'photo' | 'video' } | null>(null);
@@ -48,12 +50,13 @@ export default function SocialApp({ user, onLogout }: Props) {
   }, [isComposeOpen]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {tab === 'home' ? (
         <HomeScreen
           user={user}
           onTabChange={setTab}
           onCreatePost={() => setComposeOpen(true)}
+          onOpenChat={() => setChatOpen(true)}
         />
       ) : tab === 'discover' ? (
         <DiscoverScreen
@@ -156,6 +159,14 @@ export default function SocialApp({ user, onLogout }: Props) {
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: '#00000066', zIndex: 130 }}>
           <React.Suspense fallback={null}>
             <SettingsScreen onClose={() => setSettingsOpen(false)} />
+          </React.Suspense>
+        </View>
+      ) : null}
+
+      {isChatOpen ? (
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.background, zIndex: 140 }}>
+          <React.Suspense fallback={null}>
+            <ChatScreen onClose={() => setChatOpen(false)} />
           </React.Suspense>
         </View>
       ) : null}

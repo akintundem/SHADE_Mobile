@@ -1,8 +1,7 @@
 import { http, persistTokenFrom } from './httpClient';
+import { ApiResponse, AuthTokens, LoginRequest, RegisterRequest } from '../types';
 
-// DTOs aligned with backend docs
-export type ApiReply<T> = { status: number; message: string; data: T | null };
-
+// Legacy types for backward compatibility
 export type UserDTO = {
   userId: string;
   email: string;
@@ -29,13 +28,57 @@ export type SpotifyResponse = {
 };
 
 export const authService = {
+  // New API methods using the microservice endpoints
+  async registerNew(request: RegisterRequest) {
+    const res = await http.post<ApiResponse<AuthTokens>>('/api/v1/auth/register', request);
+    const body = res.data;
+    if (body.status === 200 && body.data) {
+      await persistTokenFrom({ token: body.data.accessToken });
+      return body.data;
+    }
+    throw new Error(body.message || 'Registration failed');
+  },
+
+  async loginNew(request: LoginRequest) {
+    const res = await http.post<ApiResponse<AuthTokens>>('/api/v1/auth/login', request);
+    const body = res.data;
+    if (body.status === 200 && body.data) {
+      await persistTokenFrom({ token: body.data.accessToken });
+      return body.data;
+    }
+    throw new Error(body.message || 'Login failed');
+  },
+
+  async validateToken() {
+    const res = await http.get<ApiResponse<{ valid: boolean }>>('/api/v1/auth/validate');
+    return res.data;
+  },
+
+  async refreshToken(refreshToken: string) {
+    const res = await http.post<ApiResponse<AuthTokens>>('/api/v1/auth/refresh', {
+      refreshToken,
+    });
+    const body = res.data;
+    if (body.status === 200 && body.data) {
+      await persistTokenFrom({ token: body.data.accessToken });
+      return body.data;
+    }
+    throw new Error(body.message || 'Token refresh failed');
+  },
+
+  async getUserProfile() {
+    const res = await http.get<ApiResponse<UserDTO>>('/api/v1/auth/profile');
+    return res.data;
+  },
+
+  // Legacy methods for backward compatibility
   async register(email: string, password: string) {
-    const res = await http.post<ApiReply<RegisterResponse>>('/auth/register', {
+    const res = await http.post<ApiResponse<RegisterResponse>>('/auth/register', {
       email,
       password,
     });
     const body = res.data;
-    if (body.status === 1 && body.data) {
+    if (body.status === 200 && body.data) {
       await persistTokenFrom(body.data);
       return body.data;
     }
@@ -43,12 +86,12 @@ export const authService = {
   },
 
   async signIn(email: string, password: string) {
-    const res = await http.post<ApiReply<SignInResponse>>('/auth/signin', {
+    const res = await http.post<ApiResponse<SignInResponse>>('/auth/signin', {
       email,
       password,
     });
     const body = res.data;
-    if (body.status === 1 && body.data) {
+    if (body.status === 200 && body.data) {
       await persistTokenFrom(body.data);
       return body.data;
     }
@@ -56,12 +99,12 @@ export const authService = {
   },
 
   async spotifyOAuth(code: string, redirectUri: string) {
-    const res = await http.post<ApiReply<SpotifyResponse>>('/auth/oauth/spotify', {
+    const res = await http.post<ApiResponse<SpotifyResponse>>('/auth/oauth/spotify', {
       code,
       redirectUri,
     });
     const body = res.data;
-    if ((body.status === 1 || body.status === 0) && body.data) {
+    if ((body.status === 200 || body.status === 201) && body.data) {
       await persistTokenFrom(body.data);
       return body.data;
     }
@@ -70,7 +113,7 @@ export const authService = {
 
   async logout() {
     try {
-      await http.post<ApiReply<null>>('/auth/logout');
+      await http.post<ApiResponse<null>>('/auth/logout');
     } finally {
       // Regardless of server response, client removes token (stateless JWT)
       const { clearToken } = await import('../storage/authStorage');

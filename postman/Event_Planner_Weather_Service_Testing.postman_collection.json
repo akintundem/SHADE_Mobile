@@ -1,0 +1,1626 @@
+{
+	"info": {
+		"_postman_id": "j0k1l2m3-n4o5-6789-jklm-012345678901",
+		"name": "Event Planner - Weather Service Testing",
+		"description": "Comprehensive testing collection for the Event Planner Weather Service through the API Gateway. This collection includes all weather forecasting endpoints, location-based weather data, and weather alerts functionality.\n\n## Setup Instructions:\n1. Import this collection into Postman\n2. Set the base URL environment variable (see below)\n3. Follow the testing sequence in order\n\n## Environment Variables:\n- `base_url`: http://localhost:8080 (API Gateway URL)\n- `auth_token`: JWT token from Auth Service (set after login)\n- `weather_alert_id`: Will be set automatically after creating a weather alert\n- `event_id`: Event ID for testing (set manually or from Event Service)\n\n## Testing Sequence:\n1. Start with Health Check\n2. Test Swagger UI access\n3. Test OpenAPI documentation\n4. Test direct access (should fail)\n5. Test X-Internal-Auth mechanism",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔍 Health & Status Checks",
+			"item": [
+				{
+					"name": "Gateway Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status property\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"});",
+									"",
+									"pm.test(\"Gateway is UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 2000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the API Gateway is running and healthy."
+					},
+					"response": []
+				},
+				{
+					"name": "Weather Service Health Check (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status property\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"});",
+									"",
+									"pm.test(\"Weather Service is UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 3000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/weather/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"weather",
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the Weather Service is accessible through the Gateway."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Weather Service Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is not 200 (should fail)\", function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8089/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "This should return 403 Forbidden - demonstrates that direct access to services is blocked by X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check endpoints to verify service availability and security."
+		},
+		{
+			"name": "📚 Swagger UI & API Documentation",
+			"item": [
+				{
+					"name": "Weather Service Swagger UI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains Swagger UI content\", function () {",
+									"    pm.expect(pm.response.text()).to.include('swagger');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is text/html\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/swagger-ui/weather-service/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"swagger-ui",
+								"weather-service",
+								""
+							]
+						},
+						"description": "Access the Weather Service Swagger UI through the Gateway. This should return the interactive API documentation."
+					},
+					"response": []
+				},
+				{
+					"name": "Weather Service OpenAPI Docs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains OpenAPI info\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('openapi');",
+									"    pm.expect(jsonData).to.have.property('info');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 3000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/weather/v3/api-docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"weather",
+								"v3",
+								"api-docs"
+							]
+						},
+						"description": "Get the OpenAPI specification for the Weather Service in JSON format."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Swagger UI Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is not 200 (should fail)\", function () {",
+									"    pm.expect(pm.response.code).to.not.equal(200);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8089/swagger-ui/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"swagger-ui",
+								""
+							]
+						},
+						"description": "Attempt to access Swagger UI directly - should return 403 Forbidden due to X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing Swagger UI and API documentation access through the Gateway."
+		},
+		{
+			"name": "🛡️ Security Testing",
+			"item": [
+				{
+					"name": "Test X-Internal-Auth Header",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status property\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"});",
+									"",
+									"pm.test(\"Weather Service is UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.eql('UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 3000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "dev-internal-gateway"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8089/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access to Weather Service with the correct X-Internal-Auth header. This should work and demonstrate the internal security mechanism."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Wrong X-Internal-Auth Header",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "wrong-secret"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8089/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access with wrong X-Internal-Auth header - should return 403 Forbidden."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Direct API Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 403 Forbidden\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8089/api/v1/weather/current",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8089",
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							]
+						},
+						"description": "Test direct access to Weather Service API - should return 403 Forbidden."
+					},
+					"response": []
+				}
+			],
+			"description": "Security testing to verify the X-Internal-Auth mechanism."
+		},
+		{
+			"name": "🌤️ Weather Data Testing",
+			"item": [
+				{
+					"name": "Get Current Weather (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains weather data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('temperature');",
+									"    pm.expect(jsonData).to.have.property('description');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/current?lat=40.7128&lon=-74.0060",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "40.7128"
+								},
+								{
+									"key": "lon",
+									"value": "-74.0060"
+								}
+							]
+						},
+						"description": "Get current weather data for New York City through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather Forecast (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains forecast data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('forecast');",
+									"    pm.expect(jsonData.forecast).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/forecast?lat=40.7128&lon=-74.0060&days=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"forecast"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "40.7128"
+								},
+								{
+									"key": "lon",
+									"value": "-74.0060"
+								},
+								{
+									"key": "days",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Get 5-day weather forecast for New York City through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather by City (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains weather data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('temperature');",
+									"    pm.expect(jsonData).to.have.property('description');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/city/New York",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"city",
+								"New York"
+							]
+						},
+						"description": "Get weather data by city name through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather by ZIP Code (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains weather data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('temperature');",
+									"    pm.expect(jsonData).to.have.property('description');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/zipcode/10001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"zipcode",
+								"10001"
+							]
+						},
+						"description": "Get weather data by ZIP code through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing weather data retrieval through the Gateway."
+		},
+		{
+			"name": "⚠️ Weather Alerts Testing",
+			"item": [
+				{
+					"name": "Get All Weather Alerts (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains alerts array\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('alerts');",
+									"    pm.expect(jsonData.alerts).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/alerts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"alerts"
+							]
+						},
+						"description": "Get all weather alerts through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Weather Alert (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has alert data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('alertType');",
+									"});",
+									"",
+									"// Store alert ID for later use",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('weather_alert_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{event_id}}\",\n    \"alertType\": \"severe_weather\",\n    \"severity\": \"high\",\n    \"location\": {\n        \"lat\": 40.7128,\n        \"lon\": -74.0060,\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"country\": \"USA\"\n    },\n    \"thresholds\": {\n        \"temperature\": {\n            \"min\": -10,\n            \"max\": 35\n        },\n        \"precipitation\": {\n            \"max\": 10\n        },\n        \"windSpeed\": {\n            \"max\": 25\n        }\n    },\n    \"notificationSettings\": {\n        \"email\": true,\n        \"sms\": true,\n        \"push\": true\n    },\n    \"status\": \"active\",\n    \"description\": \"Alert for severe weather conditions during event\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/alerts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"alerts"
+							]
+						},
+						"description": "Create a new weather alert through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather Alert by ID (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains alert data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('alertType');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/alerts/{{weather_alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"alerts",
+								"{{weather_alert_id}}"
+							]
+						},
+						"description": "Get a specific weather alert by ID through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Weather Alert (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains updated alert data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('alertType');",
+									"    pm.expect(jsonData.severity).to.eql('critical');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{event_id}}\",\n    \"alertType\": \"severe_weather\",\n    \"severity\": \"critical\",\n    \"location\": {\n        \"lat\": 40.7128,\n        \"lon\": -74.0060,\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"country\": \"USA\"\n    },\n    \"thresholds\": {\n        \"temperature\": {\n            \"min\": -15,\n            \"max\": 40\n        },\n        \"precipitation\": {\n            \"max\": 15\n        },\n        \"windSpeed\": {\n            \"max\": 30\n        }\n    },\n    \"notificationSettings\": {\n        \"email\": true,\n        \"sms\": true,\n        \"push\": true\n    },\n    \"status\": \"active\",\n    \"description\": \"Updated alert for severe weather conditions during event\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/alerts/{{weather_alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"alerts",
+								"{{weather_alert_id}}"
+							]
+						},
+						"description": "Update an existing weather alert through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Weather Alert (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/alerts/{{weather_alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"alerts",
+								"{{weather_alert_id}}"
+							]
+						},
+						"description": "Delete a weather alert through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing weather alert management through the Gateway."
+		},
+		{
+			"name": "📅 Event Weather Integration",
+			"item": [
+				{
+					"name": "Get Event Weather Forecast (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains event weather forecast\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('forecast');",
+									"    pm.expect(jsonData.forecast).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/weather/forecast",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"weather",
+								"forecast"
+							]
+						},
+						"description": "Get weather forecast for a specific event through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event Weather Alerts (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains event weather alerts\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('alerts');",
+									"    pm.expect(jsonData.alerts).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/weather/alerts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"weather",
+								"alerts"
+							]
+						},
+						"description": "Get weather alerts for a specific event through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event Weather Recommendations (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains weather recommendations\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('recommendations');",
+									"    pm.expect(jsonData.recommendations).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/weather/recommendations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"weather",
+								"recommendations"
+							]
+						},
+						"description": "Get weather-based recommendations for an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing event-weather integration through the Gateway."
+		},
+		{
+			"name": "📊 Weather Analytics",
+			"item": [
+				{
+					"name": "Get Weather Dashboard (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains dashboard data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('summary');",
+									"    pm.expect(jsonData).to.have.property('statistics');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"dashboard"
+							]
+						},
+						"description": "Get weather dashboard with summary statistics through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather Trends (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains weather trends\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('trends');",
+									"    pm.expect(jsonData.trends).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/trends?period=30&lat=40.7128&lon=-74.0060",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"trends"
+							],
+							"query": [
+								{
+									"key": "period",
+									"value": "30"
+								},
+								{
+									"key": "lat",
+									"value": "40.7128"
+								},
+								{
+									"key": "lon",
+									"value": "-74.0060"
+								}
+							]
+						},
+						"description": "Get weather trends over time through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather Impact Report (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains impact report\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('impactAnalysis');",
+									"    pm.expect(jsonData).to.have.property('recommendations');",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 5000ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+									"});",
+									"",
+									"pm.test(\"Content-Type is application/json\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/weather/impact-report",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"weather",
+								"impact-report"
+							]
+						},
+						"description": "Get weather impact report for an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing weather analytics and reporting through the Gateway."
+		},
+		{
+			"name": "🔐 Authentication Testing",
+			"item": [
+				{
+					"name": "Get Weather Data Without Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/current?lat=40.7128&lon=-74.0060",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "40.7128"
+								},
+								{
+									"key": "lon",
+									"value": "-74.0060"
+								}
+							]
+						},
+						"description": "Attempt to access protected endpoint without token - should return 401 Unauthorized."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Weather Data With Invalid Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response time is reasonable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(10000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid-token-here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/weather/current?lat=40.7128&lon=-74.0060",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"weather",
+								"current"
+							],
+							"query": [
+								{
+									"key": "lat",
+									"value": "40.7128"
+								},
+								{
+									"key": "lon",
+									"value": "-74.0060"
+								}
+							]
+						},
+						"description": "Attempt to access protected endpoint with invalid token - should return 401 Unauthorized."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing authentication requirements for protected endpoints."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set default base URL if not already set",
+					"if (!pm.environment.get('base_url')) {",
+					"    pm.environment.set('base_url', 'http://localhost:8080');",
+					"}",
+					"",
+					"// Set default token type if not already set",
+					"if (!pm.environment.get('token_type')) {",
+					"    pm.environment.set('token_type', 'Bearer');",
+					"}",
+					"",
+					"// Generate unique test data for each run",
+					"const timestamp = Date.now();",
+					"const randomId = Math.floor(Math.random() * 10000);",
+					"",
+					"// Generate unique test user data",
+					"pm.environment.set('test_email', `testuser_${timestamp}_${randomId}@example.com`);",
+					"pm.environment.set('test_name', `Test User ${timestamp}`);",
+					"pm.environment.set('test_phone', `+123456789${randomId}`);",
+					"pm.environment.set('test_password', 'TestPassword123!');",
+					"pm.environment.set('test_device_id', `device_${timestamp}_${randomId}`);",
+					"pm.environment.set('test_client_id', `client_${timestamp}_${randomId}`);",
+					"",
+					"// Generate unique weather test data",
+					"pm.environment.set('test_weather_alert_type', `severe_weather_${timestamp}`);",
+					"pm.environment.set('test_weather_alert_description', `Test weather alert description for ${timestamp}`);",
+					"pm.environment.set('test_weather_city', `Test City ${timestamp}`);",
+					"pm.environment.set('test_weather_zipcode', `${10000 + randomId}`);",
+					"",
+					"// Set default event ID for testing",
+					"if (!pm.environment.get('event_id')) {",
+					"    pm.environment.set('event_id', '550e8400-e29b-41d4-a716-446655440000');",
+					"}",
+					"",
+					"// Auto-authentication setup for Weather Service requests",
+					"// Only set Authorization header for Weather Service API requests",
+					"const requestUrl = pm.request.url.toString();",
+					"if (requestUrl.includes('/api/v1/weather') || requestUrl.includes('/api/v1/events/') && requestUrl.includes('/weather')) {",
+					"    // Check if we already have a valid auth token",
+					"    if (!pm.environment.get('auth_token')) {",
+					"        // Try to register a new user first",
+					"        const registerRequest = {",
+					"            url: pm.environment.get('base_url') + '/api/v1/auth/register',",
+					"            method: 'POST',",
+					"            header: {",
+					"                'Content-Type': 'application/json'",
+					"            },",
+					"            body: {",
+					"                mode: 'raw',",
+					"                raw: JSON.stringify({",
+					"                    email: pm.environment.get('test_email'),",
+					"                    name: pm.environment.get('test_name'),",
+					"                    phone: pm.environment.get('test_phone'),",
+					"                    password: pm.environment.get('test_password'),",
+					"                    deviceId: pm.environment.get('test_device_id'),",
+					"                    clientId: pm.environment.get('test_client_id')",
+					"                })",
+					"            }",
+					"        };",
+					"",
+					"        pm.sendRequest(registerRequest, function (err, response) {",
+					"            if (err) {",
+					"                console.log('Register request failed:', err);",
+					"                // If registration fails, try to login with existing user",
+					"                const loginRequest = {",
+					"                    url: pm.environment.get('base_url') + '/api/v1/auth/login',",
+					"                    method: 'POST',",
+					"                    header: {",
+					"                        'Content-Type': 'application/json'",
+					"                    },",
+					"                    body: {",
+					"                        mode: 'raw',",
+					"                        raw: JSON.stringify({",
+					"                            email: pm.environment.get('test_email'),",
+					"                            password: pm.environment.get('test_password'),",
+					"                            deviceId: pm.environment.get('test_device_id'),",
+					"                            clientId: pm.environment.get('test_client_id')",
+					"                        })",
+					"                    }",
+					"                };",
+					"",
+					"                pm.sendRequest(loginRequest, function (err, response) {",
+					"                    if (response && response.json()) {",
+					"                        const jsonData = response.json();",
+					"                        pm.environment.set('auth_token', jsonData.accessToken);",
+					"                        pm.environment.set('refresh_token', jsonData.refreshToken);",
+					"                        pm.environment.set('token_type', jsonData.tokenType || 'Bearer');",
+					"                        pm.environment.set('user_id', jsonData.userId);",
+					"                        console.log('Login successful, token set');",
+					"                    }",
+					"                });",
+					"            } else if (response && response.json()) {",
+					"                const jsonData = response.json();",
+					"                pm.environment.set('auth_token', jsonData.accessToken);",
+					"                pm.environment.set('refresh_token', jsonData.refreshToken);",
+					"                pm.environment.set('token_type', jsonData.tokenType || 'Bearer');",
+					"                pm.environment.set('user_id', jsonData.userId);",
+					"                console.log('Registration successful, token set');",
+					"            }",
+					"        });",
+					"    }",
+					"    ",
+					"    // Set Authorization header for the current request",
+					"    if (pm.environment.get('auth_token')) {",
+					"        pm.request.headers.add({",
+					"            key: 'Authorization',",
+					"            value: pm.environment.get('token_type') + ' ' + pm.environment.get('auth_token')",
+					"        });",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test to log response details",
+					"console.log('Response Status:', pm.response.code);",
+					"console.log('Response Time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Log response body for debugging (first 500 chars)",
+					"if (pm.response.text()) {",
+					"    console.log('Response Body:', pm.response.text().substring(0, 500));",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

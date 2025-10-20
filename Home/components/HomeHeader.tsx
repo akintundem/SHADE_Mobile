@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { User } from '../../types';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useI18n } from '../../i18n/I18nProvider';
+import { MessageCircle } from 'lucide-react-native';
 
 type Props = {
   user: User;
   onOpenMenu?: () => void;
+  onOpenChat?: () => void;
 };
 
-export const HomeHeader = ({ user }: Props) => {
+export const HomeHeader = ({ user, onOpenChat }: Props) => {
   const { colors, typography, spacing } = useTheme();
   const { t } = useI18n();
   const name = user.name || user.email;
@@ -22,9 +24,10 @@ export const HomeHeader = ({ user }: Props) => {
           paddingHorizontal: spacing.lg,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
         }}
       >
+        <View style={{ width: 24 }} />
         <Text style={{
           color: colors.text.primary,
           fontWeight: typography.weight.bold,
@@ -33,6 +36,21 @@ export const HomeHeader = ({ user }: Props) => {
         }}>
           Shade
         </Text>
+        <TouchableOpacity
+          onPress={onOpenChat}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.surface,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          <MessageCircle size={20} color={colors.text.primary} />
+        </TouchableOpacity>
       </View>
 
       <View style={{ 

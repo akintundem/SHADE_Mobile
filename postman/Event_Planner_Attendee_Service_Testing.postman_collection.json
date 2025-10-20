@@ -1,0 +1,1096 @@
+{
+	"info": {
+		"_postman_id": "e5f6g7h8-i9j0-1234-efgh-567890123456",
+		"name": "Event Planner - Attendee Service Testing",
+		"description": "Comprehensive testing collection for the Event Planner Attendee Service through the API Gateway. This collection includes all attendee management endpoints, registration functionality, and attendee tracking.\n\n## Setup Instructions:\n1. Import this collection into Postman\n2. Set the base URL environment variable (see below)\n3. Follow the testing sequence in order\n\n## Environment Variables:\n- `base_url`: http://localhost:8080 (API Gateway URL)\n- `auth_token`: JWT token from Auth Service (set after login)\n- `attendee_id`: Will be set automatically after creating an attendee\n- `event_id`: Event ID for testing (set manually or from Event Service)\n\n## Testing Sequence:\n1. Start with Health Check\n2. Test Swagger UI access\n3. Test OpenAPI documentation\n4. Test direct access (should fail)\n5. Test X-Internal-Auth mechanism",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔍 Health & Status Checks",
+			"item": [
+				{
+					"name": "Gateway Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Gateway is running\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the API Gateway is running and healthy."
+					},
+					"response": []
+				},
+				{
+					"name": "Attendee Service Health Check (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Attendee Service is accessible via Gateway\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Response contains service info\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('components');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/attendees/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"attendees",
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the Attendee Service is accessible through the Gateway."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Attendee Service Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Direct access is blocked\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response indicates forbidden access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('forbidden');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8083/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "This should return 403 Forbidden - demonstrates that direct access to services is blocked by X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check endpoints to verify service availability and security."
+		},
+		{
+			"name": "📚 Swagger UI & API Documentation",
+			"item": [
+				{
+					"name": "Attendee Service Swagger UI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Swagger UI is accessible\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains Swagger UI content\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('swagger');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content type is HTML\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/swagger-ui/attendee-service/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"swagger-ui",
+								"attendee-service",
+								""
+							]
+						},
+						"description": "Access the Attendee Service Swagger UI through the Gateway. This should return the interactive API documentation."
+					},
+					"response": []
+				},
+				{
+					"name": "Attendee Service OpenAPI Docs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OpenAPI docs are accessible\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains OpenAPI info\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('openapi');",
+									"    pm.expect(jsonData).to.have.property('info');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content type is JSON\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/attendees/v3/api-docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"attendees",
+								"v3",
+								"api-docs"
+							]
+						},
+						"description": "Get the OpenAPI specification for the Attendee Service in JSON format."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Swagger UI Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Direct Swagger UI access is blocked\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response indicates forbidden access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('forbidden');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8083/swagger-ui/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"swagger-ui",
+								""
+							]
+						},
+						"description": "Attempt to access Swagger UI directly - should return 403 Forbidden due to X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing Swagger UI and API documentation access through the Gateway."
+		},
+		{
+			"name": "🛡️ Security Testing",
+			"item": [
+				{
+					"name": "Test X-Internal-Auth Header",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "dev-internal-gateway"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8083/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access to Attendee Service with the correct X-Internal-Auth header. This should work and demonstrate the internal security mechanism."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Wrong X-Internal-Auth Header",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "wrong-secret"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8083/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access with wrong X-Internal-Auth header - should return 403 Forbidden."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Direct API Access (Should Fail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8083/api/v1/attendees",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8083",
+							"path": [
+								"api",
+								"v1",
+								"attendees"
+							]
+						},
+						"description": "Test direct access to Attendee Service API - should return 403 Forbidden."
+					},
+					"response": []
+				}
+			],
+			"description": "Security testing to verify the X-Internal-Auth mechanism."
+		},
+		{
+			"name": "👥 Attendee Management Testing",
+			"item": [
+				{
+					"name": "Get All Attendees (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees"
+							]
+						},
+						"description": "Get all attendees through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Attendee (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has attendee data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('email');",
+									"    pm.expect(jsonData).to.have.property('firstName');",
+									"});",
+									"",
+									"// Store attendee ID for later use",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('attendee_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+1-555-0123\",\n    \"company\": \"Test Company Inc.\",\n    \"jobTitle\": \"Software Engineer\",\n    \"dietaryRequirements\": \"Vegetarian\",\n    \"accessibilityNeeds\": \"Wheelchair accessible seating\",\n    \"emergencyContact\": {\n        \"name\": \"Jane Doe\",\n        \"phone\": \"+1-555-0124\",\n        \"relationship\": \"Spouse\"\n    },\n    \"registrationDate\": \"2024-12-01T10:00:00Z\",\n    \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees"
+							]
+						},
+						"description": "Create a new attendee through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attendee by ID (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/{{attendee_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"{{attendee_id}}"
+							]
+						},
+						"description": "Get a specific attendee by ID through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Attendee (via Gateway)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+1-555-0125\",\n    \"company\": \"Updated Test Company Inc.\",\n    \"jobTitle\": \"Senior Software Engineer\",\n    \"dietaryRequirements\": \"Vegan\",\n    \"accessibilityNeeds\": \"Wheelchair accessible seating\",\n    \"emergencyContact\": {\n        \"name\": \"Jane Doe\",\n        \"phone\": \"+1-555-0126\",\n        \"relationship\": \"Spouse\"\n    },\n    \"registrationDate\": \"2024-12-01T10:00:00Z\",\n    \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/{{attendee_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"{{attendee_id}}"
+							]
+						},
+						"description": "Update an existing attendee through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Attendee (via Gateway)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/{{attendee_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"{{attendee_id}}"
+							]
+						},
+						"description": "Delete an attendee through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing attendee management CRUD operations through the Gateway."
+		},
+		{
+			"name": "📝 Event Registration Testing",
+			"item": [
+				{
+					"name": "Register Attendee for Event (via Gateway)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"attendeeId\": \"{{attendee_id}}\",\n    \"eventId\": \"{{event_id}}\",\n    \"registrationDate\": \"2024-12-01T10:00:00Z\",\n    \"ticketType\": \"standard\",\n    \"specialRequests\": \"Vegetarian meal, wheelchair accessible seating\",\n    \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/{{attendee_id}}/events/{{event_id}}/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"{{attendee_id}}",
+								"events",
+								"{{event_id}}",
+								"register"
+							]
+						},
+						"description": "Register an attendee for an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Send Invitations (via Gateway)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{event_id}}\",\n    \"attendeeIds\": [\"{{attendee_id}}\"],\n    \"customMessage\": \"You're invited to our special event!\",\n    \"sendEmail\": true,\n    \"sendSms\": false,\n    \"sendPush\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/invites/send",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"invites",
+								"send"
+							]
+						},
+						"description": "Send invitations to attendees through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event Registrations (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/attendees",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"attendees"
+							]
+						},
+						"description": "Get all attendees registered for a specific event through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Event Registration (via Gateway)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/{{attendee_id}}/events/{{event_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"{{attendee_id}}",
+								"events",
+								"{{event_id}}"
+							]
+						},
+						"description": "Cancel an attendee's registration for an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing event registration functionality through the Gateway."
+		},
+		{
+			"name": "🔍 Attendee Search & Filtering",
+			"item": [
+				{
+					"name": "Search Attendees by Email (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/search?email=john.doe@example.com",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"search"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "john.doe@example.com"
+								}
+							]
+						},
+						"description": "Search attendees by email through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Attendees by Company (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/search?company=Test Company",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"search"
+							],
+							"query": [
+								{
+									"key": "company",
+									"value": "Test Company"
+								}
+							]
+						},
+						"description": "Search attendees by company through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attendees by Status (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees/search?status=confirmed",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees",
+								"search"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "confirmed"
+								}
+							]
+						},
+						"description": "Get attendees by registration status through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing attendee search and filtering functionality through the Gateway."
+		},
+		{
+			"name": "📊 Attendee Analytics",
+			"item": [
+				{
+					"name": "Get Event Attendance Summary (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/attendance/summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"attendance",
+								"summary"
+							]
+						},
+						"description": "Get attendance summary for an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attendee Demographics (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/events/{{event_id}}/attendees/demographics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"events",
+								"{{event_id}}",
+								"attendees",
+								"demographics"
+							]
+						},
+						"description": "Get attendee demographics for an event through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing attendee analytics and reporting through the Gateway."
+		},
+		{
+			"name": "🔐 Authentication Testing",
+			"item": [
+				{
+					"name": "Get Attendees Without Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Request without token returns 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response indicates unauthorized access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('unauthorized');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees"
+							]
+						},
+						"description": "Attempt to access protected endpoint without token - should return 401 Unauthorized."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Attendees With Invalid Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Request with invalid token returns 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response indicates unauthorized access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('unauthorized');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid-token-here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/attendees",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"attendees"
+							]
+						},
+						"description": "Attempt to access protected endpoint with invalid token - should return 401 Unauthorized."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing authentication requirements for protected endpoints."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set default base URL if not already set",
+					"if (!pm.environment.get('base_url')) {",
+					"    pm.environment.set('base_url', 'http://localhost:8080');",
+					"}",
+					"",
+					"// Set default token type if not already set",
+					"if (!pm.environment.get('token_type')) {",
+					"    pm.environment.set('token_type', 'Bearer');",
+					"}",
+					"",
+					"// Generate unique test data for each run",
+					"const timestamp = Date.now();",
+					"const randomId = Math.floor(Math.random() * 10000);",
+					"",
+					"// Set unique test user data",
+					"pm.environment.set('test_email', `attendeetest${timestamp}@example.com`);",
+					"pm.environment.set('test_name', `Attendee Test User ${randomId}`);",
+					"pm.environment.set('test_phone', `+1234567${randomId.toString().padStart(4, '0')}`);",
+					"pm.environment.set('test_password', 'TestPass123@');",
+					"",
+					"// Set test device info",
+					"pm.environment.set('test_device_id', `attendee-test-device-${timestamp}`);",
+					"pm.environment.set('test_client_id', 'postman-attendee-test');",
+					"",
+					"// Set test attendee data",
+					"pm.environment.set('test_attendee_name', `Test Attendee ${randomId}`);",
+					"pm.environment.set('test_attendee_email', `attendee${timestamp}@example.com`);",
+					"pm.environment.set('test_attendee_company', `Test Company ${randomId}`);",
+					"pm.environment.set('test_attendee_phone', `+1234567${randomId.toString().padStart(4, '0')}`);",
+					"",
+					"console.log('Pre-request: Test data generated for Attendee Service run', timestamp);",
+					"",
+					"// Auto-authentication for Attendee Service endpoints",
+					"if (pm.info.requestName.includes('Attendee') && !pm.info.requestName.includes('Auth') && !pm.info.requestName.includes('Health') && !pm.info.requestName.includes('Swagger') && !pm.info.requestName.includes('OpenAPI') && !pm.info.requestName.includes('Direct') && !pm.info.requestName.includes('X-Internal-Auth')) {",
+					"    ",
+					"    // Check if we already have a valid token",
+					"    if (!pm.environment.get('auth_token') || pm.environment.get('auth_token') === '') {",
+					"        console.log('No auth token found, attempting to login...');",
+					"        ",
+					"        // First try to register a user",
+					"        const registerRequest = {",
+					"            url: pm.environment.get('base_url') + '/api/v1/auth/register',",
+					"            method: 'POST',",
+					"            header: {",
+					"                'Content-Type': 'application/json'",
+					"            },",
+					"            body: {",
+					"                mode: 'raw',",
+					"                raw: JSON.stringify({",
+					"                    email: pm.environment.get('test_email'),",
+					"                    name: pm.environment.get('test_name'),",
+					"                    password: pm.environment.get('test_password'),",
+					"                    confirmPassword: pm.environment.get('test_password'),",
+					"                    phoneNumber: pm.environment.get('test_phone'),",
+					"                    acceptTerms: true,",
+					"                    acceptPrivacy: true,",
+					"                    marketingOptIn: false",
+					"                })",
+					"            }",
+					"        };",
+					"        ",
+					"        try {",
+					"            const registerResponse = pm.sendRequest(registerRequest);",
+					"            if (registerResponse.code === 201) {",
+					"                const registerData = registerResponse.json();",
+					"                pm.environment.set('auth_token', registerData.accessToken);",
+					"                pm.environment.set('refresh_token', registerData.refreshToken);",
+					"                pm.environment.set('token_type', 'Bearer');",
+					"                pm.environment.set('user_id', registerData.user.id);",
+					"                console.log('User registered and token set');",
+					"            }",
+					"        } catch (e) {",
+					"            console.log('Registration failed, trying login...');",
+					"        }",
+					"        ",
+					"        // If registration failed or token still not set, try login",
+					"        if (!pm.environment.get('auth_token') || pm.environment.get('auth_token') === '') {",
+					"            const loginRequest = {",
+					"                url: pm.environment.get('base_url') + '/api/v1/auth/login',",
+					"                method: 'POST',",
+					"                header: {",
+					"                    'Content-Type': 'application/json'",
+					"                },",
+					"                body: {",
+					"                    mode: 'raw',",
+					"                    raw: JSON.stringify({",
+					"                        email: pm.environment.get('test_email'),",
+					"                        password: pm.environment.get('test_password'),",
+					"                        rememberMe: false,",
+					"                        deviceId: pm.environment.get('test_device_id'),",
+					"                        clientId: pm.environment.get('test_client_id'),",
+					"                    })",
+					"                }",
+					"            };",
+					"            ",
+					"            try {",
+					"                const loginResponse = pm.sendRequest(loginRequest);",
+					"                if (loginResponse.code === 200) {",
+					"                    const loginData = loginResponse.json();",
+					"                    pm.environment.set('auth_token', loginData.accessToken);",
+					"                    pm.environment.set('refresh_token', loginData.refreshToken);",
+					"                    pm.environment.set('token_type', 'Bearer');",
+					"                    pm.environment.set('user_id', loginData.user.id);",
+					"                    console.log('User logged in and token set');",
+					"                }",
+					"            } catch (e) {",
+					"                console.log('Login failed:', e);",
+					"            }",
+					"        }",
+					"    }",
+					"    ",
+					"    // Set Authorization header for Attendee Service requests",
+					"    if (pm.environment.get('auth_token') && pm.environment.get('auth_token') !== '') {",
+					"        pm.request.headers.add({",
+					"            key: 'Authorization',",
+					"            value: pm.environment.get('token_type') + ' ' + pm.environment.get('auth_token')",
+					"        });",
+					"        console.log('Authorization header set for Attendee Service request');",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test to log response details",
+					"console.log('Response Status:', pm.response.code);",
+					"console.log('Response Time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Log response body for debugging (first 500 chars)",
+					"if (pm.response.text()) {",
+					"    console.log('Response Body:', pm.response.text().substring(0, 500));",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

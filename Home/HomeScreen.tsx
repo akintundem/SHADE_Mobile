@@ -1,28 +1,70 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, View, Text, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, Animated, RefreshControl } from 'react-native';
 import { HomeHeader } from './components/HomeHeader';
 import { EventCard, EventItem } from './components/EventCard';
 import { EmptyFeed } from './components/EmptyFeed';
 import { TabBar } from './components/TabBar';
+import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
+import { EventListSkeleton, EmptyState } from '../components/LoadingStates';
 import { useTheme } from '../theme/ThemeProvider';
-import { User } from '../types';
-import { Flame, Clock } from 'lucide-react-native';
+import { User, Event } from '../types';
+import { eventService } from '../services/eventService';
+import { ErrorHandler } from '../utils/errorHandler';
+import { Flame, Clock, Calendar } from 'lucide-react-native';
 
 type Props = {
   user: User;
   events?: EventItem[];
   onCreatePost?: () => void;
   onOpenMenu?: () => void;
+  onOpenChat?: () => void;
   showExampleWhenEmpty?: boolean;
   onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void;
 };
 
-export default function HomeScreen({ user, events = [], onOpenMenu, showExampleWhenEmpty = true, onTabChange }: Props) {
+export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, showExampleWhenEmpty = true, onTabChange }: Props) {
   const { colors, spacing, brand, borderRadius, typography, shadows } = useTheme();
   const [seg, setSeg] = useState<'live' | 'past'>('live');
+  const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const dataset = events;
+  // Fetch events from the service
+  const fetchEvents = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const response = await eventService.getEvents({ page: 1, size: 20 });
+      setFetchedEvents(response.events);
+    } catch (error) {
+      ErrorHandler.handle(error, 'fetchEvents');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Pull to refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchEvents(false);
+    setRefreshing(false);
+  }, [fetchEvents]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  // Convert API events to EventItem format for compatibility
+  const convertToEventItem = (event: Event): EventItem => ({
+    id: event.eventId,
+    title: event.title,
+    description: event.description,
+    venue: event.location?.address || '',
+    startAt: event.startDate,
+    endAt: event.endDate,
+    imageUrl: event.imageUrl,
+  });
+
+  const dataset = [...events, ...fetchedEvents.map(convertToEventItem)];
   const liveEvents = dataset.filter(e => !!e.startAt && !e.endAt);
   const pastEvents = dataset.filter(e => !!e.endAt);
 
@@ -40,12 +82,20 @@ export default function HomeScreen({ user, events = [], onOpenMenu, showExampleW
   }, [pulse]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaWrapper edges={['top']}>
       <ScrollView 
         contentContainerStyle={{ paddingBottom: spacing.xl }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.brand.primary}
+            colors={[colors.brand.primary]}
+          />
+        }
       >
-        <HomeHeader user={user} onOpenMenu={onOpenMenu} />
+        <HomeHeader user={user} onOpenMenu={onOpenMenu} onOpenChat={onOpenChat} />
 
         {/* Segmented control */}
         <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
@@ -113,8 +163,21 @@ export default function HomeScreen({ user, events = [], onOpenMenu, showExampleW
 
         {/* Feed */}
         <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.lg }}>
-          {(seg === 'live' ? liveEvents : pastEvents).length === 0 ? (
-            <EmptyFeed />
+          {isLoading ? (
+            <EventListSkeleton count={3} />
+          ) : (seg === 'live' ? liveEvents : pastEvents).length === 0 ? (
+            <EmptyState
+              icon={<Calendar size={48} color={colors.text.tertiary} />}
+              title={`No ${seg === 'live' ? 'Live' : 'Past'} Events`}
+              subtitle={seg === 'live' 
+                ? "No events are happening right now. Check back later or create your own event!"
+                : "No past events to show. Your event history will appear here."
+              }
+              action={seg === 'live' ? {
+                label: "Create Event",
+                onPress: () => {},
+              } : undefined}
+            />
           ) : (
             (seg === 'live' ? liveEvents : pastEvents).map(item => <EventCard key={item.id} item={item} />)
           )}
@@ -122,6 +185,6 @@ export default function HomeScreen({ user, events = [], onOpenMenu, showExampleW
       </ScrollView>
 
       <TabBar active="home" onChange={onTabChange} />
-    </SafeAreaView>
+    </SafeAreaWrapper>
   );
 }

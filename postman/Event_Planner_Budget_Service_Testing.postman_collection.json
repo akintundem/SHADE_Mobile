@@ -1,0 +1,1062 @@
+{
+	"info": {
+		"_postman_id": "d4e5f6g7-h8i9-0123-defg-456789012345",
+		"name": "Event Planner - Budget Service Testing",
+		"description": "Comprehensive testing collection for the Event Planner Budget Service through the API Gateway. This collection includes all budget management endpoints, expense tracking, and financial reporting.\n\n## Setup Instructions:\n1. Import this collection into Postman\n2. Set the base URL environment variable (see below)\n3. Follow the testing sequence in order\n\n## Environment Variables:\n- `base_url`: http://localhost:8080 (API Gateway URL)\n- `auth_token`: JWT token from Auth Service (set after login)\n- `budget_id`: Will be set automatically after creating a budget\n- `expense_id`: Will be set automatically after creating an expense\n\n## Testing Sequence:\n1. Start with Health Check\n2. Test Swagger UI access\n3. Test OpenAPI documentation\n4. Test direct access (should fail)\n5. Test X-Internal-Auth mechanism",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🔍 Health & Status Checks",
+			"item": [
+				{
+					"name": "Gateway Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Gateway is running\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the API Gateway is running and healthy."
+					},
+					"response": []
+				},
+				{
+					"name": "Budget Service Health Check (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Budget Service is accessible via Gateway\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status UP\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status', 'UP');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Response contains service info\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('components');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/budgets/actuator/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"budgets",
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Check if the Budget Service is accessible through the Gateway."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Budget Service Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Direct access is blocked\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response indicates forbidden access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('forbidden');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8084/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8084",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "This should return 403 Forbidden - demonstrates that direct access to services is blocked by X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Health check endpoints to verify service availability and security."
+		},
+		{
+			"name": "📚 Swagger UI & API Documentation",
+			"item": [
+				{
+					"name": "Budget Service Swagger UI",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Swagger UI is accessible\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains Swagger UI content\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('swagger');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content type is HTML\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/swagger-ui/budget-service/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"swagger-ui",
+								"budget-service",
+								""
+							]
+						},
+						"description": "Access the Budget Service Swagger UI through the Gateway. This should return the interactive API documentation."
+					},
+					"response": []
+				},
+				{
+					"name": "Budget Service OpenAPI Docs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"OpenAPI docs are accessible\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is valid JSON\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains OpenAPI info\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('openapi');",
+									"    pm.expect(jsonData).to.have.property('info');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(3000);",
+									"});",
+									"",
+									"pm.test(\"Content type is JSON\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/services/budgets/v3/api-docs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"services",
+								"budgets",
+								"v3",
+								"api-docs"
+							]
+						},
+						"description": "Get the OpenAPI specification for the Budget Service in JSON format."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Swagger UI Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Direct Swagger UI access is blocked\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Response indicates forbidden access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('forbidden');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8084/swagger-ui/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8084",
+							"path": [
+								"swagger-ui",
+								""
+							]
+						},
+						"description": "Attempt to access Swagger UI directly - should return 403 Forbidden due to X-Internal-Auth filter."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing Swagger UI and API documentation access through the Gateway."
+		},
+		{
+			"name": "🛡️ Security Testing",
+			"item": [
+				{
+					"name": "Test X-Internal-Auth Header",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "dev-internal-gateway"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8084/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8084",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access to Budget Service with the correct X-Internal-Auth header. This should work and demonstrate the internal security mechanism."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Wrong X-Internal-Auth Header",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Internal-Auth",
+								"value": "wrong-secret"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8084/actuator/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8084",
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Test direct access with wrong X-Internal-Auth header - should return 403 Forbidden."
+					},
+					"response": []
+				},
+				{
+					"name": "Test Direct API Access (Should Fail)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8084/api/v1/budgets",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8084",
+							"path": [
+								"api",
+								"v1",
+								"budgets"
+							]
+						},
+						"description": "Test direct access to Budget Service API - should return 403 Forbidden."
+					},
+					"response": []
+				}
+			],
+			"description": "Security testing to verify the X-Internal-Auth mechanism."
+		},
+		{
+			"name": "💰 Budget Management Testing",
+			"item": [
+				{
+					"name": "Get All Budgets (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets"
+							]
+						},
+						"description": "Get all budgets through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Budget (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has budget data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('eventId');",
+									"    pm.expect(jsonData).to.have.property('totalAmount');",
+									"});",
+									"",
+									"// Store budget ID for later use",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('budget_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{event_id}}\",\n    \"totalAmount\": 50000.00,\n    \"currency\": \"USD\",\n    \"allocations\": {\n        \"venue\": 15000.00,\n        \"catering\": 12000.00,\n        \"decorations\": 8000.00,\n        \"entertainment\": 10000.00,\n        \"miscellaneous\": 5000.00\n    },\n    \"description\": \"Test budget for corporate event\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets"
+							]
+						},
+						"description": "Create a new budget through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Budget by ID (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets/{{budget_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"{{budget_id}}"
+							]
+						},
+						"description": "Get a specific budget by ID through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Budget (via Gateway)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"{{event_id}}\",\n    \"totalAmount\": 60000.00,\n    \"currency\": \"USD\",\n    \"allocations\": {\n        \"venue\": 18000.00,\n        \"catering\": 15000.00,\n        \"decorations\": 10000.00,\n        \"entertainment\": 12000.00,\n        \"miscellaneous\": 5000.00\n    },\n    \"description\": \"Updated test budget for corporate event\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets/{{budget_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"{{budget_id}}"
+							]
+						},
+						"description": "Update an existing budget through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Budget (via Gateway)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets/{{budget_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"{{budget_id}}"
+							]
+						},
+						"description": "Delete a budget through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing budget management CRUD operations through the Gateway."
+		},
+		{
+			"name": "💸 Expense Management Testing",
+			"item": [
+				{
+					"name": "Get All Expenses (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/expenses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"expenses"
+							]
+						},
+						"description": "Get all expenses through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Expense (via Gateway)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has expense data\", function () {",
+									"    const jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('budgetId');",
+									"    pm.expect(jsonData).to.have.property('amount');",
+									"});",
+									"",
+									"// Store expense ID for later use",
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    pm.environment.set('expense_id', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"budgetId\": \"{{budget_id}}\",\n    \"category\": \"venue\",\n    \"description\": \"Venue rental for corporate event\",\n    \"amount\": 15000.00,\n    \"currency\": \"USD\",\n    \"date\": \"2024-12-01\",\n    \"vendor\": \"Test Venue Company\",\n    \"receiptUrl\": \"https://example.com/receipts/venue-rental.pdf\",\n    \"status\": \"approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/expenses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"expenses"
+							]
+						},
+						"description": "Create a new expense through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Expense by ID (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/expenses/{{expense_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"expenses",
+								"{{expense_id}}"
+							]
+						},
+						"description": "Get a specific expense by ID through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Expense (via Gateway)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"budgetId\": \"{{budget_id}}\",\n    \"category\": \"venue\",\n    \"description\": \"Updated venue rental for corporate event\",\n    \"amount\": 18000.00,\n    \"currency\": \"USD\",\n    \"date\": \"2024-12-01\",\n    \"vendor\": \"Updated Venue Company\",\n    \"receiptUrl\": \"https://example.com/receipts/updated-venue-rental.pdf\",\n    \"status\": \"approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/expenses/{{expense_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"expenses",
+								"{{expense_id}}"
+							]
+						},
+						"description": "Update an existing expense through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Expense (via Gateway)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/expenses/{{expense_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"expenses",
+								"{{expense_id}}"
+							]
+						},
+						"description": "Delete an expense through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing expense management CRUD operations through the Gateway."
+		},
+		{
+			"name": "📊 Financial Reporting",
+			"item": [
+				{
+					"name": "Get Budget Summary (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets/{{budget_id}}/summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"{{budget_id}}",
+								"summary"
+							]
+						},
+						"description": "Get budget summary with expense breakdown through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Expenses by Category (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/expenses/category/venue",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"expenses",
+								"category",
+								"venue"
+							]
+						},
+						"description": "Get expenses by category through the Gateway. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Budget vs Actual Report (via Gateway)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token_type}} {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets/{{budget_id}}/report",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets",
+								"{{budget_id}}",
+								"report"
+							]
+						},
+						"description": "Get budget vs actual spending report through the Gateway. Requires authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing financial reporting and analytics through the Gateway."
+		},
+		{
+			"name": "🔐 Authentication Testing",
+			"item": [
+				{
+					"name": "Get Budgets Without Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Request without token returns 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response indicates unauthorized access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('unauthorized');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets"
+							]
+						},
+						"description": "Attempt to access protected endpoint without token - should return 401 Unauthorized."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Budgets With Invalid Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Request with invalid token returns 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Response indicates unauthorized access\", function () {",
+									"    const responseText = pm.response.text();",
+									"    pm.expect(responseText.toLowerCase()).to.include('unauthorized');",
+									"});",
+									"",
+									"pm.test(\"Response time is acceptable\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(2000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer invalid-token-here"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/budgets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"budgets"
+							]
+						},
+						"description": "Attempt to access protected endpoint with invalid token - should return 401 Unauthorized."
+					},
+					"response": []
+				}
+			],
+			"description": "Testing authentication requirements for protected endpoints."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set default base URL if not already set",
+					"if (!pm.environment.get('base_url')) {",
+					"    pm.environment.set('base_url', 'http://localhost:8080');",
+					"}",
+					"",
+					"// Set default token type if not already set",
+					"if (!pm.environment.get('token_type')) {",
+					"    pm.environment.set('token_type', 'Bearer');",
+					"}",
+					"",
+					"// Generate unique test data for each run",
+					"const timestamp = Date.now();",
+					"const randomId = Math.floor(Math.random() * 10000);",
+					"",
+					"// Set unique test user data",
+					"pm.environment.set('test_email', `budgettest${timestamp}@example.com`);",
+					"pm.environment.set('test_name', `Budget Test User ${randomId}`);",
+					"pm.environment.set('test_phone', `+1234567${randomId.toString().padStart(4, '0')}`);",
+					"pm.environment.set('test_password', 'TestPass123@');",
+					"",
+					"// Set test device info",
+					"pm.environment.set('test_device_id', `budget-test-device-${timestamp}`);",
+					"pm.environment.set('test_client_id', 'postman-budget-test');",
+					"",
+					"// Set test budget data",
+					"pm.environment.set('test_budget_name', `Test Budget ${randomId}`);",
+					"pm.environment.set('test_budget_amount', (Math.random() * 100000 + 10000).toFixed(2));",
+					"pm.environment.set('test_expense_name', `Test Expense ${randomId}`);",
+					"pm.environment.set('test_expense_amount', (Math.random() * 5000 + 100).toFixed(2));",
+					"",
+					"console.log('Pre-request: Test data generated for Budget Service run', timestamp);",
+					"",
+					"// Auto-authentication for Budget Service endpoints",
+					"if (pm.info.requestName.includes('Budget') && !pm.info.requestName.includes('Auth') && !pm.info.requestName.includes('Health') && !pm.info.requestName.includes('Swagger') && !pm.info.requestName.includes('OpenAPI') && !pm.info.requestName.includes('Direct') && !pm.info.requestName.includes('X-Internal-Auth')) {",
+					"    ",
+					"    // Check if we already have a valid token",
+					"    if (!pm.environment.get('auth_token') || pm.environment.get('auth_token') === '') {",
+					"        console.log('No auth token found, attempting to login...');",
+					"        ",
+					"        // First try to register a user",
+					"        const registerRequest = {",
+					"            url: pm.environment.get('base_url') + '/api/v1/auth/register',",
+					"            method: 'POST',",
+					"            header: {",
+					"                'Content-Type': 'application/json'",
+					"            },",
+					"            body: {",
+					"                mode: 'raw',",
+					"                raw: JSON.stringify({",
+					"                    email: pm.environment.get('test_email'),",
+					"                    name: pm.environment.get('test_name'),",
+					"                    password: pm.environment.get('test_password'),",
+					"                    confirmPassword: pm.environment.get('test_password'),",
+					"                    phoneNumber: pm.environment.get('test_phone'),",
+					"                    acceptTerms: true,",
+					"                    acceptPrivacy: true,",
+					"                    marketingOptIn: false",
+					"                })",
+					"            }",
+					"        };",
+					"        ",
+					"        try {",
+					"            const registerResponse = pm.sendRequest(registerRequest);",
+					"            if (registerResponse.code === 201) {",
+					"                const registerData = registerResponse.json();",
+					"                pm.environment.set('auth_token', registerData.accessToken);",
+					"                pm.environment.set('refresh_token', registerData.refreshToken);",
+					"                pm.environment.set('token_type', 'Bearer');",
+					"                pm.environment.set('user_id', registerData.user.id);",
+					"                console.log('User registered and token set');",
+					"            }",
+					"        } catch (e) {",
+					"            console.log('Registration failed, trying login...');",
+					"        }",
+					"        ",
+					"        // If registration failed or token still not set, try login",
+					"        if (!pm.environment.get('auth_token') || pm.environment.get('auth_token') === '') {",
+					"            const loginRequest = {",
+					"                url: pm.environment.get('base_url') + '/api/v1/auth/login',",
+					"                method: 'POST',",
+					"                header: {",
+					"                    'Content-Type': 'application/json'",
+					"                },",
+					"                body: {",
+					"                    mode: 'raw',",
+					"                    raw: JSON.stringify({",
+					"                        email: pm.environment.get('test_email'),",
+					"                        password: pm.environment.get('test_password'),",
+					"                        rememberMe: false,",
+					"                        deviceId: pm.environment.get('test_device_id'),",
+					"                        clientId: pm.environment.get('test_client_id'),",
+					"                    })",
+					"                }",
+					"            };",
+					"            ",
+					"            try {",
+					"                const loginResponse = pm.sendRequest(loginRequest);",
+					"                if (loginResponse.code === 200) {",
+					"                    const loginData = loginResponse.json();",
+					"                    pm.environment.set('auth_token', loginData.accessToken);",
+					"                    pm.environment.set('refresh_token', loginData.refreshToken);",
+					"                    pm.environment.set('token_type', 'Bearer');",
+					"                    pm.environment.set('user_id', loginData.user.id);",
+					"                    console.log('User logged in and token set');",
+					"                }",
+					"            } catch (e) {",
+					"                console.log('Login failed:', e);",
+					"            }",
+					"        }",
+					"    }",
+					"    ",
+					"    // Set Authorization header for Budget Service requests",
+					"    if (pm.environment.get('auth_token') && pm.environment.get('auth_token') !== '') {",
+					"        pm.request.headers.add({",
+					"            key: 'Authorization',",
+					"            value: pm.environment.get('token_type') + ' ' + pm.environment.get('auth_token')",
+					"        });",
+					"        console.log('Authorization header set for Budget Service request');",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test to log response details",
+					"console.log('Response Status:', pm.response.code);",
+					"console.log('Response Time:', pm.response.responseTime + 'ms');",
+					"",
+					"// Log response body for debugging (first 500 chars)",
+					"if (pm.response.text()) {",
+					"    console.log('Response Body:', pm.response.text().substring(0, 500));",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}

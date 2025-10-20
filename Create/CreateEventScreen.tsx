@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch } from 'react-native';
-import { X, Globe, Users, CalendarDays, Clock, MapPin, Plus, Image as ImageIcon, DollarSign } from 'lucide-react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { X, Globe, Users, CalendarDays, Clock, MapPin, Plus, Image as ImageIcon, DollarSign, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAgent } from '../Agent/AgentProvider';
 import { AgentBanner } from '../components/AgentBanner';
 import { MessageSquare } from 'lucide-react-native';
 import { AgentChatSheet } from '../components/AgentChatSheet';
+import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
+import { LoadingOverlay } from '../components/LoadingStates';
+import { eventService } from '../services/eventService';
+import { CreateEventRequest, Location } from '../types';
+import { createEventValidator, useFormValidation } from '../utils/formValidation';
+import { ErrorHandler } from '../utils/errorHandler';
+import { GestureHandler } from '../utils/gestureHandler';
 
 type Props = { onClose: () => void; onCreate?: () => void };
 
@@ -19,12 +25,38 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [price, setPrice] = useState('');
   const [capacity, setCapacity] = useState('');
   const [enableContrib, setEnableContrib] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [locationName, setLocationName] = useState('');
+  const [address, setAddress] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
-  const canCreate = title.trim().length > 2;
   const { setContext, ask } = useAgent();
-  const [chatOpen, setChatOpen] = React.useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const scrollRef = React.useRef<any>(null);
   const sectionYRef = React.useRef<Record<string, number>>({});
+
+  // Form validation
+  const { errors, validateField, setFieldTouched, getFieldError, validateForm } = useFormValidation(createEventValidator);
+
+  // Memoized form data for validation
+  const formData = useMemo(() => ({
+    title,
+    description,
+    startDate,
+    startTime,
+    endDate,
+    endTime,
+    location: locationName,
+    capacity: capacity ? Number(capacity) : undefined,
+    price: !free && price ? Number(price) : undefined,
+  }), [title, description, startDate, startTime, endDate, endTime, locationName, capacity, price, free]);
+
+  // Validation result
+  const validationResult = useMemo(() => validateForm(formData), [formData, validateForm]);
+  const canCreate = validationResult.isValid && !isLoading;
 
   const scrollTo = (key: string) => {
     const y = sectionYRef.current[key];
@@ -49,16 +81,80 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     return () => clearTimeout(id);
   }, [title, description, free, price, capacity]);
 
+  const handleCreateEvent = useCallback(async () => {
+    if (!canCreate) return;
+    
+    setIsLoading(true);
+    try {
+      // Combine date and time
+      const startDateTime = `${startDate}T${startTime}:00.000Z`;
+      const endDateTime = endDate && endTime ? `${endDate}T${endTime}:00.000Z` : startDateTime;
+
+      // Create location object (using default coordinates for now)
+      const location: Location = {
+        address: address || locationName,
+        city: 'Unknown',
+        state: 'Unknown',
+        country: 'Unknown',
+        zipCode: '00000',
+        latitude: 0,
+        longitude: 0,
+      };
+
+      const eventData: CreateEventRequest = {
+        title: title.trim(),
+        description: description.trim(),
+        startDate: startDateTime,
+        endDate: endDateTime,
+        location,
+        capacity: capacity ? Number(capacity) : undefined,
+        price: !free && price ? Number(price) : undefined,
+        category: tags[0] || 'General',
+        tags,
+      };
+
+      const createdEvent = await eventService.createEvent(eventData);
+      
+      Alert.alert(
+        'Success!',
+        `Event "${createdEvent.title}" has been created successfully.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              onCreate?.();
+              onClose();
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      ErrorHandler.handle(error, 'createEvent');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [canCreate, startDate, startTime, endDate, endTime, address, locationName, title, description, capacity, free, price, tags, onCreate, onClose]);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderColor: colors.border }}>
-        <TouchableOpacity onPress={onClose}>
-          <X size={20} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>Create Event</Text>
-        <View style={{ width: 20 }} />
-      </View>
+    <SafeAreaWrapper edges={['top']}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        {/* Header with swipe indicator */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderColor: colors.border }}>
+          <TouchableOpacity onPress={onClose} style={{ padding: spacing.xs }}>
+            <ChevronLeft size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+          <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold, fontSize: 18 }}>Create Event</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        
+        {/* Swipe indicator */}
+        <View style={{ alignItems: 'center', paddingVertical: spacing.xs }}>
+          <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
+        </View>
 
       {/* Shade banner pinned under header (outside scroll) */}
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
@@ -90,10 +186,31 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         <View onLayout={(e) => { sectionYRef.current['details'] = e.nativeEvent.layout.y; }}>
         <Section title="Details">
           <FieldLabel icon={<Users size={16} color={colors.text.secondary} />} label="Event name" />
-          <Input placeholder="Give your event a name" value={title} onChangeText={setTitle} />
+          <Input 
+            placeholder="Give your event a name" 
+            value={title} 
+            onChangeText={(text) => {
+              setTitle(text);
+              validateField('title', text);
+            }}
+            onBlur={() => setFieldTouched('title')}
+            error={getFieldError('title')}
+          />
           <View style={{ height: spacing.sm }} />
           <FieldLabel icon={<Users size={16} color={colors.text.secondary} />} label="Description" />
-          <Input placeholder="Describe your event" multiline numberOfLines={4} style={{ height: 100, paddingTop: spacing.md }} value={description} onChangeText={setDescription} />
+          <Input 
+            placeholder="Describe your event" 
+            multiline 
+            numberOfLines={4} 
+            style={{ height: 100, paddingTop: spacing.md }} 
+            value={description} 
+            onChangeText={(text) => {
+              setDescription(text);
+              validateField('description', text);
+            }}
+            onBlur={() => setFieldTouched('description')}
+            error={getFieldError('description')}
+          />
         </Section>
         </View>
         {/* Date & Time laid out in two columns like the mock */}
@@ -102,21 +219,21 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<CalendarDays size={16} color={colors.text.secondary} />} label="Start Date" />
-              <Input placeholder="yyyy-mm-dd" />
+              <Input placeholder="yyyy-mm-dd" value={startDate} onChangeText={setStartDate} />
             </View>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<Clock size={16} color={colors.text.secondary} />} label="Start Time" />
-              <Input placeholder="--:-- --" highlighted />
+              <Input placeholder="--:-- --" highlighted value={startTime} onChangeText={setStartTime} />
             </View>
           </View>
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<CalendarDays size={16} color={colors.text.secondary} />} label="End Date (Optional)" />
-              <Input placeholder="yyyy-mm-dd" />
+              <Input placeholder="yyyy-mm-dd" value={endDate} onChangeText={setEndDate} />
             </View>
             <View style={{ flex: 1 }}>
               <FieldLabel icon={<Clock size={16} color={colors.text.secondary} />} label="End Time (Optional)" />
-              <Input placeholder="--:-- --" />
+              <Input placeholder="--:-- --" value={endTime} onChangeText={setEndTime} />
             </View>
           </View>
         </Section>
@@ -126,8 +243,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         <View onLayout={(e) => { sectionYRef.current['location'] = e.nativeEvent.layout.y; }}>
         <Section title="Location">
           <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.lg, padding: spacing.md }}>
-            <Input placeholder="Enter location name" />
-            <Input placeholder="Full address (optional)" style={{ marginTop: spacing.sm }} />
+            <Input placeholder="Enter location name" value={locationName} onChangeText={setLocationName} />
+            <Input placeholder="Full address (optional)" style={{ marginTop: spacing.sm }} value={address} onChangeText={setAddress} />
             <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
               <MapPin size={16} color={colors.text.secondary} />
               <Text style={{ color: colors.text.secondary }}>Detect current location</Text>
@@ -221,8 +338,10 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           <TouchableOpacity onPress={onClose} style={{ flex: 1, height: 48, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>Save Draft</Text>
           </TouchableOpacity>
-          <TouchableOpacity disabled={!canCreate} onPress={onCreate} style={{ flex: 1, height: 48, borderRadius: 999, backgroundColor: canCreate ? brand.primary : colors.border, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: '#FFFFFF', fontWeight: typography.weight.semibold }}>Create Event</Text>
+          <TouchableOpacity disabled={!canCreate || isLoading} onPress={handleCreateEvent} style={{ flex: 1, height: 48, borderRadius: 999, backgroundColor: canCreate && !isLoading ? brand.primary : colors.border, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: '#FFFFFF', fontWeight: typography.weight.semibold }}>
+              {isLoading ? 'Creating...' : 'Create Event'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -232,9 +351,13 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         <MessageSquare size={20} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Chat sheet */}
-      <AgentChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} />
-    </SafeAreaView>
+        {/* Chat sheet */}
+        <AgentChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} />
+        
+        {/* Loading overlay */}
+        <LoadingOverlay visible={isLoading} message="Creating event..." />
+      </KeyboardAvoidingView>
+    </SafeAreaWrapper>
   );
 }
 
@@ -261,24 +384,55 @@ function Row({ label, icon, children }: any) {
   );
 }
 
-function Input({ placeholder, style, highlighted = false }: any) {
+function Input({ 
+  placeholder, 
+  style, 
+  highlighted = false, 
+  value, 
+  onChangeText, 
+  error,
+  onBlur,
+  ...props 
+}: any) {
   const { colors, borderRadius, spacing, brand } = useTheme();
+  const hasError = !!error;
+  
   return (
-    <View
-      style={[
-        {
-          borderWidth: highlighted ? 2 : 1,
-          borderColor: highlighted ? brand.primary : colors.border,
-          borderRadius: borderRadius.lg,
-          paddingHorizontal: spacing.md,
-          height: 42,
-          justifyContent: 'center',
-          backgroundColor: colors.surface,
-        },
-        style,
-      ]}
-    >
-      <TextInput placeholder={placeholder} placeholderTextColor={colors.text.tertiary} style={{ color: colors.text.primary }} />
+    <View>
+      <View
+        style={[
+          {
+            borderWidth: highlighted ? 2 : 1,
+            borderColor: hasError ? colors.error : highlighted ? brand.primary : colors.border,
+            borderRadius: borderRadius.lg,
+            paddingHorizontal: spacing.md,
+            height: 42,
+            justifyContent: 'center',
+            backgroundColor: colors.surface,
+          },
+          style,
+        ]}
+      >
+        <TextInput 
+          placeholder={placeholder} 
+          placeholderTextColor={colors.text.tertiary} 
+          style={{ color: colors.text.primary }} 
+          value={value}
+          onChangeText={onChangeText}
+          onBlur={onBlur}
+          {...props}
+        />
+      </View>
+      {hasError && (
+        <Text style={{ 
+          color: colors.error, 
+          fontSize: 12, 
+          marginTop: spacing.xs,
+          marginLeft: spacing.xs 
+        }}>
+          {error}
+        </Text>
+      )}
     </View>
   );
 }
