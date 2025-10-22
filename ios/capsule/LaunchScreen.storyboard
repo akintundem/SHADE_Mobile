@@ -16,36 +16,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <!-- App Icon Container -->
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="app-icon-container">
-                                <rect key="frame" x="146.66666666666666" y="276" width="100" height="100"/>
-                                <subviews>
-                                    <!-- App Icon Background -->
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="app-icon-bg">
-                                        <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
-                                        <color key="backgroundColor" systemColor="systemBlueColor"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" constant="100" id="icon-width"/>
-                                            <constraint firstAttribute="height" constant="100" id="icon-height"/>
-                                        </constraints>
-                                    </view>
-                                    <!-- App Icon Emoji -->
-                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="🎉" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="app-icon-emoji">
-                                        <rect key="frame" x="25" y="25" width="50" height="50"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="40"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                </subviews>
-                                <color key="backgroundColor" systemColor="clearColor"/>
-                                <constraints>
-                                    <constraint firstItem="app-icon-bg" firstAttribute="leading" secondItem="app-icon-container" secondAttribute="leading" id="bg-leading"/>
-                                    <constraint firstItem="app-icon-bg" firstAttribute="top" secondItem="app-icon-container" secondAttribute="top" id="bg-top"/>
-                                    <constraint firstItem="app-icon-emoji" firstAttribute="centerX" secondItem="app-icon-container" secondAttribute="centerX" id="emoji-centerX"/>
-                                    <constraint firstItem="app-icon-emoji" firstAttribute="centerY" secondItem="app-icon-container" secondAttribute="centerY" id="emoji-centerY"/>
-                                </constraints>
-                            </view>
                             <!-- App Name -->
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Shade" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" minimumFontSize="24" translatesAutoresizingMaskIntoConstraints="NO" id="app-name-label">
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Shade" textAlignment="center" lineBreakMode="middleTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="app-name-label">
                                 <rect key="frame" x="0.0" y="396" width="393" height="48"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="40"/>
                                 <color key="textColor" systemColor="labelColor"/>
@@ -61,13 +33,9 @@
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <!-- App Icon Container Constraints -->
-                            <constraint firstItem="app-icon-container" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="icon-centerX"/>
-                            <constraint firstItem="app-icon-container" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-50" id="icon-centerY"/>
-                            
                             <!-- App Name Constraints -->
-                            <constraint firstItem="app-name-label" firstAttribute="top" secondItem="app-icon-container" secondAttribute="bottom" constant="20" id="name-top"/>
                             <constraint firstItem="app-name-label" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="name-centerX"/>
+                            <constraint firstItem="app-name-label" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-20" id="name-centerY"/>
                             <constraint firstItem="app-name-label" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" id="name-leading"/>
                             
                             <!-- Tagline Constraints -->
@@ -84,9 +52,6 @@
         </scene>
     </scenes>
     <resources>
-        <systemColor name="clearColor">
-            <color white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
         <systemColor name="labelColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
@@ -95,9 +60,6 @@
         </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-        </systemColor>
-        <systemColor name="systemBlueColor">
-            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
