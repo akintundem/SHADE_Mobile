@@ -9,7 +9,7 @@ import { AgentChatSheet } from '../components/AgentChatSheet';
 import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { LoadingOverlay } from '../components/LoadingStates';
 import { eventService } from '../services/eventService';
-import { CreateEventRequest, Location } from '../types';
+import { CreateEventRequest, EventType, EventStatus } from '../types';
 import { createEventValidator, useFormValidation } from '../utils/formValidation';
 import { ErrorHandler } from '../utils/errorHandler';
 import { GestureHandler } from '../utils/gestureHandler';
@@ -90,34 +90,24 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       const startDateTime = `${startDate}T${startTime}:00.000Z`;
       const endDateTime = endDate && endTime ? `${endDate}T${endTime}:00.000Z` : startDateTime;
 
-      // Create location object (using default coordinates for now)
-      const location: Location = {
-        address: address || locationName,
-        city: 'Unknown',
-        state: 'Unknown',
-        country: 'Unknown',
-        zipCode: '00000',
-        latitude: 0,
-        longitude: 0,
-      };
-
       const eventData: CreateEventRequest = {
-        title: title.trim(),
+        name: title.trim(),
         description: description.trim(),
-        startDate: startDateTime,
-        endDate: endDateTime,
-        location,
+        eventType: EventType.PARTY, // Default to PARTY, could be made configurable
+        eventStatus: EventStatus.DRAFT,
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
         capacity: capacity ? Number(capacity) : undefined,
-        price: !free && price ? Number(price) : undefined,
-        category: tags[0] || 'General',
-        tags,
+        isPublic: isPublic,
+        requiresApproval: false,
+        qrCodeEnabled: true,
       };
 
       const createdEvent = await eventService.createEvent(eventData);
       
       Alert.alert(
         'Success!',
-        `Event "${createdEvent.title}" has been created successfully.`,
+        `Event "${createdEvent.name}" has been created successfully.`,
         [
           {
             text: 'OK',

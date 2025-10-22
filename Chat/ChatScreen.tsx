@@ -15,6 +15,8 @@ import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { useTheme } from '../theme/ThemeProvider';
 import { ArrowLeft, Moon, Mic, Send, Star, MapPin, Users, Heart, Mail } from 'lucide-react-native';
 import VenueDetailModal from './components/VenueDetailModal';
+import { ChatRequest, AssistantChatResponse, VenueCardDTO } from '../types';
+import { assistantService } from '../services/assistantService';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -27,67 +29,84 @@ interface Message {
   data?: any;
 }
 
-interface VenueCard {
-  id: string;
-  name: string;
-  location: string;
-  capacity: string;
-  price: string;
-  rating: number;
-  reviewCount: number;
-  image: string;
-}
+// Use the new VenueCardDTO type from types
+type VenueCard = VenueCardDTO;
 
 const sampleVenues: VenueCard[] = [
   {
     id: '1',
     name: 'Luxury Plaza Hotel',
     location: 'Historic District',
-    capacity: '250-400 guests',
-    price: '$10,000 - $15,000',
+    guestCapacity: '250-400 guests',
+    priceRange: '$10,000 - $15,000',
     rating: 4.9,
     reviewCount: 203,
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
+    description: 'Elegant venue with stunning architecture',
+    amenities: ['WiFi', 'AV Equipment', 'Catering', 'Parking'],
+    contactEmail: 'info@luxuryplaza.com',
+    contactPhone: '+1-555-0123',
+    website: 'https://luxuryplaza.com',
   },
   {
     id: '2',
     name: 'Enchanted Garden Estate',
     location: 'Countryside',
-    capacity: '150-250 guests',
-    price: '$6,500 - $10,000',
+    guestCapacity: '150-250 guests',
+    priceRange: '$6,500 - $10,000',
     rating: 4.8,
     reviewCount: 156,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    description: 'Beautiful garden venue with natural beauty',
+    amenities: ['Garden', 'Outdoor Space', 'Catering', 'Parking'],
+    contactEmail: 'info@enchantedgarden.com',
+    contactPhone: '+1-555-0124',
+    website: 'https://enchantedgarden.com',
   },
   {
     id: '3',
     name: 'Rustic Barn & Vineyard',
     location: 'Wine Country',
-    capacity: '100-200 guests',
-    price: '$5,500 - $9,000',
+    guestCapacity: '100-200 guests',
+    priceRange: '$5,500 - $9,000',
     rating: 4.7,
     reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    description: 'Charming rustic venue with vineyard views',
+    amenities: ['Vineyard Views', 'Rustic Charm', 'Wine Tasting', 'Parking'],
+    contactEmail: 'info@rusticbarn.com',
+    contactPhone: '+1-555-0125',
+    website: 'https://rusticbarn.com',
   },
   {
     id: '4',
     name: 'Grand Ballroom Palace',
     location: 'Downtown',
-    capacity: '300-500 guests',
-    price: '$12,000 - $18,000',
+    guestCapacity: '300-500 guests',
+    priceRange: '$12,000 - $18,000',
     rating: 4.9,
     reviewCount: 287,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    description: 'Luxurious ballroom with grand architecture',
+    amenities: ['Grand Ballroom', 'Luxury Decor', 'Full Service', 'Valet Parking'],
+    contactEmail: 'info@grandballroom.com',
+    contactPhone: '+1-555-0126',
+    website: 'https://grandballroom.com',
   },
   {
     id: '5',
     name: 'Seaside Resort & Spa',
     location: 'Coastal',
-    capacity: '200-350 guests',
-    price: '$8,500 - $13,000',
+    guestCapacity: '200-350 guests',
+    priceRange: '$8,500 - $13,000',
     rating: 4.8,
     reviewCount: 194,
-    image: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
+    description: 'Stunning coastal venue with ocean views',
+    amenities: ['Ocean Views', 'Spa Services', 'Resort Amenities', 'Beach Access'],
+    contactEmail: 'info@seasideresort.com',
+    contactPhone: '+1-555-0127',
+    website: 'https://seasideresort.com',
   },
 ];
 
@@ -249,7 +268,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
                     }}
                   >
                   <Image
-                    source={{ uri: venue.image }}
+                    source={{ uri: venue.imageUrl }}
                     style={{
                       width: '100%',
                       height: 160,
@@ -305,7 +324,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
                         fontSize: typography.size.sm,
                         marginLeft: spacing.xs,
                       }}>
-                        {venue.capacity}
+                        {venue.guestCapacity}
                       </Text>
                     </View>
                     <Text style={{
@@ -313,7 +332,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
                       fontSize: typography.size.base,
                       fontWeight: typography.weight.semibold,
                     }}>
-                      {venue.price}
+                      {venue.priceRange}
                     </Text>
                   </View>
                   </TouchableOpacity>

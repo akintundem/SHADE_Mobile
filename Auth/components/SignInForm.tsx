@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
-import { User } from '../../types';
+import { User, LoginRequest } from '../../types';
 import { authService } from '../../services/authService';
 import { setUser } from '../../storage/authStorage';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -80,9 +80,21 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
           try {
             setSubmitting(true);
             setError(null);
-            const { user } = await authService.signIn(email, password);
-            await setUser(user);
-            const mapped: User = { id: user.userId, email: user.email, name: user.username, provider: 'password' };
+            const loginRequest: LoginRequest = {
+              email,
+              password,
+              rememberMe: false,
+              deviceId: 'mobile-app',
+              clientId: 'capsule-app'
+            };
+            const authResponse = await authService.loginNew(loginRequest);
+            await setUser(authResponse.user);
+            const mapped: User = { 
+              id: authResponse.user.id, 
+              email: authResponse.user.email, 
+              name: authResponse.user.name, 
+              provider: 'password' 
+            };
             onLogin?.(mapped);
           } catch (e: any) {
             setError(e?.message || t('SignIn'));

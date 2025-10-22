@@ -11,22 +11,13 @@ import {
 import { SafeAreaWrapper } from '../../components/SafeAreaWrapper';
 import { useTheme } from '../../theme/ThemeProvider';
 import { MapPin, Users, Heart, Mail, Star, X } from 'lucide-react-native';
+import { VenueCardDTO } from '../../types';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 interface VenueDetailModalProps {
   visible: boolean;
-  venue: {
-    id: string;
-    name: string;
-    location: string;
-    capacity: string;
-    price: string;
-    rating: number;
-    reviewCount: number;
-    image: string;
-    description?: string;
-  };
+  venue: VenueCardDTO;
   onClose: () => void;
   onSelectVenue: () => void;
   onSendInquiry: () => void;
@@ -91,7 +82,7 @@ export default function VenueDetailModal({
             {/* Main Image */}
             <View style={{ position: 'relative' }}>
               <Image
-                source={{ uri: venue.image }}
+                source={{ uri: venue.imageUrl }}
                 style={{
                   width: '100%',
                   height: 250,
@@ -145,7 +136,7 @@ export default function VenueDetailModal({
                     fontSize: typography.size.base,
                     marginLeft: spacing.sm,
                   }}>
-                    {venue.capacity}
+                    {venue.guestCapacity}
                   </Text>
                 </View>
               </View>
@@ -164,7 +155,7 @@ export default function VenueDetailModal({
                   fontSize: typography.size['2xl'],
                   fontWeight: typography.weight.bold,
                 }}>
-                  {venue.price}
+                  {venue.priceRange}
                 </Text>
               </View>
 

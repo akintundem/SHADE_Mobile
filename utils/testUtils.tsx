@@ -75,7 +75,7 @@ export const testUtils = {
   waitFor: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
 
   // Mock async function
-  mockAsync: <T>(data: T, delay: number = 100) => 
+  mockAsync: <T,>(data: T, delay: number = 100) => 
     jest.fn().mockImplementation(() => 
       new Promise(resolve => setTimeout(() => resolve(data), delay))
     ),

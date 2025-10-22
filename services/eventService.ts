@@ -1,5 +1,11 @@
 import { http } from './httpClient';
-import { ApiResponse, Event, CreateEventRequest } from '../types';
+import { 
+  ApiResponse, 
+  Event, 
+  CreateEventRequest, 
+  UpdateEventRequest, 
+  EventResponse 
+} from '../types';
 import { ErrorHandler } from '../utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
 
@@ -15,12 +21,8 @@ export const eventService = {
         throw new Error('Event will be created when you\'re back online');
       }
       
-      const res = await http.post<ApiResponse<Event>>('/api/v1/events', request);
-      const body = res.data;
-      if (body.status === 201 && body.data) {
-        return body.data;
-      }
-      throw new Error(body.message || 'Failed to create event');
+      const res = await http.post<EventResponse>('/api/v1/events', request);
+      return res.data;
     } catch (error) {
       ErrorHandler.handle(error, 'createEvent');
       throw error;
@@ -28,30 +30,18 @@ export const eventService = {
   },
 
   async getEvent(eventId: string) {
-    const res = await http.get<ApiResponse<Event>>(`/api/v1/events/${eventId}`);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to get event');
+    const res = await http.get<EventResponse>(`/api/v1/events/${eventId}`);
+    return res.data;
   },
 
-  async updateEvent(eventId: string, updates: Partial<CreateEventRequest>) {
-    const res = await http.put<ApiResponse<Event>>(`/api/v1/events/${eventId}`, updates);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to update event');
+  async updateEvent(eventId: string, updates: UpdateEventRequest) {
+    const res = await http.put<EventResponse>(`/api/v1/events/${eventId}`, updates);
+    return res.data;
   },
 
   async deleteEvent(eventId: string) {
-    const res = await http.delete<ApiResponse<null>>(`/api/v1/events/${eventId}`);
-    const body = res.data;
-    if (body.status === 200) {
-      return true;
-    }
-    throw new Error(body.message || 'Failed to delete event');
+    await http.delete(`/api/v1/events/${eventId}`);
+    return true;
   },
 
   async getEvents(params?: {

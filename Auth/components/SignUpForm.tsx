@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
+import { RegisterRequest } from '../../types';
 import { authService } from '../../services/authService';
 import { useTheme } from '../../theme/ThemeProvider';
 import Input from '../../components/ui/Input';
@@ -101,10 +102,31 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           try {
             setSubmitting(true);
             setError(null);
-            const res = await authService.register(email, password);
+            const registerRequest: RegisterRequest = {
+              email,
+              name: email.split('@')[0], // Use email prefix as name
+              password,
+              confirmPassword: confirm,
+              acceptTerms: true,
+              acceptPrivacy: true,
+              marketingOptIn: false,
+              deviceId: 'mobile-app',
+              clientId: 'capsule-app'
+            };
+            const authResponse = await authService.registerNew(registerRequest);
             const { setUser } = await import('../../storage/authStorage');
-            await setUser(res.user);
-            onSignedUp?.({ email, requiresProfile: !!res.requiresProfile, user: res.user });
+            await setUser(authResponse.user);
+            onSignedUp?.({ 
+              email, 
+              requiresProfile: false, 
+              user: {
+                userId: authResponse.user.id,
+                email: authResponse.user.email,
+                username: authResponse.user.name,
+                profilePictureUrl: authResponse.user.profileImageUrl,
+                profileComplete: true
+              }
+            });
           } catch (e: any) {
             setError(e?.message || t('CreateAccount'));
           } finally {
