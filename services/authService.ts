@@ -48,7 +48,20 @@ export const authService = {
   async registerNew(request: RegisterRequest) {
     const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/register', request);
     if (res.data) {
+      console.log('🔐 Registration successful, saving token...');
       await persistTokenFrom({ token: res.data.accessToken });
+      
+      // Cache user data including user ID for X-User-Id header
+      const { setUser } = await import('../storage/authStorage');
+      await setUser({
+        userId: res.data.user.id,
+        email: res.data.user.email,
+        username: res.data.user.name,
+        profilePictureUrl: res.data.user.profileImageUrl,
+        profileComplete: true
+      });
+      console.log('🔐 User data cached:', res.data.user.id);
+      
       return res.data;
     }
     throw new Error('Registration failed');
@@ -58,7 +71,20 @@ export const authService = {
   async loginNew(request: LoginRequest) {
     const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/login', request);
     if (res.data) {
+      console.log('🔐 Login successful, saving token...');
       await persistTokenFrom({ token: res.data.accessToken });
+      
+      // Cache user data including user ID for X-User-Id header
+      const { setUser } = await import('../storage/authStorage');
+      await setUser({
+        userId: res.data.user.id,
+        email: res.data.user.email,
+        username: res.data.user.name,
+        profilePictureUrl: res.data.user.profileImageUrl,
+        profileComplete: true
+      });
+      console.log('🔐 User data cached:', res.data.user.id);
+      
       return res.data;
     }
     throw new Error('Login failed');

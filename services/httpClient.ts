@@ -9,8 +9,8 @@ import { getToken, setToken, clearToken } from '../storage/authStorage';
 // - Use __DEV__ to detect development mode and choose appropriate host
 const getHost = () => {
   if (__DEV__) {
-    // In development, use IP address for physical devices, localhost for simulators
-    return Platform.OS === 'android' ? '10.0.2.2' : '192.168.2.17';
+    // In development, use localhost to match CORS configuration
+    return 'localhost';
   }
   // In production, use your production API URL
   return 'your-production-api.com';
@@ -27,7 +27,7 @@ export const httpUnauthenticated = axios.create({
   timeout: 15000,
   headers: { 
     'Content-Type': 'application/json',
-    'X-Client-ID': 'mobile-app' // Required for all API requests
+    'X-Client-ID': 'web-app' // Use web-app to match working API docs
   },
 });
 
@@ -37,7 +37,7 @@ export const http = axios.create({
   timeout: 15000,
   headers: { 
     'Content-Type': 'application/json',
-    'X-Client-ID': 'mobile-app' // Required for all API requests
+    'X-Client-ID': 'web-app' // Use web-app to match working API docs
   },
 });
 
@@ -49,16 +49,40 @@ http.interceptors.request.use(async config => {
       config.headers = {} as any;
     }
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('🔐 Adding Authorization header to request:', config.url);
+    console.log('🔐 Token being used:', token.substring(0, 30) + '...');
+    
+    // Add X-User-Id header only for POST/PUT events and chat endpoints that require it
+    if ((config.url?.includes('/events') && (config.method === 'post' || config.method === 'put')) || 
+        config.url?.includes('/assistant/chat')) {
+      try {
+        const { getUser } = await import('../storage/authStorage');
+        const cachedUser = await getUser();
+        if (cachedUser?.userId) {
+          config.headers['X-User-Id'] = cachedUser.userId;
+          console.log('🔐 Adding X-User-Id header:', cachedUser.userId);
+        }
+      } catch (error) {
+        console.log('⚠️  Could not get user ID for X-User-Id header');
+      }
+    }
+  } else {
+    console.log('⚠️  No token found for authenticated request:', config.url);
   }
   return config;
 });
 
 // Unified response/error handling for both clients
 const responseErrorHandler = async (error: any) => {
-  if (error?.response?.status === 401) {
-    // Token invalid — clear it. Upstream UI can decide how to react.
-    await clearToken();
-  }
+  console.log('❌ HTTP Error:', {
+    status: error?.response?.status,
+    message: error?.response?.data?.message || error?.message,
+    url: error?.config?.url,
+    method: error?.config?.method
+  });
+  
+  // Don't automatically clear token on 401 - let the calling code handle it
+  // This prevents race conditions during token validation
   
   // Enhanced error handling
   const enhancedError = {
@@ -77,6 +101,9 @@ httpUnauthenticated.interceptors.response.use(response => response, responseErro
 
 // Utilities to persist token from API replies in one place
 export async function persistTokenFrom(data?: { token?: string | null }) {
-  if (data?.token) await setToken(data.token);
+  if (data?.token) {
+    await setToken(data.token);
+    console.log('🔐 Token saved to storage:', data.token.substring(0, 20) + '...');
+  }
 }
 

@@ -6,14 +6,24 @@ const USER_KEY = 'auth:user';
 let memoryToken: string | null = null;
 
 export async function setToken(token: string) {
+  console.log('💾 Saving token to storage:', token.substring(0, 20) + '...');
   memoryToken = token;
   await AsyncStorage.setItem(TOKEN_KEY, token);
+  console.log('✅ Token saved successfully');
 }
 
 export async function getToken(): Promise<string | null> {
-  if (memoryToken) return memoryToken;
+  if (memoryToken) {
+    console.log('🔐 Using memory token:', memoryToken.substring(0, 20) + '...');
+    return memoryToken;
+  }
   const token = await AsyncStorage.getItem(TOKEN_KEY);
   memoryToken = token;
+  if (token) {
+    console.log('🔐 Retrieved token from storage:', token.substring(0, 20) + '...');
+  } else {
+    console.log('⚠️  No token found in storage');
+  }
   return token;
 }
 

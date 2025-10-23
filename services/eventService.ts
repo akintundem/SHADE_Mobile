@@ -12,7 +12,7 @@ import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
 export const eventService = {
   // Get Event by ID
   async getEvent(eventId: string) {
-    const res = await http.get<EventResponse>(`/api/v1/events/${eventId}`);
+    const res = await http.get<Event>(`/api/v1/events/${eventId}`);
     return res.data;
   },
 
@@ -27,7 +27,7 @@ export const eventService = {
         throw new Error('Event will be created when you\'re back online');
       }
       
-      const res = await http.post<EventResponse>('/api/v1/events', request);
+      const res = await http.post<Event>('/api/v1/events', request);
       return res.data;
     } catch (error) {
       ErrorHandler.handle(error, 'createEvent');
@@ -65,6 +65,16 @@ export const eventService = {
         return cachedData;
       }
       
+      // TODO: GET /api/v1/events endpoint is not implemented yet
+      // For now, return empty array until backend implements the endpoint
+      console.log('⚠️  GET /api/v1/events endpoint not implemented yet, returning empty array');
+      
+      const responseData = { events: [], total: 0, page: 1, size: 0 };
+      await OfflineStorage.setCache(cacheKey, responseData);
+      return responseData;
+      
+      // Uncomment this when the backend implements GET /api/v1/events
+      /*
       const queryParams = new URLSearchParams();
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.size) queryParams.append('size', params.size.toString());
@@ -75,14 +85,16 @@ export const eventService = {
       const queryString = queryParams.toString();
       const url = queryString ? `/api/v1/events?${queryString}` : '/api/v1/events';
       
-      const res = await http.get<ApiResponse<{ events: Event[]; total: number; page: number; size: number }>>(url);
-      const body = res.data;
-      if (body.status === 200 && body.data) {
+      const res = await http.get<Event[]>(url);
+      const events = res.data;
+      if (events && Array.isArray(events)) {
         // Cache the result
-        await OfflineStorage.setCache(cacheKey, body.data);
-        return body.data;
+        const responseData = { events, total: events.length, page: 1, size: events.length };
+        await OfflineStorage.setCache(cacheKey, responseData);
+        return responseData;
       }
-      throw new Error(body.message || 'Failed to get events');
+      throw new Error('Failed to get events');
+      */
     } catch (error) {
       // If online request fails, try to return cached data
       if (error?.status !== 0) { // Not a network error

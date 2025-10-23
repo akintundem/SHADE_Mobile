@@ -24,9 +24,43 @@ function App() {
         // Attempt to restore session from storage
         const token = await getToken();
         if (token) {
+          console.log('🔐 Found stored token, validating...');
           const cached = await getCachedUser<UserDTO>();
-          if (cached) setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+          if (cached) {
+            // Validate token with backend
+            try {
+              const { authService } = await import('./services/authService');
+              await authService.getCurrentUser();
+              console.log('✅ Token is valid');
+              // Token is valid, set user
+              setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+            } catch (error) {
+              console.log('❌ Token validation failed:', error.message);
+              if (error.status === 401 || error.message?.includes('Full authentication is required')) {
+                console.log('🔐 401 Unauthorized - clearing invalid token');
+                const { clearToken, clearUser } = await import('./storage/authStorage');
+                await clearToken();
+                await clearUser();
+                console.log('✅ Invalid token cleared - please log in again');
+              } else {
+                console.log('⚠️  Other error during token validation:', error.message);
+              }
+            }
+          } else {
+            // Token exists but no cached user - clear token
+            console.log('⚠️  Token exists but no cached user, clearing token');
+            const { clearToken } = await import('./storage/authStorage');
+            await clearToken();
+          }
+        } else {
+          console.log('ℹ️  No stored token found');
         }
+      } catch (error) {
+        console.log('❌ Error during token validation:', error);
+        // Clear any partial state
+        const { clearToken, clearUser } = await import('./storage/authStorage');
+        await clearToken();
+        await clearUser();
       } finally {
         setIsLoading(false);
       }

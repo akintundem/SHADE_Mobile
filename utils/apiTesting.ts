@@ -13,9 +13,10 @@ import {
 } from '../types';
 
 export class ApiTesting {
-  private static baseUrl = 'http://localhost:8080';
+  private static baseUrl = 'http://192.168.2.17:8080';
   private static testUser: any = null;
   private static testEvent: any = null;
+  private static testResults: any[] = [];
 
   // Test Authentication APIs
   static async testAuthAPIs() {
