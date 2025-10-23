@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
+import EnhancedInput from '../ui/Input';
 
 // Section Component
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -65,54 +66,21 @@ export function Input({
   onChangeText, 
   error,
   onBlur,
+  inputType = 'default',
   ...props 
-}: InputProps) {
-  const { colors, borderRadius, spacing } = useTheme();
-  const hasError = !!error;
-  
+}: InputProps & { inputType?: string }) {
   return (
-    <View>
-      <View
-        style={[
-          {
-            borderWidth: 1,
-            borderColor: hasError ? colors.semantic.error : colors.border,
-            borderRadius: borderRadius.lg,
-            paddingHorizontal: spacing.md,
-            height: props.multiline ? undefined : 48,
-            minHeight: props.multiline ? 80 : 48,
-            justifyContent: props.multiline ? 'flex-start' : 'center',
-            backgroundColor: colors.surface,
-          },
-          style,
-        ]}
-      >
-        <TextInput 
-          placeholder={placeholder} 
-          placeholderTextColor={colors.text.tertiary} 
-          style={{ 
-            color: colors.text.primary,
-            fontSize: 16,
-            paddingTop: props.multiline ? spacing.md : 0,
-            textAlignVertical: props.multiline ? 'top' : 'center'
-          }} 
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={onBlur}
-          {...props}
-        />
-      </View>
-      {hasError && (
-        <Text style={{ 
-          color: colors.semantic.error, 
-          fontSize: 12, 
-          marginTop: spacing.xs,
-          marginLeft: spacing.xs 
-        }}>
-          {error}
-        </Text>
-      )}
-    </View>
+    <EnhancedInput
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      onBlur={onBlur}
+      error={error}
+      inputType={inputType}
+      enableNativeAutocomplete={true}
+      style={style}
+      {...props}
+    />
   );
 }
 

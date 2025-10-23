@@ -11,6 +11,7 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
+import Input from '../components/ui/Input';
 import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { useTheme } from '../theme/ThemeProvider';
 import { ArrowLeft, Moon, Mic, Send, Star, MapPin, Users, Heart, Mail } from 'lucide-react-native';
@@ -682,17 +683,19 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
             borderWidth: 1,
             borderColor: colors.border,
           }}>
-            <TextInput
+            <Input
               value={inputText}
               onChangeText={setInputText}
               placeholder="Tell me about your event..."
-              placeholderTextColor={colors.text.tertiary}
+              inputType="description"
+              enableNativeAutocomplete={true}
               style={{
                 flex: 1,
-                color: colors.text.primary,
                 fontSize: typography.size.base,
                 paddingVertical: spacing.sm,
                 maxHeight: 100,
+                borderWidth: 0,
+                backgroundColor: 'transparent',
               }}
               multiline
             />

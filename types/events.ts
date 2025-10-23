@@ -52,6 +52,20 @@ export type CreateEventRequest = {
   isPublic?: boolean;
   requiresApproval?: boolean;
   qrCodeEnabled?: boolean;
+  coverImageUrl?: string;
+  eventWebsiteUrl?: string;
+  hashtag?: string;
+  theme?: string;
+  objectives?: string;
+  targetAudience?: string;
+  successMetrics?: string;
+  brandingGuidelines?: string;
+  venueRequirements?: string;
+  technicalRequirements?: string;
+  accessibilityFeatures?: string;
+  emergencyPlan?: string;
+  backupPlan?: string;
+  postEventTasks?: string;
 };
 
 export type UpdateEventRequest = {

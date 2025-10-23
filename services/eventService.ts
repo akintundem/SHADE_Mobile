@@ -10,7 +10,13 @@ import { ErrorHandler } from '../utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
 
 export const eventService = {
-  // Event CRUD operations
+  // Get Event by ID
+  async getEvent(eventId: string) {
+    const res = await http.get<EventResponse>(`/api/v1/events/${eventId}`);
+    return res.data;
+  },
+
+  // Create Event
   async createEvent(request: CreateEventRequest) {
     try {
       const isOnline = await OfflineStorage.isOnline();
@@ -29,16 +35,13 @@ export const eventService = {
     }
   },
 
-  async getEvent(eventId: string) {
-    const res = await http.get<EventResponse>(`/api/v1/events/${eventId}`);
-    return res.data;
-  },
-
+  // Update Event
   async updateEvent(eventId: string, updates: UpdateEventRequest) {
     const res = await http.put<EventResponse>(`/api/v1/events/${eventId}`, updates);
     return res.data;
   },
 
+  // Delete Event
   async deleteEvent(eventId: string) {
     await http.delete(`/api/v1/events/${eventId}`);
     return true;

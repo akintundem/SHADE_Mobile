@@ -1,6 +1,16 @@
 // API Constants
+// Use IP address for physical devices, localhost for simulators
+const getApiBaseUrl = () => {
+  if (__DEV__) {
+    // In development, use IP address for physical devices
+    return 'http://192.168.2.17:8080/api';
+  }
+  // In production, use your production API URL
+  return 'https://your-production-api.com/api';
+};
+
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:8080/api',
+  BASE_URL: getApiBaseUrl(),
   TIMEOUT: 15000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,

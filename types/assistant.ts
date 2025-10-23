@@ -11,13 +11,16 @@ export type ChatRequest = {
   eventId?: string;
 };
 
-export type ShadeChatRequest = {
+export type ShadeConversationRequest = {
   message: string;
   sessionId?: string;
   context?: Record<string, any>;
   intent?: string;
   collectedData?: Record<string, any>;
 };
+
+// Legacy alias for backward compatibility
+export type ShadeChatRequest = ShadeConversationRequest;
 
 export type VenueCardDTO = {
   id: string;
@@ -90,6 +93,27 @@ export type AssistantChatResponse = {
   uitype: 'chat' | 'venue_cards' | 'email_template' | 'chips' | 'mixed';
   success: boolean;
   error?: string;
+};
+
+export type ShadeConversationResponse = {
+  sessionId: string;
+  message: string;
+  intent?: string;
+  collectedData?: Record<string, any>;
+  missingFields?: string[];
+  followUpQuestions?: string[];
+  suggestions?: {
+    venues?: string[];
+    capacities?: string[];
+  };
+  action?: {
+    type: string;
+    arguments?: Record<string, any>;
+    ready: boolean;
+  };
+  timestamp: string;
+  requiresConfirmation?: boolean;
+  confirmationMessage?: string;
 };
 
 // Enhanced Chat Types for Interactive Components

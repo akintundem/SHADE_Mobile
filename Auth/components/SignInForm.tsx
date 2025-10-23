@@ -28,31 +28,29 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
   return (
     <View style={{ gap: spacing.lg }}>
       <Input
+        label="Email Address"
         value={email}
         onChangeText={(text) => {
           setEmail(text);
           setError(null);
         }}
         placeholder={t('EmailAddress')}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="next"
+        inputType="email"
+        enableNativeAutocomplete={true}
         leftIcon={<Mail size={20} color={colors.text.tertiary} />}
         error={error && error.includes('email') ? error : undefined}
       />
 
       <Input
+        label="Password"
         value={password}
         onChangeText={(text) => {
           setPassword(text);
           setError(null);
         }}
         placeholder={t('Password')}
-        secureTextEntry={!showPassword}
-        autoCapitalize="none"
-        autoCorrect={false}
-        returnKeyType="done"
+        inputType="password"
+        enableNativeAutocomplete={true}
         leftIcon={<Lock size={20} color={colors.text.tertiary} />}
         rightIcon={
           showPassword ? (

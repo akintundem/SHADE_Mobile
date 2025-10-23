@@ -1,7 +1,8 @@
 import { http } from './httpClient';
 import { 
   ChatRequest, 
-  ShadeChatRequest, 
+  ShadeConversationRequest, 
+  ShadeConversationResponse,
   AssistantChatResponse 
 } from '../types';
 
@@ -12,9 +13,9 @@ export const assistantService = {
     return res.data;
   },
 
-  // Chat with Shade AI (Direct)
-  async shadeChat(request: ShadeChatRequest) {
-    const res = await http.post<AssistantChatResponse>('/api/v1/assistant/shade/chat', request);
+  // Shade AI Conversation
+  async shadeChat(request: ShadeConversationRequest) {
+    const res = await http.post<ShadeConversationResponse>('/api/v1/assistant/shade/chat', request);
     return res.data;
   },
 

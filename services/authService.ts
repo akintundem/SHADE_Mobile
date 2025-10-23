@@ -1,4 +1,4 @@
-import { http, persistTokenFrom } from './httpClient';
+import { http, httpUnauthenticated, persistTokenFrom } from './httpClient';
 import { 
   ApiResponse, 
   AuthTokens, 
@@ -38,9 +38,15 @@ export type SpotifyResponse = {
 };
 
 export const authService = {
-  // New API methods using the microservice endpoints
+  // Health Check
+  async healthCheck() {
+    const res = await httpUnauthenticated.get<{ service: string; status: string; timestamp: string }>('/api/v1/auth/health');
+    return res.data;
+  },
+
+  // User Registration
   async registerNew(request: RegisterRequest) {
-    const res = await http.post<AuthResponse>('/api/v1/auth/register', request);
+    const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/register', request);
     if (res.data) {
       await persistTokenFrom({ token: res.data.accessToken });
       return res.data;
@@ -48,8 +54,9 @@ export const authService = {
     throw new Error('Registration failed');
   },
 
+  // User Login
   async loginNew(request: LoginRequest) {
-    const res = await http.post<AuthResponse>('/api/v1/auth/login', request);
+    const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/login', request);
     if (res.data) {
       await persistTokenFrom({ token: res.data.accessToken });
       return res.data;
@@ -57,13 +64,15 @@ export const authService = {
     throw new Error('Login failed');
   },
 
+  // Get Current User
   async getCurrentUser() {
     const res = await http.get<UserResponse>('/api/v1/auth/me');
     return res.data;
   },
 
+  // Refresh Token
   async refreshToken(request: RefreshTokenRequest) {
-    const res = await http.post<AuthResponse>('/api/v1/auth/refresh-token', request);
+    const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/refresh-token', request);
     if (res.data) {
       await persistTokenFrom({ token: res.data.accessToken });
       return res.data;
@@ -71,13 +80,59 @@ export const authService = {
     throw new Error('Token refresh failed');
   },
 
+  // Validate Token
   async validateToken(request: ValidateTokenRequest) {
-    const res = await http.post<ValidateTokenResponse>('/api/v1/auth/validate-token', request);
+    const res = await httpUnauthenticated.post<ValidateTokenResponse>('/api/v1/auth/validate-token', request);
     return res.data;
   },
 
-  async healthCheck() {
-    const res = await http.get<{ service: string; status: string; timestamp: string }>('/api/v1/auth/health');
+  // Logout
+  async logout() {
+    try {
+      await http.post<{ message: string }>('/api/v1/auth/logout');
+    } finally {
+      // Regardless of server response, client removes token (stateless JWT)
+      const { clearToken } = await import('../storage/authStorage');
+      await clearToken();
+    }
+  },
+
+  // Forgot Password
+  async forgotPassword(email: string) {
+    const res = await httpUnauthenticated.post<{ message: string }>('/api/v1/auth/forgot-password', { email });
+    return res.data;
+  },
+
+  // Reset Password
+  async resetPassword(token: string, newPassword: string) {
+    const res = await httpUnauthenticated.post<{ message: string }>('/api/v1/auth/reset-password', {
+      token,
+      newPassword
+    });
+    return res.data;
+  },
+
+  // Change Password
+  async changePassword(currentPassword: string, newPassword: string, confirmPassword: string, deviceId?: string, clientId?: string) {
+    const res = await http.post<{ message: string }>('/api/v1/auth/change-password', {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+      deviceId,
+      clientId
+    });
+    return res.data;
+  },
+
+  // Resend Email Verification
+  async resendEmailVerification(email: string) {
+    const res = await httpUnauthenticated.post<{ message: string }>('/api/v1/auth/verify-email', { email });
+    return res.data;
+  },
+
+  // Verify Email
+  async verifyEmail(token: string) {
+    const res = await httpUnauthenticated.get<{ message: string }>(`/api/v1/auth/verify-email/${token}`);
     return res.data;
   },
 
@@ -121,14 +176,5 @@ export const authService = {
     throw new Error(body.message || 'OAuth failed');
   },
 
-  async logout() {
-    try {
-      await http.post<{ message: string }>('/api/v1/auth/logout');
-    } finally {
-      // Regardless of server response, client removes token (stateless JWT)
-      const { clearToken } = await import('../storage/authStorage');
-      await clearToken();
-    }
-  },
 };
 

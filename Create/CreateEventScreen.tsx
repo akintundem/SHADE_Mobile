@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import Input from '../components/ui/Input';
 import { X, Globe, Users, CalendarDays, Clock, MapPin, Plus, Image as ImageIcon, DollarSign, ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useAgent } from '../Agent/AgentProvider';
@@ -374,7 +375,8 @@ function Row({ label, icon, children }: any) {
   );
 }
 
-function Input({ 
+// Enhanced Input component with keyboard optimizations
+function EnhancedInput({ 
   placeholder, 
   style, 
   highlighted = false, 
@@ -382,48 +384,27 @@ function Input({
   onChangeText, 
   error,
   onBlur,
+  inputType = 'default',
   ...props 
 }: any) {
-  const { colors, borderRadius, spacing, brand } = useTheme();
-  const hasError = !!error;
-  
   return (
-    <View>
-      <View
-        style={[
-          {
-            borderWidth: highlighted ? 2 : 1,
-            borderColor: hasError ? colors.error : highlighted ? brand.primary : colors.border,
-            borderRadius: borderRadius.lg,
-            paddingHorizontal: spacing.md,
-            height: 42,
-            justifyContent: 'center',
-            backgroundColor: colors.surface,
-          },
-          style,
-        ]}
-      >
-        <TextInput 
-          placeholder={placeholder} 
-          placeholderTextColor={colors.text.tertiary} 
-          style={{ color: colors.text.primary }} 
-          value={value}
-          onChangeText={onChangeText}
-          onBlur={onBlur}
-          {...props}
-        />
-      </View>
-      {hasError && (
-        <Text style={{ 
-          color: colors.error, 
-          fontSize: 12, 
-          marginTop: spacing.xs,
-          marginLeft: spacing.xs 
-        }}>
-          {error}
-        </Text>
-      )}
-    </View>
+    <Input
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      onBlur={onBlur}
+      error={error}
+      inputType={inputType}
+      enableNativeAutocomplete={true}
+      style={[
+        {
+          borderWidth: highlighted ? 2 : 1,
+          borderColor: error ? '#ef4444' : highlighted ? '#3b82f6' : '#e5e7eb',
+        },
+        style,
+      ]}
+      {...props}
+    />
   );
 }
 
