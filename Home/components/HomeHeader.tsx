@@ -28,14 +28,17 @@ export const HomeHeader = ({ user, onOpenChat }: Props) => {
         }}
       >
         <View style={{ width: 24 }} />
-        <Text style={{
-          color: colors.text.primary,
-          fontWeight: typography.weight.bold,
-          fontSize: typography.size.xl,
-          letterSpacing: -0.5,
-        }}>
-          Shade
-        </Text>
+        <View style={{ flex: 1, justifyContent: 'flex-start' }}>
+          <Text style={{
+            color: colors.text.primary,
+            fontWeight: typography.weight.bold,
+            fontSize: typography.size.xl,
+            letterSpacing: -0.5,
+            textAlign: 'left',
+          }}>
+            Shade
+          </Text>
+        </View>
         <TouchableOpacity
           onPress={onOpenChat}
           style={{
@@ -51,29 +54,6 @@ export const HomeHeader = ({ user, onOpenChat }: Props) => {
         >
           <MessageCircle size={20} color={colors.text.primary} />
         </TouchableOpacity>
-      </View>
-
-      <View style={{ 
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
-        paddingBottom: spacing.lg,
-      }}>
-        <Text style={{
-          fontSize: typography.size['2xl'],
-          fontWeight: typography.weight.bold,
-          color: colors.text.primary,
-          textAlign: 'center',
-        }}>
-          {t('WelcomeBack', { name })}
-        </Text>
-        <Text style={{ 
-          marginTop: spacing.xs,
-          color: colors.text.secondary,
-          textAlign: 'center',
-          fontSize: typography.size.base,
-        }}>
-          {t('HomeTagline')}
-        </Text>
       </View>
     </View>
   );

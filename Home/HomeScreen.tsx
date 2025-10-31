@@ -1,8 +1,7 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ScrollView, View, Text, TouchableOpacity, Animated, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
 import { HomeHeader } from './components/HomeHeader';
 import { EventCard, EventItem } from './components/EventCard';
-import { EmptyFeed } from './components/EmptyFeed';
 import { TabBar } from './components/TabBar';
 import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { EventListSkeleton, EmptyState } from '../components/LoadingStates';
@@ -10,7 +9,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { User, Event, EventStatus } from '../types';
 import { eventService } from '../services/eventService';
 import { ErrorHandler } from '../utils/errorHandler';
-import { Flame, Clock, Calendar } from 'lucide-react-native';
+import { Calendar } from 'lucide-react-native';
 
 type Props = {
   user: User;
@@ -22,12 +21,13 @@ type Props = {
   onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void;
 };
 
-export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, showExampleWhenEmpty = true, onTabChange }: Props) {
-  const { colors, spacing, brand, borderRadius, typography, shadows } = useTheme();
-  const [seg, setSeg] = useState<'live' | 'past'>('live');
+export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, showExampleWhenEmpty: _showExampleWhenEmpty = true, onTabChange }: Props) {
+  const { colors, spacing, borderRadius, typography, isDark } = useTheme();
+  const [seg, setSeg] = useState<'live' | 'all' | 'past'>('live');
   const [fetchedEvents, setFetchedEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { width: screenWidth } = Dimensions.get('window');
 
   // Fetch events from the service
   const fetchEvents = useCallback(async (showLoading = true) => {
@@ -79,19 +79,16 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
   const dataset = [...events, ...fetchedEvents.map(convertToEventItem)];
   const liveEvents = dataset.filter(e => !e.isPast);
   const pastEvents = dataset.filter(e => e.isPast);
-
-  // Pulse animation for the Live indicator
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.35, duration: 600, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
+  const allEvents = dataset;
+  const activeEvents = seg === 'live' ? liveEvents : seg === 'past' ? pastEvents : allEvents;
+  const cardWidth = screenWidth - spacing.lg * 2;
+  const emptyTitle = seg === 'live' ? 'No Live Events' : seg === 'past' ? 'No Past Events' : 'No Events Yet';
+  const emptySubtitle =
+    seg === 'live'
+      ? "No events are happening right now. Check back later or create your own event!"
+      : seg === 'past'
+        ? "No past events to show. Your event history will appear here."
+        : "Events you create or join will appear here.";
 
   return (
     <SafeAreaWrapper edges={['top']}>
@@ -102,96 +99,120 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+            tintColor={colors.text.primary}
+            colors={[colors.text.primary]}
           />
         }
       >
         <HomeHeader user={user} onOpenMenu={onOpenMenu} onOpenChat={onOpenChat} />
 
         {/* Segmented control */}
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md }}>
-          <View style={{
-            flexDirection: 'row',
-            backgroundColor: colors.surface,
-            borderRadius: 28,
-            padding: spacing.xs,
-            borderWidth: 1,
-            borderColor: colors.border,
-            ...shadows.sm,
-          }}>
-            {/* Live */}
-            <TouchableOpacity
-              onPress={() => setSeg('live')}
-              activeOpacity={0.9}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: spacing.xs,
-                paddingVertical: spacing.md,
-                borderRadius: borderRadius.full,
-                backgroundColor: seg === 'live' ? colors.primary : 'transparent',
-                ...(seg === 'live' ? shadows.sm : {}),
-              }}
-            >
-              <Animated.View style={{ opacity: pulse }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: seg === 'live' ? colors.text.inverse : colors.primary }} />
-              </Animated.View>
-              <Flame size={16} color={seg === 'live' ? colors.text.inverse : colors.text.secondary} />
-              <Text style={{
-                color: seg === 'live' ? colors.text.inverse : colors.text.secondary,
-                fontWeight: seg === 'live' ? typography.weight.semibold : typography.weight.medium,
-                fontSize: typography.size.sm,
-              }}>Live</Text>
-            </TouchableOpacity>
-
-            {/* Past */}
-            <TouchableOpacity
-              onPress={() => setSeg('past')}
-              activeOpacity={0.9}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: spacing.xs,
-                paddingVertical: spacing.md,
-                borderRadius: borderRadius.full,
-                backgroundColor: seg === 'past' ? colors.primary : 'transparent',
-                ...(seg === 'past' ? shadows.sm : {}),
-              }}
-            >
-              <Clock size={16} color={seg === 'past' ? colors.text.inverse : colors.text.secondary} />
-              <Text style={{
-                color: seg === 'past' ? colors.text.inverse : colors.text.secondary,
-                fontWeight: seg === 'past' ? typography.weight.semibold : typography.weight.medium,
-                fontSize: typography.size.sm,
-              }}>Past</Text>
-            </TouchableOpacity>
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing.md }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            {[
+              { key: 'live' as const, label: 'Live' },
+              { key: 'all' as const, label: 'All' },
+              { key: 'past' as const, label: 'Past' },
+            ].map(tab => (
+              <TouchableOpacity
+                key={tab.key}
+                onPress={() => setSeg(tab.key)}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  paddingVertical: spacing.md,
+                }}
+              >
+                <Text
+                  style={{
+                    color: seg === tab.key ? colors.text.primary : colors.text.tertiary,
+                    fontWeight: seg === tab.key ? typography.weight.semibold : typography.weight.medium,
+                    fontSize: typography.size.base,
+                  }}
+                >
+                  {tab.label}
+                </Text>
+                <View
+                  style={{
+                    marginTop: spacing.xs,
+                    height: 4,
+                    width: 28,
+                    borderRadius: 2,
+                    backgroundColor: seg === tab.key ? colors.text.primary : 'transparent',
+                  }}
+                />
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
+        {seg === 'live' && activeEvents.length > 0 ? (
+          <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing['2xl'] }}>
+            <View
+              style={{
+                alignSelf: 'flex-start',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.xs,
+                backgroundColor: isDark ? '#FFFFFF' : '#000000',
+                paddingHorizontal: spacing.lg,
+                paddingVertical: spacing.xs,
+                borderRadius: borderRadius.full,
+              }}
+            >
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: '#FF3B30' }} />
+              <Text
+                style={{
+                  color: isDark ? '#000000' : '#FFFFFF',
+                  fontWeight: typography.weight.semibold,
+                  fontSize: typography.size.xs,
+                  letterSpacing: 1,
+                }}
+              >
+                LIVE NOW
+              </Text>
+            </View>
+          </View>
+        ) : null}
+
         {/* Feed */}
-        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing['2xl'], gap: spacing['2xl'] }}>
+        <View style={{ marginTop: seg === 'live' && activeEvents.length > 0 ? spacing.lg : spacing['2xl'] }}>
           {isLoading ? (
             <EventListSkeleton count={3} />
-          ) : (seg === 'live' ? liveEvents : pastEvents).length === 0 ? (
+          ) : activeEvents.length === 0 ? (
             <EmptyState
               icon={<Calendar size={48} color={colors.text.tertiary} />}
-              title={`No ${seg === 'live' ? 'Live' : 'Past'} Events`}
-              subtitle={seg === 'live' 
-                ? "No events are happening right now. Check back later or create your own event!"
-                : "No past events to show. Your event history will appear here."
-              }
+              title={emptyTitle}
+              subtitle={emptySubtitle}
               action={seg === 'live' ? {
                 label: "Create Event",
                 onPress: () => {},
               } : undefined}
             />
           ) : (
-            (seg === 'live' ? liveEvents : pastEvents).map(item => <EventCard key={item.id} item={item} />)
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              decelerationRate="fast"
+              snapToInterval={cardWidth + spacing.lg}
+              snapToAlignment="start"
+              contentContainerStyle={{
+                paddingHorizontal: spacing.lg,
+                paddingRight: spacing.lg,
+              }}
+            >
+              {activeEvents.map((item, index) => (
+                <View
+                  key={item.id}
+                  style={{
+                    marginRight: index === activeEvents.length - 1 ? 0 : spacing.lg,
+                  }}
+                >
+                  <EventCard item={item} width={cardWidth} />
+                </View>
+              ))}
+            </ScrollView>
           )}
         </View>
       </ScrollView>
