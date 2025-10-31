@@ -19,7 +19,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
   if (view === 'settings') {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <SettingsScreen onClose={() => setView('profile')} onLogout={onLogout} />
+        <SettingsScreen user={user} onClose={() => setView('profile')} onLogout={onLogout} />
         <TabBar active="profile" onChange={onTabChange} />
       </View>
     );
