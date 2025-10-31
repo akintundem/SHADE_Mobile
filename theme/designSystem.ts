@@ -4,11 +4,11 @@
  */
 
 export const Colors = {
-  // Brand Colors - Improved accessibility and contrast
+  // Brand Colors - Pure black and white
   brand: {
-    primary: '#1E40AF',      // Blue - high contrast, accessible
-    primaryDark: '#1E3A8A',  // Darker blue
-    primaryLight: '#3B82F6', // Lighter blue
+    primary: '#000000',      // Pure black
+    primaryDark: '#000000',  // Pure black
+    primaryLight: '#808080', // Medium gray
     secondary: '#F59E0B',    // Amber accent - luxury and warmth
     secondaryDark: '#D97706',
     secondaryLight: '#FCD34D',
@@ -70,17 +70,17 @@ export const Colors = {
     warning: '#D97706',      // Orange
     warningLight: '#FEF3C7',
     warningDark: '#B45309',
-    info: '#2563EB',         // Blue
-    infoLight: '#DBEAFE',
-    infoDark: '#1D4ED8',
+    info: '#000000',         // Pure black
+    infoLight: '#E5E5E5',    // Light gray
+    infoDark: '#000000',     // Pure black
   },
 
   // Social Platform Colors
   social: {
     spotify: '#1DB954',
     apple: '#000000',
-    google: '#4285F4',
-    facebook: '#1877F2',
+    google: '#000000',      // Changed from blue to black
+    facebook: '#000000',    // Changed from blue to black
   },
 };
 
@@ -179,7 +179,7 @@ export const Shadows = {
     elevation: 8,
   },
   brand: {
-    shadowColor: '#8B5CF6',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,

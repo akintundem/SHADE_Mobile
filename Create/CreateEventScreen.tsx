@@ -399,7 +399,7 @@ function EnhancedInput({
       style={[
         {
           borderWidth: highlighted ? 2 : 1,
-          borderColor: error ? '#ef4444' : highlighted ? '#3b82f6' : '#e5e7eb',
+          borderColor: error ? '#ef4444' : highlighted ? '#000000' : '#e5e7eb',
         },
         style,
       ]}

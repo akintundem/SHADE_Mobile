@@ -65,7 +65,7 @@ export const getEventTypeColor = (type: EventType): string => {
   switch (type) {
     case 'concert': return 'bg-purple-500';
     case 'festival': return 'bg-yellow-500';
-    case 'trip': return 'bg-blue-500';
+    case 'trip': return 'bg-gray-900';
     case 'party': return 'bg-pink-500';
     case 'conference': return 'bg-green-500';
     case 'exhibition': return 'bg-orange-500';
@@ -80,7 +80,7 @@ export const getEventTypeColorHex = (type: EventType): string => {
   switch (type) {
     case 'concert': return '#a855f7';
     case 'festival': return '#eab308';
-    case 'trip': return '#3b82f6';
+    case 'trip': return '#000000';
     case 'party': return '#ec4899';
     case 'conference': return '#10b981';
     case 'exhibition': return '#f97316';
