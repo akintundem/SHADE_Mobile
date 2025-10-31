@@ -8,6 +8,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Keyboard,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaWrapper } from '../SafeAreaWrapper';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -43,12 +45,29 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
       id: '1',
       text: "Hey there! 👋 I'm Shade, your AI event planning assistant. I can help you with venues, budgets, timelines, approvals, and so much more! What would you like to plan today?",
       isUser: false,
-      timestamp: '12:18 AM',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
+  const inputPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward swipes when keyboard is open
+        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onPanResponderMove: () => {},
+      onPanResponderRelease: (_, gestureState) => {
+        // If user swiped down significantly, dismiss keyboard
+        if (gestureState.dy > 50) {
+          Keyboard.dismiss();
+        }
+      },
+    })
+  ).current;
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -206,7 +225,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
       <View key={message.id} style={{
         marginBottom: spacing.lg,
         flexDirection: message.isUser ? 'row-reverse' : 'row',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
       }}>
         <View style={{
           width: 32,
@@ -216,6 +235,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
           alignItems: 'center',
           justifyContent: 'center',
           marginHorizontal: spacing.sm,
+          marginBottom: 2,
         }}>
           {message.isUser ? (
             <View style={{
@@ -246,8 +266,8 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
         <Text style={{
           color: colors.text.tertiary,
           fontSize: typography.size.xs,
-          marginTop: spacing.sm,
           marginHorizontal: spacing.sm,
+          marginBottom: 2,
         }}>
           {message.timestamp}
         </Text>
@@ -256,7 +276,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
   };
 
   return (
-    <SafeAreaWrapper edges={['top']}>
+    <SafeAreaWrapper edges={['top', 'bottom']}>
       <ErrorModal
         visible={!!error}
         error={error}
@@ -266,6 +286,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: colors.background }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Header */}
         <View style={{
@@ -273,7 +294,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.md,
+          paddingVertical: spacing.sm,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
           backgroundColor: colors.background,
@@ -282,32 +303,33 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
             <ArrowLeft size={24} color={colors.text.primary} />
           </TouchableOpacity>
           
-          <View style={{ alignItems: 'center', flex: 1 }}>
+          <View style={{ alignItems: 'center', flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
             <View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
               backgroundColor: colors.primary,
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: spacing.xs,
+              marginRight: spacing.sm,
             }}>
-              <Text style={{ fontSize: 24 }}>🎉</Text>
+              <Text style={{ fontSize: 18 }}>🎉</Text>
             </View>
-            <Text style={{
-              color: colors.text.primary,
-              fontSize: typography.size.lg,
-              fontWeight: typography.weight.bold,
-              marginBottom: 2,
-            }}>
-              Shade
-            </Text>
-            <Text style={{
-              color: colors.text.secondary,
-              fontSize: typography.size.sm,
-            }}>
-              Your AI Event Planner
-            </Text>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{
+                color: colors.text.primary,
+                fontSize: typography.size.base,
+                fontWeight: typography.weight.bold,
+              }}>
+                Shade
+              </Text>
+              <Text style={{
+                color: colors.text.secondary,
+                fontSize: typography.size.xs,
+              }}>
+                Your AI Event Planner
+              </Text>
+            </View>
           </View>
 
           <View style={{ width: 24 }} />
@@ -319,6 +341,9 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: spacing.lg }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          onScrollBeginDrag={() => Keyboard.dismiss()}
         >
           {messages.map(renderMessage)}
           {isLoading && (
@@ -356,25 +381,32 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
           )}
         </ScrollView>
 
-        {/* Input Area */}
+        {/* Input Area - Clean & Elegant */}
         <View style={{
-          backgroundColor: colors.surface,
-          paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.md,
+          backgroundColor: colors.background,
+          paddingHorizontal: spacing.md,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.md,
           borderTopWidth: 1,
           borderTopColor: colors.border,
         }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: colors.surface,
-            borderRadius: borderRadius.xl,
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.sm,
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}>
+          {/* Input Container */}
+          <View 
+            {...inputPanResponder.panHandlers}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: colors.surface,
+              borderRadius: borderRadius.lg,
+              borderWidth: 1,
+              borderColor: colors.border,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.xs,
+              minHeight: 48,
+            }}
+          >
             <TextInput
+              ref={inputRef}
               value={inputText}
               onChangeText={setInputText}
               placeholder="Tell me about your event..."
@@ -384,27 +416,44 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
                 color: colors.text.primary,
                 fontSize: typography.size.base,
                 paddingVertical: spacing.sm,
+                paddingHorizontal: spacing.xs,
+                minHeight: 44,
                 maxHeight: 100,
+                textAlignVertical: 'center',
               }}
               multiline
               editable={!isLoading}
+              returnKeyType="default"
+              blurOnSubmit={false}
             />
-            <TouchableOpacity style={{ marginLeft: spacing.sm }} disabled={isLoading}>
-              <Mic size={20} color={colors.text.secondary} />
+            <TouchableOpacity 
+              style={{ 
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginLeft: spacing.xs,
+              }}
+              activeOpacity={0.6}
+              disabled={isLoading}
+            >
+              <Mic size={18} color={colors.text.secondary} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSendMessage}
               disabled={!inputText.trim() || isLoading}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: colors.text.primary,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: (inputText.trim() && !isLoading) ? colors.text.primary : colors.border,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginLeft: spacing.sm,
-                opacity: (inputText.trim() && !isLoading) ? 1 : 0.5,
+                marginLeft: spacing.xs,
+                opacity: (inputText.trim() && !isLoading) ? 1 : 0.4,
               }}
+              activeOpacity={0.8}
             >
               <Send size={16} color={colors.surfaceElevated} />
             </TouchableOpacity>

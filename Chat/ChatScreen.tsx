@@ -10,8 +10,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Keyboard,
+  PanResponder,
 } from 'react-native';
-import Input from '../components/ui/Input';
 import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { useTheme } from '../theme/ThemeProvider';
 import { ArrowLeft, Moon, Mic, Send, Star, MapPin, Users, Heart, Mail } from 'lucide-react-native';
@@ -124,7 +125,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
       id: '1',
       text: "Hey there! 👋 I'm Shade, and I'm so excited to help you plan something special! Whether it's a dreamy wedding, an unforgettable birthday bash, or a professional corporate event, I've got you covered from start to finish.\n\nI can help with venues, guest lists, budgets, invitations, and so much more. What kind of celebration are we planning together? 🎉",
       isUser: false,
-      timestamp: '12:18 AM',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -133,6 +134,23 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
   const [selectedVenue, setSelectedVenue] = useState<VenueCard | null>(null);
   const [showVenueDetail, setShowVenueDetail] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const inputRef = useRef<TextInput>(null);
+  const inputPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward swipes when keyboard is open
+        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onPanResponderMove: () => {},
+      onPanResponderRelease: (_, gestureState) => {
+        // If user swiped down significantly, dismiss keyboard
+        if (gestureState.dy > 50) {
+          Keyboard.dismiss();
+        }
+      },
+    })
+  ).current;
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -355,7 +373,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
       <View key={message.id} style={{
         marginBottom: spacing.lg,
         flexDirection: message.isUser ? 'row-reverse' : 'row',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
       }}>
         <View style={{
           width: 32,
@@ -365,6 +383,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           alignItems: 'center',
           justifyContent: 'center',
           marginHorizontal: spacing.sm,
+          marginBottom: 2,
         }}>
           {message.isUser ? (
             <View style={{
@@ -395,8 +414,8 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
         <Text style={{
           color: colors.text.tertiary,
           fontSize: typography.size.xs,
-          marginTop: spacing.sm,
           marginHorizontal: spacing.sm,
+          marginBottom: 2,
         }}>
           {message.timestamp}
         </Text>
@@ -570,10 +589,11 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <SafeAreaWrapper edges={['top']}>
+    <SafeAreaWrapper edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: colors.background }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Header */}
         <View style={{
@@ -581,7 +601,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.md,
+          paddingVertical: spacing.sm,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
           backgroundColor: colors.background,
@@ -590,32 +610,33 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
             <ArrowLeft size={24} color={colors.text.primary} />
           </TouchableOpacity>
           
-          <View style={{ alignItems: 'center', flex: 1 }}>
+          <View style={{ alignItems: 'center', flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
             <View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: 32,
+              height: 32,
+              borderRadius: 16,
               backgroundColor: colors.primary,
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: spacing.xs,
+              marginRight: spacing.sm,
             }}>
-              <Text style={{ fontSize: 24 }}>🎉</Text>
+              <Text style={{ fontSize: 18 }}>🎉</Text>
             </View>
-            <Text style={{
-              color: colors.text.primary,
-              fontSize: typography.size.lg,
-              fontWeight: typography.weight.bold,
-              marginBottom: 2,
-            }}>
-              Shade
-            </Text>
-            <Text style={{
-              color: colors.text.secondary,
-              fontSize: typography.size.sm,
-            }}>
-              Your AI Event Planner
-            </Text>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{
+                color: colors.text.primary,
+                fontSize: typography.size.base,
+                fontWeight: typography.weight.bold,
+              }}>
+                Shade
+              </Text>
+              <Text style={{
+                color: colors.text.secondary,
+                fontSize: typography.size.xs,
+              }}>
+                Your AI Event Planner
+              </Text>
+            </View>
           </View>
 
           <View style={{ width: 24 }} />
@@ -627,99 +648,124 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: spacing.lg }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          onScrollBeginDrag={() => Keyboard.dismiss()}
         >
           {messages.map(renderMessage)}
         </ScrollView>
 
-        {/* Input Area */}
-        <View style={{
-          backgroundColor: colors.surface,
-          paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.md,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-        }}>
-          {/* Event Type Suggestions */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ marginBottom: spacing.md }}
-            contentContainerStyle={{ gap: spacing.sm }}
-          >
-            {eventTypes.map((type) => (
-              <TouchableOpacity
-                key={type.id}
-                onPress={() => setSelectedEventType(type.id)}
-                style={{
-                  backgroundColor: selectedEventType === type.id ? colors.surfaceElevated : colors.surface,
-                  borderRadius: borderRadius.full,
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  ...(selectedEventType === type.id ? shadows.sm : {}),
-                }}
-              >
-                <Text style={{ fontSize: 16, marginRight: spacing.xs }}>{type.icon}</Text>
-                <Text style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.sm,
-                  fontWeight: typography.weight.medium,
-                }}>
-                  {type.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
 
-          {/* Text Input */}
+          {/* Text Input Area - Clean & Elegant */}
           <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: colors.surface,
-            borderRadius: borderRadius.xl,
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.sm,
-            borderWidth: 1,
-            borderColor: colors.border,
+            backgroundColor: colors.background,
+            paddingHorizontal: spacing.md,
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.md,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
           }}>
-            <Input
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Tell me about your event..."
-              inputType="description"
-              enableNativeAutocomplete={true}
+            {/* Event Type Suggestions */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: spacing.sm }}
+              contentContainerStyle={{ paddingRight: spacing.md }}
+            >
+              {eventTypes.map((type, index) => (
+                <TouchableOpacity
+                  key={type.id}
+                  onPress={() => setSelectedEventType(type.id)}
+                  style={{
+                    backgroundColor: selectedEventType === type.id ? colors.surfaceElevated : colors.surface,
+                    borderRadius: borderRadius.full,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.xs,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginRight: index < eventTypes.length - 1 ? spacing.xs : 0,
+                  }}
+                >
+                  <Text style={{ fontSize: 14, marginRight: spacing.xs / 2 }}>{type.icon}</Text>
+                  <Text style={{
+                    color: colors.text.primary,
+                    fontSize: typography.size.xs,
+                    fontWeight: typography.weight.medium,
+                  }}>
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Input Container */}
+            <View 
+              {...inputPanResponder.panHandlers}
               style={{
-                flex: 1,
-                fontSize: typography.size.base,
-                paddingVertical: spacing.sm,
-                maxHeight: 100,
-                borderWidth: 0,
-                backgroundColor: 'transparent',
-              }}
-              multiline
-            />
-            <TouchableOpacity style={{ marginLeft: spacing.sm }}>
-              <Mic size={20} color={colors.text.secondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleSendMessage}
-              disabled={!inputText.trim()}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: colors.text.primary,
+                flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
-                marginLeft: spacing.sm,
-                opacity: inputText.trim() ? 1 : 0.5,
+                backgroundColor: colors.surface,
+                borderRadius: borderRadius.lg,
+                borderWidth: 1,
+                borderColor: colors.border,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.xs,
+                minHeight: 48,
               }}
             >
-              <Send size={16} color={colors.surfaceElevated} />
-            </TouchableOpacity>
+              <TextInput
+                ref={inputRef}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Tell me about your event..."
+                placeholderTextColor={colors.text.tertiary}
+                style={{
+                  flex: 1,
+                  color: colors.text.primary,
+                  fontSize: typography.size.base,
+                  paddingVertical: spacing.sm,
+                  paddingHorizontal: spacing.xs,
+                  minHeight: 44,
+                  maxHeight: 100,
+                  textAlignVertical: 'center',
+                }}
+                multiline
+                editable
+                returnKeyType="default"
+                blurOnSubmit={false}
+              />
+              <TouchableOpacity 
+                style={{ 
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: spacing.xs,
+                }}
+                activeOpacity={0.6}
+              >
+                <Mic size={18} color={colors.text.secondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSendMessage}
+                disabled={!inputText.trim()}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: inputText.trim() ? colors.text.primary : colors.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginLeft: spacing.xs,
+                  opacity: inputText.trim() ? 1 : 0.4,
+                }}
+                activeOpacity={0.8}
+              >
+                <Send size={16} color={colors.surfaceElevated} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
       </KeyboardAvoidingView>
 
       {/* Venue Detail Modal */}

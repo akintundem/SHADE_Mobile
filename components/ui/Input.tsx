@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, TextInputProps, Platform } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -13,7 +13,7 @@ type Props = TextInputProps & {
   enableNativeAutocomplete?: boolean;
 };
 
-export default function Input({
+const Input = forwardRef<TextInput, Props>(({
   label,
   error,
   leftIcon,
@@ -24,7 +24,7 @@ export default function Input({
   enableNativeAutocomplete = true,
   style,
   ...textInputProps
-}: Props) {
+}, ref) => {
   const { colors, typography, spacing, borderRadius, shadows } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
@@ -136,29 +136,36 @@ export default function Input({
       )}
       
       <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          height: 52,
-          borderRadius: borderRadius.lg,
-          borderWidth: 1.5,
-          borderColor: error ? colors.semantic.error : isFocused ? colors.brand.primary : colors.border,
-          backgroundColor: colors.surface,
-          paddingHorizontal: spacing.lg,
-          ...shadows.sm,
-        }}
+        style={[
+          {
+            flexDirection: 'row',
+            alignItems: (textInputProps.multiline || inputType === 'description') ? 'flex-start' : 'center',
+            minHeight: (textInputProps.multiline || inputType === 'description') ? 52 : 52,
+            borderRadius: borderRadius.lg,
+            borderWidth: 1.5,
+            borderColor: error ? colors.semantic.error : isFocused ? colors.brand.primary : colors.border,
+            backgroundColor: colors.surface,
+            paddingHorizontal: spacing.lg,
+            paddingVertical: (textInputProps.multiline || inputType === 'description') ? spacing.sm : spacing.md,
+            ...shadows.sm,
+          },
+          containerStyle?.inputContainer,
+        ]}
       >
-        {leftIcon && <View style={{ marginRight: spacing.sm }}>{leftIcon}</View>}
+        {leftIcon && <View style={{ marginRight: spacing.sm, marginTop: (textInputProps.multiline || inputType === 'description') ? spacing.xs : 0 }}>{leftIcon}</View>}
         
         <TextInput
-          {...textInputProps}
+          ref={ref}
           {...nativeConfig}
+          {...textInputProps}
           style={[
             {
               flex: 1,
               fontSize: typography.size.base,
               color: colors.text.primary,
               paddingVertical: 0,
+              minHeight: (textInputProps.multiline || inputType === 'description') ? 48 : 44,
+              textAlignVertical: (textInputProps.multiline || inputType === 'description') ? 'top' : 'center',
             },
             style,
           ]}
@@ -197,5 +204,8 @@ export default function Input({
       )}
     </View>
   );
-}
+});
 
+Input.displayName = 'Input';
+
+export default Input;
