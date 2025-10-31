@@ -86,7 +86,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
         backgroundColor: colors.background,
       }}
     >
-      <AlertTriangle size={64} color={colors.error} style={{ marginBottom: spacing.lg }} />
+      <AlertTriangle size={64} color={colors.semantic.error} style={{ marginBottom: spacing.lg }} />
       
       <Text
         style={{
@@ -102,7 +102,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
       
       <Text
         style={{
-          fontSize: typography.size.md,
+          fontSize: typography.size.base,
           color: colors.text.secondary,
           textAlign: 'center',
           lineHeight: 24,
@@ -125,7 +125,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
           <Text
             style={{
               fontSize: typography.size.sm,
-              color: colors.error,
+              color: colors.semantic.error,
               fontFamily: 'monospace',
             }}
           >

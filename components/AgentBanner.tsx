@@ -36,9 +36,6 @@ export const AgentBanner = ({ onOpenChat, onSelect }: { onOpenChat: () => void; 
         alignItems: 'center',
         gap: spacing.md,
         ...shadows.sm,
-        position: 'sticky',
-        top: 0,
-        zIndex: 5,
       }}>
         <Animated.View style={{ transform: [{ scale: pulse }] }}>
           <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: `${brand.primary}22`, alignItems: 'center', justifyContent: 'center' }}>
@@ -77,5 +74,4 @@ export const AgentBanner = ({ onOpenChat, onSelect }: { onOpenChat: () => void; 
     </TouchableOpacity>
   );
 };
-
 

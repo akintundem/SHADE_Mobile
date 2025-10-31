@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidin
 import { ArrowLeft, Mail, UserPlus, Plus, X, Upload } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useFormValidation } from '../utils/formValidation';
+import { invitationValidator } from '../utils/validationSchemas';
 import { InvitationDTO } from '../types';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import ErrorModal from '../components/common/ErrorModal';
@@ -393,4 +394,3 @@ export default function InviteAttendeesScreen({ eventId, onBack, onSendInvitatio
     </SafeAreaView>
   );
 }
-

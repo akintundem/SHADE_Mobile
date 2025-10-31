@@ -6,6 +6,11 @@ export interface ValidationRule {
   maxLength?: number;
   pattern?: RegExp;
   custom?: (value: any) => string | null;
+  email?: boolean;
+  phone?: boolean;
+  positiveNumber?: boolean;
+  futureDate?: boolean;
+  dateFormat?: boolean;
   message?: string;
 }
 
@@ -14,14 +19,16 @@ export interface ValidationResult {
   errors: Record<string, string>;
 }
 
+export type ValidatorConfig = Record<string, ValidationRule[]>;
+
 export class FormValidator {
   private rules: Record<string, ValidationRule[]> = {};
 
-  addRule(field: string, rule: ValidationRule) {
+  addRule(field: string, ...rules: ValidationRule[]) {
     if (!this.rules[field]) {
       this.rules[field] = [];
     }
-    this.rules[field].push(rule);
+    this.rules[field].push(...rules);
     return this;
   }
 
@@ -73,16 +80,51 @@ export class FormValidator {
       return rule.message || `Maximum length is ${rule.maxLength} characters`;
     }
 
-    // Pattern validation
-    if (rule.pattern && typeof value === 'string' && !rule.pattern.test(value)) {
-      return rule.message || 'Invalid format';
-    }
+  // Pattern validation
+  if (rule.pattern && typeof value === 'string' && !rule.pattern.test(value)) {
+    return rule.message || 'Invalid format';
+  }
 
-    // Custom validation
-    if (rule.custom) {
-      const customError = rule.custom(value);
-      if (customError) {
-        return customError;
+  if (rule.email && typeof value === 'string') {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(value)) {
+      return rule.message || 'Invalid email address';
+    }
+  }
+
+  if (rule.phone && typeof value === 'string') {
+    const phonePattern = /^[\+]?[1-9][\d]{0,15}$/;
+    if (!phonePattern.test(value)) {
+      return rule.message || 'Invalid phone number';
+    }
+  }
+
+  if (rule.positiveNumber) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) {
+      return rule.message || 'Value must be a positive number';
+    }
+  }
+
+  if (rule.futureDate && typeof value === 'string') {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime()) || date <= new Date()) {
+      return rule.message || 'Please select a future date';
+    }
+  }
+
+  if (rule.dateFormat && typeof value === 'string') {
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(value)) {
+      return rule.message || 'Please use YYYY-MM-DD format';
+    }
+  }
+
+  // Custom validation
+  if (rule.custom) {
+    const customError = rule.custom(value);
+    if (customError) {
+      return customError;
       }
     }
 
@@ -228,8 +270,23 @@ export const attendeeValidator = new FormValidator()
   .addRule('email', ...eventValidationRules.email)
   .addRule('phone', ...eventValidationRules.phone);
 
+const ensureValidator = (input: FormValidator | ValidatorConfig) => {
+  if (input instanceof FormValidator) {
+    return input;
+  }
+  const instance = new FormValidator();
+  Object.entries(input).forEach(([field, rules]) => {
+    instance.addRule(field, ...rules);
+  });
+  return instance;
+};
+
 // Real-time validation hook
-export const useFormValidation = (validator: FormValidator) => {
+export const useFormValidation = (validatorInput: FormValidator | ValidatorConfig) => {
+  const validator = React.useMemo(
+    () => ensureValidator(validatorInput),
+    [validatorInput]
+  );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
 

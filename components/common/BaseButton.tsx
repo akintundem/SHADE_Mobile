@@ -81,8 +81,8 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
         borderColor: 'transparent',
       },
       danger: {
-        backgroundColor: colors.error,
-        borderColor: colors.error,
+        backgroundColor: colors.semantic.error,
+        borderColor: colors.semantic.error,
       },
     };
 
@@ -118,7 +118,7 @@ export const BaseButton: React.FC<BaseButtonProps> = ({
         fontSize: typography.size.sm,
       },
       medium: {
-        fontSize: typography.size.md,
+        fontSize: typography.size.base,
       },
       large: {
         fontSize: typography.size.lg,

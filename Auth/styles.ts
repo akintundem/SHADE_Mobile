@@ -164,3 +164,4 @@ export const styles = StyleSheet.create({
   footerText: { color: '#6B7280', fontSize: 12, textAlign: 'center' },
   footerLink: { color: '#111827', fontWeight: '600' },
 });
+

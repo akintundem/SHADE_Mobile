@@ -90,14 +90,14 @@ export const BaseInput = forwardRef<TextInput, BaseInputProps>(({
         backgroundColor: colors.surface,
       },
       outlined: {
-        borderColor: hasError ? colors.error : colors.border,
+        borderColor: hasError ? colors.semantic.error : colors.border,
         backgroundColor: colors.surface,
       },
     };
 
     // Focus styles
     const focusStyle: ViewStyle = {
-      borderColor: hasError ? colors.error : colors.primary,
+      borderColor: hasError ? colors.semantic.error : colors.primary,
     };
 
     return {
@@ -112,7 +112,7 @@ export const BaseInput = forwardRef<TextInput, BaseInputProps>(({
     const baseStyle: TextStyle = {
       flex: 1,
       color: colors.text.primary,
-      fontSize: typography.size.md,
+      fontSize: typography.size.base,
     };
 
     // Size styles
@@ -121,7 +121,7 @@ export const BaseInput = forwardRef<TextInput, BaseInputProps>(({
         fontSize: typography.size.sm,
       },
       medium: {
-        fontSize: typography.size.md,
+        fontSize: typography.size.base,
       },
       large: {
         fontSize: typography.size.lg,
@@ -151,7 +151,7 @@ export const BaseInput = forwardRef<TextInput, BaseInputProps>(({
 
   const getErrorStyle = (): TextStyle => {
     const baseStyle: TextStyle = {
-      color: colors.error,
+      color: colors.semantic.error,
       fontSize: typography.size.xs,
       marginTop: spacing.xs,
     };
@@ -180,7 +180,7 @@ export const BaseInput = forwardRef<TextInput, BaseInputProps>(({
       {label && (
         <Text style={getLabelStyle()}>
           {label}
-          {required && <Text style={{ color: colors.error }}> *</Text>}
+          {required && <Text style={{ color: colors.semantic.error }}> *</Text>}
         </Text>
       )}
       

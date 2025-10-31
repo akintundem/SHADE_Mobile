@@ -81,7 +81,7 @@ export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorMo
           {/* Error Message */}
           <Text style={{
             color: colors.text.secondary,
-            fontSize: typography.size.md,
+            fontSize: typography.size.base,
             lineHeight: 24,
             marginBottom: spacing.md
           }}>

@@ -34,16 +34,20 @@ function App() {
               console.log('✅ Token is valid');
               // Token is valid, set user
               setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
-            } catch (error) {
-              console.log('❌ Token validation failed:', error.message);
-              if (error.status === 401 || error.message?.includes('Full authentication is required')) {
+            } catch (error: unknown) {
+              const err = error as { status?: number; message?: string } | Error;
+              const message = 'message' in err && typeof err.message === 'string' ? err.message : 'Unknown error';
+              const status = 'status' in err && typeof err.status === 'number' ? err.status : undefined;
+
+              console.log('❌ Token validation failed:', message);
+              if (status === 401 || message.includes('Full authentication is required')) {
                 console.log('🔐 401 Unauthorized - clearing invalid token');
                 const { clearToken, clearUser } = await import('./storage/authStorage');
                 await clearToken();
                 await clearUser();
                 console.log('✅ Invalid token cleared - please log in again');
               } else {
-                console.log('⚠️  Other error during token validation:', error.message);
+                console.log('⚠️  Other error during token validation:', message);
               }
             }
           } else {
@@ -55,7 +59,7 @@ function App() {
         } else {
           console.log('ℹ️  No stored token found');
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.log('❌ Error during token validation:', error);
         // Clear any partial state
         const { clearToken, clearUser } = await import('./storage/authStorage');

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidin
 import { ArrowLeft, DollarSign, Calendar, FileText, User, CreditCard } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useFormValidation } from '../utils/formValidation';
+import { expenseValidator } from '../utils/validationSchemas';
 import { ExpenseDTO } from '../types';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 import ErrorModal from '../components/common/ErrorModal';
@@ -258,4 +259,3 @@ export default function AddExpenseScreen({ budgetId, onBack, onSave }: Props) {
     </SafeAreaView>
   );
 }
-

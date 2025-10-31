@@ -1,5 +1,5 @@
 import { http } from './httpClient';
-import { ApiResponse, Attendee, EmergencyContact } from '../types';
+import { ApiResponse, Attendee, AttendeeEmergencyContact } from '../types';
 
 export type CreateAttendeeRequest = {
   eventId: string;
@@ -9,7 +9,7 @@ export type CreateAttendeeRequest = {
   email: string;
   phone?: string;
   dietaryRestrictions?: string[];
-  emergencyContact?: EmergencyContact;
+  emergencyContact?: AttendeeEmergencyContact;
   ticketType?: string;
   notes?: string;
 };
@@ -20,7 +20,7 @@ export type UpdateAttendeeRequest = {
   email?: string;
   phone?: string;
   dietaryRestrictions?: string[];
-  emergencyContact?: EmergencyContact;
+  emergencyContact?: AttendeeEmergencyContact;
   ticketType?: string;
   notes?: string;
   status?: 'registered' | 'confirmed' | 'cancelled' | 'attended';

@@ -1,65 +1,37 @@
 import axios from 'axios';
-import { NativeModules } from 'react-native';
+import { Platform } from 'react-native';
 import { getToken, setToken } from '../storage/authStorage';
+import yamlConfig from '../dev-config.yml';
+import jsonConfig from '../dev-config.json';
 
-// Choose a sensible default for dev. Override via `API_BASE_URL` if you have env wiring.
-// - iOS simulator can reach localhost directly
-// - Android emulator uses 10.0.2.2 to reach host machine
-// - Physical devices need the actual IP address of the development machine
-// - Use __DEV__ to detect development mode and choose appropriate host
-const getPackagerHost = () => {
-  const scriptURL = NativeModules.SourceCode?.scriptURL;
-  if (!scriptURL) return null;
-  try {
-    const { hostname } = new URL(scriptURL);
-    return hostname || null;
-  } catch (error) {
-    console.log('⚠️  Unable to parse Metro host from scriptURL');
-    return null;
-  }
+type DevConfig = {
+  apiBaseUrl?: string;
 };
 
-const getHost = () => {
-  if (__DEV__) {
-    const detectedHost = getPackagerHost();
-    if (detectedHost && detectedHost !== 'localhost' && detectedHost !== '127.0.0.1') {
-      console.log('🌐 Using Metro host for API:', detectedHost);
-      return detectedHost;
-    }
-    // Fall back to localhost (iOS simulator) when no packager host detected
-    return 'localhost';
-  }
-  // In production, use your production API URL
-  return 'your-production-api.com';
+const sanitizeBaseUrl = (value?: string) => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 };
 
-const HOST = getHost();
-const DEFAULT_BASE = `http://${HOST}:8080`;
+const configs: DevConfig[] = [jsonConfig, yamlConfig];
+const resolvedConfig = configs.find((cfg) => sanitizeBaseUrl(cfg?.apiBaseUrl));
 
-const sanitizeBaseUrl = (url: string | null | undefined) => {
-  if (!url || url.trim().length === 0) {
-    return DEFAULT_BASE;
-  }
-  const trimmed = url.trim();
-  return trimmed.endsWith('/') ? trimmed.slice(0, -1) : trimmed;
-};
+const FALLBACK_BASE_URL =
+  Platform.select({
+    ios: 'http://localhost:8080',
+    android: 'http://10.0.2.2:8080',
+    default: 'http://localhost:8080',
+  }) ?? 'http://localhost:8080';
 
-const resolveConfiguredBase = (): string | null => {
-  if (typeof globalThis !== 'undefined') {
-    const fromGlobal = (globalThis as Record<string, unknown>).API_BASE_URL;
-    if (typeof fromGlobal === 'string') {
-      return fromGlobal;
-    }
-    const maybeProcess = (globalThis as { process?: { env?: Record<string, unknown> } }).process;
-    const fromEnv = maybeProcess?.env?.API_BASE_URL;
-    if (typeof fromEnv === 'string') {
-      return fromEnv;
-    }
-  }
-  return null;
-};
+if (__DEV__ && !sanitizeBaseUrl(resolvedConfig?.apiBaseUrl)) {
+  console.warn(
+    '⚠️  dev-config.json / dev-config.yml do not define apiBaseUrl. Falling back to platform default:',
+    FALLBACK_BASE_URL
+  );
+}
 
-const BASE_URL = sanitizeBaseUrl(resolveConfiguredBase());
+const BASE_URL = sanitizeBaseUrl(resolvedConfig?.apiBaseUrl) || FALLBACK_BASE_URL;
 
 // Base HTTP client for unauthenticated requests (registration, login, health checks)
 export const httpUnauthenticated = axios.create({

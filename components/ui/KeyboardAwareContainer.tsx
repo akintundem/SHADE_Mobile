@@ -1,19 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView, 
-  View, 
-  Keyboard,
-  Animated,
-  Dimensions
-} from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
+import React from 'react';
+import { Platform, StyleProp, ViewStyle } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 type KeyboardAwareContainerProps = {
   children: React.ReactNode;
-  style?: any;
-  contentContainerStyle?: any;
+  style?: StyleProp<ViewStyle>;
+  contentContainerStyle?: StyleProp<ViewStyle>;
   keyboardVerticalOffset?: number;
   enableOnAndroid?: boolean;
   enableAutomaticScroll?: boolean;
@@ -37,96 +29,35 @@ export default function KeyboardAwareContainer({
   onKeyboardShow,
   onKeyboardHide,
 }: KeyboardAwareContainerProps) {
-  const { colors } = useTheme();
-  const scrollViewRef = useRef<ScrollView>(null);
-  const keyboardHeight = useRef(new Animated.Value(0)).current;
-  const { height: screenHeight } = Dimensions.get('window');
+  const handleKeyboardShow = () => {
+    onKeyboardShow?.();
+  };
 
-  useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (event) => {
-        const keyboardHeightValue = event.endCoordinates.height;
-        Animated.timing(keyboardHeight, {
-          toValue: keyboardHeightValue,
-          duration: Platform.OS === 'ios' ? 250 : 0,
-          useNativeDriver: false,
-        }).start();
-        
-        onKeyboardShow?.();
-        
-        if (enableAutomaticScroll && scrollViewRef.current) {
-          // Scroll to bottom when keyboard appears
-          setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-          }, 100);
-        }
-      }
-    );
+  const handleKeyboardHide = () => {
+    onKeyboardHide?.();
+  };
 
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        Animated.timing(keyboardHeight, {
-          toValue: 0,
-          duration: Platform.OS === 'ios' ? 250 : 0,
-          useNativeDriver: false,
-        }).start();
-        
-        onKeyboardHide?.();
-      }
-    );
-
-    return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
-    };
-  }, [keyboardHeight, onKeyboardShow, onKeyboardHide, enableAutomaticScroll]);
-
-  if (Platform.OS === 'ios') {
-    return (
-      <KeyboardAvoidingView
-        style={[{ flex: 1 }, style]}
-        behavior="padding"
-        keyboardVerticalOffset={keyboardVerticalOffset}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={[
-            { flexGrow: 1, paddingBottom: extraScrollHeight },
-            contentContainerStyle,
-          ]}
-          showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-          keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-          automaticallyAdjustKeyboardInsets={true}
-        >
-          {children}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    );
-  }
-
-  // Android implementation
   return (
-    <View style={[{ flex: 1 }, style]}>
-      <Animated.View
-        style={{
-          flex: 1,
-          paddingBottom: keyboardHeight,
-        }}
-      >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={[
-            { flexGrow: 1, paddingBottom: extraScrollHeight },
-            contentContainerStyle,
-          ]}
-          showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-          keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-        >
-          {children}
-        </ScrollView>
-      </Animated.View>
-    </View>
+    <KeyboardAwareScrollView
+      style={[{ flex: 1 }, style]}
+      contentContainerStyle={[
+        { flexGrow: 1, paddingBottom: extraScrollHeight },
+        contentContainerStyle,
+      ]}
+      keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+      showsVerticalScrollIndicator={showsVerticalScrollIndicator}
+      enableOnAndroid={enableOnAndroid}
+      enableAutomaticScroll={enableAutomaticScroll}
+      extraScrollHeight={extraScrollHeight}
+      keyboardVerticalOffset={keyboardVerticalOffset}
+      enableResetScrollToCoords={false}
+      keyboardOpeningTime={0}
+      onKeyboardWillShow={Platform.OS === 'ios' ? handleKeyboardShow : undefined}
+      onKeyboardWillHide={Platform.OS === 'ios' ? handleKeyboardHide : undefined}
+      onKeyboardDidShow={Platform.OS === 'android' ? handleKeyboardShow : undefined}
+      onKeyboardDidHide={Platform.OS === 'android' ? handleKeyboardHide : undefined}
+    >
+      {children}
+    </KeyboardAwareScrollView>
   );
 }

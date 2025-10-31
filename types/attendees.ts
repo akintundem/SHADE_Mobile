@@ -2,6 +2,12 @@
  * Attendee related types
  */
 
+export type AttendeeEmergencyContact = {
+  name: string;
+  phone: string;
+  relationship: string;
+};
+
 export type Attendee = {
   attendeeId: string;
   eventId: string;
@@ -13,7 +19,7 @@ export type Attendee = {
   registrationDate: string;
   status: 'registered' | 'confirmed' | 'cancelled' | 'attended';
   dietaryRestrictions?: string[];
-  emergencyContact?: EmergencyContact;
+  emergencyContact?: AttendeeEmergencyContact;
   ticketType?: string;
   notes?: string;
 };
@@ -34,8 +40,15 @@ export type AttendeeDTO = {
   notes?: string;
 };
 
-export type EmergencyContact = {
-  name: string;
-  phone: string;
-  relationship: string;
+export type InvitationDTO = {
+  id: string;
+  eventId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: 'PENDING' | 'SENT' | 'FAILED';
+  sentAt?: string;
+  message?: string;
+  reminderSent: boolean;
+  reminderSentAt: string | null;
 };
