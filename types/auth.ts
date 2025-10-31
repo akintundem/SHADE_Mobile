@@ -19,6 +19,20 @@ export type ApiResponse<T> = {
   data: T | null;
 };
 
+export type ApiErrorResponse = {
+  timestamp: string;
+  status: number;
+  error: string;
+  message: string;
+  path: string;
+  validationErrors?: Record<string, string>;
+};
+
+export type ApiMessageResponse = {
+  success: boolean;
+  message: string;
+};
+
 // Auth Types
 export type AuthTokens = {
   accessToken: string;
@@ -52,13 +66,13 @@ export type UserResponse = {
   id: string;
   email: string;
   name: string;
-  phoneNumber?: string;
-  dateOfBirth?: string;
+  phoneNumber: string | null;
+  dateOfBirth: string | null;
   userType: UserType;
   emailVerified: boolean;
   marketingOptIn: boolean;
-  profileImageUrl?: string;
-  preferences?: string;
+  profileImageUrl: string | null;
+  preferences: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -82,6 +96,25 @@ export type ValidateTokenRequest = {
 };
 
 export type ValidateTokenResponse = {
-  isValid: boolean;
-  user?: UserResponse;
+  valid: boolean;
+  error: string | null;
+  user: UserResponse | null;
+};
+
+export type ForgotPasswordRequest = {
+  email: string;
+};
+
+export type ResetPasswordRequest = {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+  deviceId?: string;
+  clientId?: string;
 };

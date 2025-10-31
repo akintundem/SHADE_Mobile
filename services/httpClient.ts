@@ -86,24 +86,59 @@ http.interceptors.request.use(async config => {
 
 // Unified response/error handling for both clients
 const responseErrorHandler = async (error: any) => {
+  const status = error?.response?.status;
+  const responseData = error?.response?.data;
+  const validationErrors = responseData?.validationErrors;
+
+  let message =
+    responseData?.message ||
+    responseData?.error ||
+    error?.message ||
+    'An unexpected error occurred';
+
+  if (validationErrors && typeof validationErrors === 'object') {
+    const [firstKey, firstValue] = Object.entries(validationErrors)[0] ?? [];
+    if (Array.isArray(firstValue) && firstValue.length > 0) {
+      message = String(firstValue[0]);
+    } else if (typeof firstValue === 'string' && firstValue.length > 0) {
+      message = firstValue;
+    } else if (firstKey) {
+      const value = validationErrors[firstKey as keyof typeof validationErrors];
+      message = `${firstKey}: ${Array.isArray(value) ? value.join(', ') : String(value)}`;
+    }
+  }
+
+  const isTimeout =
+    error?.code === 'ECONNABORTED' ||
+    /timeout/i.test(error?.message ?? '') ||
+    responseData?.error === 'Request Timeout';
+
+  if (isTimeout) {
+    message = 'Request timed out. Please try again.';
+  } else if (!error?.response) {
+    message = 'Unable to reach the server. Please check your network connection.';
+  }
+
   console.log('❌ HTTP Error:', {
-    status: error?.response?.status,
-    message: error?.response?.data?.message || error?.message,
+    status,
+    message,
     url: error?.config?.url,
     method: error?.config?.method
   });
-  
+
   // Don't automatically clear token on 401 - let the calling code handle it
   // This prevents race conditions during token validation
-  
-  // Enhanced error handling
-  const enhancedError = {
-    ...error,
-    message: error?.response?.data?.message || error?.message || 'An unexpected error occurred',
-    status: error?.response?.status,
-    data: error?.response?.data,
-  };
-  
+  const enhancedError: any =
+    error && typeof error === 'object' ? error : new Error(message);
+
+  enhancedError.message = message;
+  enhancedError.status = status;
+  enhancedError.data = responseData;
+  enhancedError.validationErrors = validationErrors;
+  if (!enhancedError.originalError) {
+    enhancedError.originalError = error;
+  }
+
   return Promise.reject(enhancedError);
 };
 

@@ -137,10 +137,10 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
               email, 
               requiresProfile: false, 
               user: {
-                userId: authResponse.user.id,
+                userId: authResponse.user.id ?? authResponse.user.email,
                 email: authResponse.user.email,
                 username: authResponse.user.name,
-                profilePictureUrl: authResponse.user.profileImageUrl,
+                profilePictureUrl: authResponse.user.profileImageUrl ?? undefined,
                 profileComplete: true
               }
             });

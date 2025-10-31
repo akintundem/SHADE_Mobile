@@ -1,14 +1,14 @@
 import { http, httpUnauthenticated, persistTokenFrom } from './httpClient';
-import { 
-  ApiResponse, 
-  AuthTokens, 
-  LoginRequest, 
-  RegisterRequest, 
-  AuthResponse, 
-  UserResponse, 
-  RefreshTokenRequest, 
-  ValidateTokenRequest, 
-  ValidateTokenResponse 
+import {
+  ApiMessageResponse,
+  ApiResponse,
+  AuthResponse,
+  LoginRequest,
+  RefreshTokenRequest,
+  RegisterRequest,
+  UserResponse,
+  ValidateTokenRequest,
+  ValidateTokenResponse
 } from '../types';
 
 // Legacy types for backward compatibility
@@ -54,13 +54,13 @@ export const authService = {
       // Cache user data including user ID for X-User-Id header
       const { setUser } = await import('../storage/authStorage');
       await setUser({
-        userId: res.data.user.id,
+        userId: res.data.user.id ?? res.data.user.email,
         email: res.data.user.email,
         username: res.data.user.name,
-        profilePictureUrl: res.data.user.profileImageUrl,
+        profilePictureUrl: res.data.user.profileImageUrl ?? undefined,
         profileComplete: true
       });
-      console.log('🔐 User data cached:', res.data.user.id);
+      console.log('🔐 User data cached:', res.data.user.id ?? res.data.user.email);
       
       return res.data;
     }
@@ -77,13 +77,13 @@ export const authService = {
       // Cache user data including user ID for X-User-Id header
       const { setUser } = await import('../storage/authStorage');
       await setUser({
-        userId: res.data.user.id,
+        userId: res.data.user.id ?? res.data.user.email,
         email: res.data.user.email,
         username: res.data.user.name,
-        profilePictureUrl: res.data.user.profileImageUrl,
+        profilePictureUrl: res.data.user.profileImageUrl ?? undefined,
         profileComplete: true
       });
-      console.log('🔐 User data cached:', res.data.user.id);
+      console.log('🔐 User data cached:', res.data.user.id ?? res.data.user.email);
       
       return res.data;
     }
@@ -107,40 +107,49 @@ export const authService = {
   },
 
   // Validate Token
-  async validateToken(request: ValidateTokenRequest) {
-    const res = await httpUnauthenticated.post<ValidateTokenResponse>('/api/v1/auth/validate-token', request);
+  async validateToken({ token }: ValidateTokenRequest) {
+    if (!token) {
+      throw new Error('Token is required');
+    }
+    const res = await httpUnauthenticated.post<ValidateTokenResponse>(
+      '/api/v1/auth/validate-token',
+      undefined,
+      { params: { token } }
+    );
     return res.data;
   },
 
   // Logout
   async logout() {
     try {
-      await http.post<{ message: string }>('/api/v1/auth/logout');
+      const res = await http.post<ApiMessageResponse>('/api/v1/auth/logout');
+      return res.data;
     } finally {
       // Regardless of server response, client removes token (stateless JWT)
-      const { clearToken } = await import('../storage/authStorage');
-      await clearToken();
+      const { clearToken, clearUser } = await import('../storage/authStorage');
+      await Promise.all([clearToken(), clearUser()]);
     }
   },
 
   // Forgot Password
   async forgotPassword(email: string) {
-    const res = await httpUnauthenticated.post<{ message: string }>('/api/v1/auth/forgot-password', { email });
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/forgot-password', { email });
     return res.data;
   },
 
   // Reset Password
-  async resetPassword(token: string, newPassword: string) {
-    const res = await httpUnauthenticated.post<{ message: string }>('/api/v1/auth/reset-password', {
+  async resetPassword(token: string, newPassword: string, confirmPassword?: string) {
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/reset-password', {
       token,
-      newPassword
+      newPassword,
+      confirmPassword: confirmPassword ?? newPassword
     });
     return res.data;
   },
 
   // Change Password
   async changePassword(currentPassword: string, newPassword: string, confirmPassword: string, deviceId?: string, clientId?: string) {
-    const res = await http.post<{ message: string }>('/api/v1/auth/change-password', {
+    const res = await http.post<ApiMessageResponse>('/api/v1/auth/change-password', {
       currentPassword,
       newPassword,
       confirmPassword,
@@ -152,13 +161,13 @@ export const authService = {
 
   // Resend Email Verification
   async resendEmailVerification(email: string) {
-    const res = await httpUnauthenticated.post<{ message: string }>('/api/v1/auth/verify-email', { email });
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/verify-email', { email });
     return res.data;
   },
 
   // Verify Email
   async verifyEmail(token: string) {
-    const res = await httpUnauthenticated.get<{ message: string }>(`/api/v1/auth/verify-email/${token}`);
+    const res = await httpUnauthenticated.get<ApiMessageResponse>(`/api/v1/auth/verify-email/${token}`);
     return res.data;
   },
 
@@ -203,4 +212,3 @@ export const authService = {
   },
 
 };
-
