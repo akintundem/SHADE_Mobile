@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { MapPinned, Filter, Umbrella } from 'lucide-react-native';
+import { Filter } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useI18n } from '../../i18n/I18nProvider';
+import BrandLogo from '../../components/brand/BrandLogo';
 
 type Props = { onPressFilters?: () => void };
 
 export const MapSectionHeader = ({ onPressFilters }: Props) => {
-  const { colors, brand, typography, spacing } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const { t } = useI18n();
   
   return (
@@ -22,16 +23,7 @@ export const MapSectionHeader = ({ onPressFilters }: Props) => {
         justifyContent: 'space-between',
       }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <View style={{
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: brand.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Umbrella size={18} color="#FFFFFF" strokeWidth={2.5} />
-          </View>
+          <BrandLogo size={36} />
           <View>
             <Text style={{ 
               color: colors.text.primary,
@@ -86,4 +78,3 @@ export const MapSectionHeader = ({ onPressFilters }: Props) => {
     </View>
   );
 };
-

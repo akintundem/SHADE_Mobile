@@ -1,9 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 import { Image, Text, View, TouchableOpacity, Animated } from 'react-native';
-import { CalendarClock, MapPin, MessageCircle, Heart, MessageSquareText, Sparkles } from 'lucide-react-native';
+import { CalendarClock, MapPin, MessageCircle, Heart, MessageSquareText, Sparkles, Globe } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useNavigation } from '@react-navigation/native';
+import { EventStatus } from '../../types';
+import { dateUtils, stringUtils } from '../../utils/helpers';
+import { DATE_FORMATS } from '../../utils/constants';
 
 export type EventItem = {
   id: string;
@@ -20,6 +23,10 @@ export type EventItem = {
   hashtags?: string[];
   cosigners?: string[];
   cosignedCount?: number;
+  status?: EventStatus;
+  isPublic?: boolean | null;
+  isLive?: boolean;
+  isPast?: boolean;
 };
 
 type Props = { item: EventItem };
@@ -28,7 +35,13 @@ export const EventCard = ({ item }: Props) => {
   const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
   const { t } = useI18n();
   const navigation = useNavigation<any>();
-  const isLive = !!item.startAt && !item.endAt; // demo condition
+  const statusLabel = item.status ? stringUtils.capitalize(item.status.replace(/_/g, ' ').toLowerCase()) : item.tag;
+  const isLive =
+    item.isLive ??
+    (item.status ? [EventStatus.IN_PROGRESS, EventStatus.REGISTRATION_OPEN, EventStatus.PUBLISHED].includes(item.status) : false);
+  const startLabel = item.startAt
+    ? dateUtils.formatDate(item.startAt, DATE_FORMATS.DISPLAY_DATETIME)
+    : undefined;
 
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
@@ -46,7 +59,15 @@ export const EventCard = ({ item }: Props) => {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={() => navigation.navigate('EventProfile', { title: item.title, imageUrl: item.imageUrl, bio: item.description })}
+      onPress={() =>
+        navigation.navigate('EventProfile', {
+          eventId: item.id,
+          title: item.title,
+          imageUrl: item.imageUrl,
+          description: item.description,
+          status: item.status,
+        })
+      }
       style={{ 
         backgroundColor: colors.card,
         borderRadius: borderRadius.xl,
@@ -60,7 +81,7 @@ export const EventCard = ({ item }: Props) => {
         <View>
           <Image 
             source={{ uri: item.imageUrl }} 
-            style={{ height: 240, width: '100%' }}
+            style={{ height: 200, width: '100%' }}
             resizeMode="cover"
           />
           {/* Live indicator top-left */}
@@ -73,44 +94,45 @@ export const EventCard = ({ item }: Props) => {
             </View>
           ) : null}
 
-          {item.tag ? (
+          {statusLabel ? (
             <View style={{ position: 'absolute', top: spacing.md, right: spacing.md, backgroundColor: brand.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: borderRadius.md, flexDirection: 'row', alignItems: 'center', gap: spacing.xs, ...shadows.lg }}>
               <Sparkles size={14} color="#FFFFFF" />
               <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, fontWeight: typography.weight.semibold }}>
-                {item.tag}
+                {statusLabel}
               </Text>
             </View>
           ) : null}
         </View>
       ) : null}
 
-      <View style={{ padding: spacing.lg }}>
-        <Text style={{ fontSize: typography.size.xl, fontWeight: typography.weight.bold, color: colors.text.primary }}>
+      <View style={{ padding: spacing['2xl'], gap: spacing.md }}>
+        <Text style={{ fontSize: typography.size.lg, fontWeight: typography.weight.semibold, color: colors.text.primary }}>
           {item.title}
         </Text>
         {item.description ? (
-          <Text style={{ marginTop: spacing.sm, color: colors.text.secondary, fontSize: typography.size.sm, lineHeight: 20 }}>
+          <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, lineHeight: 20 }}>
             {item.description}
           </Text>
         ) : null}
-        {item.startAt ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, gap: spacing.sm }}>
+        {startLabel ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             <CalendarClock size={18} color={brand.primary} strokeWidth={2} />
             <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-              {item.startAt}
+              {startLabel}
             </Text>
           </View>
         ) : null}
-        {(item.venue || item.city) ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm }}>
-            <MapPin size={18} color={brand.primary} strokeWidth={2} />
+        {(item.venue || item.city || item.isPublic !== undefined) ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            {item.venue || item.city ? <MapPin size={18} color={brand.primary} strokeWidth={2} /> : <Globe size={18} color={brand.primary} strokeWidth={2} />}
             <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, flex: 1 }}>
               {item.venue}
               {item.city ? `  •  ${item.city}${item.state ? `, ${item.state}` : ''}` : ''}
+              {!item.venue && !item.city && item.isPublic !== undefined ? (item.isPublic ? 'Public event' : 'Private event') : ''}
             </Text>
           </View>
         ) : null}
-        <View style={{ height: 1, backgroundColor: colors.divider, marginVertical: spacing.lg }} />
+        <View style={{ height: 1, backgroundColor: colors.divider }} />
         {item.stats ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xl }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>

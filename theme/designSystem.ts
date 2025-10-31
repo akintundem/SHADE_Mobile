@@ -120,16 +120,16 @@ export const Typography = {
 
   // Font Sizes
   size: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
-    '2xl': 24,
-    '3xl': 28,
-    '4xl': 32,
-    '5xl': 40,
-    '6xl': 48,
+    xs: 11,
+    sm: 13,
+    base: 15,
+    lg: 17,
+    xl: 19,
+    '2xl': 22,
+    '3xl': 26,
+    '4xl': 30,
+    '5xl': 36,
+    '6xl': 44,
   },
 
   // Line Heights
@@ -242,4 +242,3 @@ export const getThemedColors = (isDark: boolean) => {
     primaryLight: Colors.brand.primaryLight,
   };
 };
-

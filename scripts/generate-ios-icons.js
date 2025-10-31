@@ -1,12 +1,13 @@
 /*
-  Usage: node scripts/generate-ios-icons.js assets/icon/shade_umbrella.svg
+  Usage: node scripts/generate-ios-icons.js [path-to-icon]
   Requires: npm i -D sharp
 */
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const input = process.argv[2] || 'icon.jpeg';
+const input =
+  process.argv[2] || path.resolve(__dirname, '../assets/icon/shade_app_icon.png');
 const outDir = path.resolve(__dirname, '../ios/capsule/Images.xcassets/AppIcon.appiconset');
 
 const targets = [
@@ -51,5 +52,3 @@ const targets = [
     process.exit(1);
   }
 })();
-
-

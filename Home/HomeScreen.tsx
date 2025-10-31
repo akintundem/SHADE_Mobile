@@ -7,7 +7,7 @@ import { TabBar } from './components/TabBar';
 import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
 import { EventListSkeleton, EmptyState } from '../components/LoadingStates';
 import { useTheme } from '../theme/ThemeProvider';
-import { User, Event } from '../types';
+import { User, Event, EventStatus } from '../types';
 import { eventService } from '../services/eventService';
 import { ErrorHandler } from '../utils/errorHandler';
 import { Flame, Clock, Calendar } from 'lucide-react-native';
@@ -54,19 +54,31 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
   }, [fetchEvents]);
 
   // Convert API events to EventItem format for compatibility
-  const convertToEventItem = (event: Event): EventItem => ({
-    id: event.eventId,
-    title: event.title,
-    description: event.description,
-    venue: event.location?.address || '',
-    startAt: event.startDate,
-    endAt: event.endDate,
-    imageUrl: event.imageUrl,
-  });
+  const convertToEventItem = (event: Event): EventItem => {
+    const now = new Date();
+    const endDate = event.endDateTime ? new Date(event.endDateTime) : null;
+    const isPastByDate = endDate ? endDate < now : false;
+    const isPastByStatus = [EventStatus.COMPLETED, EventStatus.CANCELLED].includes(event.eventStatus);
+    const isPast = isPastByDate || isPastByStatus;
+
+    return {
+      id: event.id,
+      title: event.name,
+      description: event.description ?? undefined,
+      venue: event.targetAudience ?? (event.isPublic ? 'Open to everyone' : 'Invite only'),
+      startAt: event.startDateTime ?? undefined,
+      endAt: event.endDateTime ?? undefined,
+      imageUrl: event.coverImageUrl ?? undefined,
+      status: event.eventStatus,
+      isPublic: event.isPublic,
+      isPast,
+      isLive: !isPast,
+    };
+  };
 
   const dataset = [...events, ...fetchedEvents.map(convertToEventItem)];
-  const liveEvents = dataset.filter(e => !!e.startAt && !e.endAt);
-  const pastEvents = dataset.filter(e => !!e.endAt);
+  const liveEvents = dataset.filter(e => !e.isPast);
+  const pastEvents = dataset.filter(e => e.isPast);
 
   // Pulse animation for the Live indicator
   const pulse = useRef(new Animated.Value(1)).current;
@@ -162,7 +174,7 @@ export default function HomeScreen({ user, events = [], onOpenMenu, onOpenChat, 
         </View>
 
         {/* Feed */}
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.lg }}>
+        <View style={{ paddingHorizontal: spacing.xl, marginTop: spacing['2xl'], gap: spacing['2xl'] }}>
           {isLoading ? (
             <EventListSkeleton count={3} />
           ) : (seg === 'live' ? liveEvents : pastEvents).length === 0 ? (

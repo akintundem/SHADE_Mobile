@@ -1,14 +1,16 @@
 import React from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { Umbrella } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useI18n } from '../i18n/I18nProvider';
+import BrandLogo from './brand/BrandLogo';
 
 type Props = { message?: string };
 
 export default function LoadingState({ message }: Props) {
-  const { colors, brand, typography, spacing } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const { t } = useI18n();
+  const ICON_SIZE = 56;
+  const ICON_RADIUS = Math.round(ICON_SIZE * 0.225);
   
   return (
     <View
@@ -19,19 +21,13 @@ export default function LoadingState({ message }: Props) {
         backgroundColor: colors.background,
       }}
     >
-      <View style={{
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: brand.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: spacing.xl,
-      }}>
-        <Umbrella color="#FFFFFF" size={40} strokeWidth={2} />
-      </View>
+      <BrandLogo
+        size={ICON_SIZE}
+        borderRadius={ICON_RADIUS}
+        style={{ marginBottom: spacing.xl }}
+      />
       
-      <ActivityIndicator size="large" color={brand.primary} />
+      <ActivityIndicator size="large" color={colors.text.primary} />
       
       {message ? (
         <Text style={{ 

@@ -34,6 +34,34 @@ export enum EventStatus {
   POSTPONED = 'POSTPONED'
 }
 
+export enum EventUserType {
+  ORGANIZER = 'ORGANIZER',
+  COORDINATOR = 'COORDINATOR',
+  ATTENDEE = 'ATTENDEE',
+  VOLUNTEER = 'VOLUNTEER',
+  VENDOR = 'VENDOR',
+  SPEAKER = 'SPEAKER',
+  SPONSOR = 'SPONSOR',
+  MEDIA = 'MEDIA',
+  STAFF = 'STAFF',
+  COLLABORATOR = 'COLLABORATOR',
+  ADMIN = 'ADMIN'
+}
+
+export enum EventNotificationChannel {
+  EMAIL = 'EMAIL',
+  SMS = 'SMS',
+  PUSH = 'PUSH',
+  IN_APP = 'IN_APP'
+}
+
+export enum EventNotificationPriority {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
+
 export enum UserType {
   INDIVIDUAL = 'INDIVIDUAL',
   ORGANIZATION = 'ORGANIZATION',

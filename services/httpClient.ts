@@ -64,9 +64,15 @@ http.interceptors.request.use(async config => {
     console.log('🔐 Adding Authorization header to request:', config.url);
     console.log('🔐 Token being used:', token.substring(0, 30) + '...');
     
-    // Add X-User-Id header only for POST/PUT events and chat endpoints that require it
-    if ((config.url?.includes('/events') && (config.method === 'post' || config.method === 'put')) || 
-        config.url?.includes('/assistant/chat')) {
+    const url = config.url ?? '';
+    const method = (config.method ?? 'get').toLowerCase();
+    const needsUserHeader =
+      url.includes('/assistant/chat') ||
+      url.includes('/api/v1/events/my-events') ||
+      url.includes('/api/v1/events/user/') ||
+      (url.includes('/api/v1/events') && (method === 'post' || method === 'put' || method === 'patch'));
+
+    if (needsUserHeader) {
       try {
         const { getUser } = await import('../storage/authStorage');
         const cachedUser = await getUser<{ userId?: string }>();

@@ -1,12 +1,12 @@
 /*
-  Usage: node scripts/generate-android-icons.js icon.jpeg
+  Usage: node scripts/generate-android-icons.js [path-to-icon]
   Requires: npm i -D sharp
 */
-const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
-const input = process.argv[2] || 'icon.jpeg';
+const input =
+  process.argv[2] || path.resolve(__dirname, '../assets/icon/shade_app_icon.png');
 const resDir = path.resolve(__dirname, '../android/app/src/main/res');
 const targets = [
   { dir: 'mipmap-mdpi', size: 108 },
@@ -31,5 +31,3 @@ const targets = [
     process.exit(1);
   }
 })();
-
-
