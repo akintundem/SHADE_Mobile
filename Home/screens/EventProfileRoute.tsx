@@ -2,14 +2,19 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../components/LoadingStates';
 import { Event, EventStatus } from '../../types';
 import { eventService } from '../../services/eventService';
 import { dateUtils, stringUtils } from '../../utils/helpers';
 import { DATE_FORMATS } from '../../utils/constants';
 import { ErrorHandler } from '../../utils/errorHandler';
+import BudgetScreen from '../components/BudgetScreen';
+import GuestListScreen from '../components/GuestListScreen';
+import VendorsScreen from '../components/VendorsScreen';
+import RSVPScreen from '../components/RSVPScreen';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
 
@@ -76,11 +81,13 @@ export const EventProfileRoute = () => {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const params = (route.params || {}) as Params;
+  const { t } = useI18n();
 
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | null>(null);
 
   const eventId = params.eventId;
 
@@ -152,6 +159,20 @@ export const EventProfileRoute = () => {
   }
 
   const showEmpty = !isLoading && error;
+
+  // Render active screen if one is selected
+  if (activeScreen === 'budget' && eventId) {
+    return <BudgetScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+  }
+  if (activeScreen === 'vendors' && eventId) {
+    return <VendorsScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+  }
+  if (activeScreen === 'guests' && eventId) {
+    return <GuestListScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+  }
+  if (activeScreen === 'rsvp' && eventId) {
+    return <RSVPScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
@@ -250,34 +271,326 @@ export const EventProfileRoute = () => {
                 <InfoRow icon={Hash} label="Hashtag" value={event?.hashtag} />
               </Section>
 
-              {event?.eventWebsiteUrl ? (
-                <TouchableOpacity
-                  onPress={() => Linking.openURL(event.eventWebsiteUrl!)}
-                  activeOpacity={0.85}
-                  style={{
-                    marginTop: spacing.lg,
-                    backgroundColor: colors.surface,
-                    borderRadius: borderRadius.lg,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    padding: spacing.lg,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    ...shadows.sm,
-                  }}
-                >
-                  <View style={{ flex: 1, marginRight: spacing.md }}>
-                    <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold, fontSize: typography.size.sm }}>
-                      Visit event website
-                    </Text>
-                    <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs, marginTop: spacing.xs }}>
-                      {event.eventWebsiteUrl}
-                    </Text>
-                  </View>
-                  <Globe size={20} color={brand.primary} />
-                </TouchableOpacity>
-              ) : null}
+              {/* Managed Section */}
+              <Section title="Managed">
+                <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+                  {/* Details */}
+                  <TouchableOpacity
+                    onPress={() => {}}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Hash size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        Details
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        View event information
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Budget */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('budget')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Wallet size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        {t('Budget')}
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        Track expenses and budget
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Vendors */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('vendors')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Store size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        {t('Vendors')}
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        Manage vendors and suppliers
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Guest List */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('guests')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <UsersRound size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        {t('GuestList')}
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        Manage attendees and invitations
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Wishlist */}
+                  <TouchableOpacity
+                    onPress={() => {}}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Gift size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        {t('Wishlist')}
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        Create and manage wishlist
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Tasks */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      const eventDate = formattedStart || (event?.startDateTime 
+                        ? dateUtils.formatDate(event.startDateTime, DATE_FORMATS.DISPLAY_DATETIME)
+                        : 'Date TBD');
+                      const eventLocation = event?.venueId || 'Location TBD';
+                      navigation.navigate('EventManage', {
+                        id: eventId || '',
+                        title: event?.name ?? params.title ?? 'Event',
+                        date: eventDate,
+                        location: eventLocation,
+                        imageUrl: event?.coverImageUrl ?? params.imageUrl ?? '',
+                        initialView: 'timeline',
+                      });
+                    }}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <ClipboardCheck size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        {t('Tasks')}
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        View timeline and manage tasks
+                      </Text>
+                    </View>
+                    <BarChart3 size={18} color={colors.text.tertiary} />
+                  </TouchableOpacity>
+
+                  {/* RSVP */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('rsvp')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      gap: spacing.md
+                    }}
+                  >
+                    <View style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: colors.brand.primaryLight,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <CalendarCheck size={20} color={brand.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.semibold
+                      }}>
+                        {t('RSVP')}
+                      </Text>
+                      <Text style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.xs,
+                        marginTop: 2
+                      }}>
+                        Track responses and attendance
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+              </Section>
             </View>
           </View>
         </ScrollView>

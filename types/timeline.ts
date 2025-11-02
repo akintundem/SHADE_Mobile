@@ -37,6 +37,7 @@ export type TaskDTO = {
   actualHours: number;
   dependencies: string[];
   tags: string[];
+  subtasks?: TaskDTO[];
   createdAt: string;
   updatedAt: string;
 };

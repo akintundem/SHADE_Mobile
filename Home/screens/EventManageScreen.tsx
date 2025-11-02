@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, List, BarChart3 } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { useI18n } from '../../i18n/I18nProvider';
-import { ArrowLeft, Wallet, Store, UsersRound, Gift, ClipboardCheck, CalendarCheck, MapPin, CalendarClock } from 'lucide-react-native';
+import TimelineView from '../components/TimelineView';
+import ListView from '../components/ListView';
+import { TaskDTO } from '../../types/timeline';
 
 type RouteParams = {
   id: string;
@@ -11,6 +14,7 @@ type RouteParams = {
   date: string;
   location: string;
   imageUrl: string;
+  initialView?: 'list' | 'timeline';
 };
 
 type Props = {
@@ -18,103 +22,343 @@ type Props = {
 };
 
 export default function EventManageScreen({ route }: Props) {
-  const { id, title, date, location, imageUrl } = route.params;
+  const { id, title, date, location, imageUrl, initialView } = route.params || {};
   const { colors, spacing, borderRadius, typography, brand } = useTheme();
-  const { t } = useI18n();
-  const [tab, setTab] = useState<'budget' | 'vendors' | 'guests' | 'wishlist' | 'tasks' | 'rsvp'>('budget');
+  const navigation = useNavigation<any>();
+  const [taskView, setTaskView] = useState<'list' | 'timeline'>(initialView || 'list');
+  const [taskFilter, setTaskFilter] = useState<'all' | 'to_do' | 'active' | 'done'>('all');
+  
+  // Update view when initialView changes
+  useEffect(() => {
+    if (initialView) {
+      setTaskView(initialView);
+    }
+  }, [initialView]);
 
-  const TabButton = ({ keyTab, label, Icon }: { keyTab: typeof tab; label: string; Icon: any }) => (
-    <TouchableOpacity
-      onPress={() => setTab(keyTab)}
-      activeOpacity={0.9}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: borderRadius.full, backgroundColor: tab === keyTab ? brand.primary : 'transparent' }}
-    >
-      <Icon size={14} color={tab === keyTab ? '#FFFFFF' : colors.text.secondary} />
-      <Text style={{ color: tab === keyTab ? '#FFFFFF' : colors.text.secondary, fontWeight: tab === keyTab ? typography.weight.semibold : typography.weight.medium, fontSize: typography.size.xs }}>{label}</Text>
-    </TouchableOpacity>
-  );
+  // Sample tasks data - in production, this would come from the API
+  const tasks: TaskDTO[] = useMemo(() => [
+    {
+      id: '1',
+      timelineId: '1',
+      title: 'Venue Setup',
+      description: 'Coordinate with venue management',
+      dueDate: '2024-05-19T00:00:00Z',
+      priority: 'HIGH',
+      status: 'IN_PROGRESS',
+      assignedTo: 'Sarah M.',
+      estimatedHours: 8,
+      actualHours: 3,
+      dependencies: [],
+      tags: ['LOGISTICS'],
+      subtasks: [
+        {
+          id: '1-1',
+          timelineId: '1',
+          title: 'Book main stage',
+          description: 'Reserve main stage',
+          dueDate: '2024-05-09T00:00:00Z',
+          priority: 'HIGH',
+          status: 'COMPLETED',
+          assignedTo: 'Sarah M.',
+          estimatedHours: 2,
+          actualHours: 2,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-05-09T00:00:00Z'
+        },
+        {
+          id: '1-2',
+          timelineId: '1',
+          title: 'Arrange seating',
+          description: 'Set up seating arrangements',
+          dueDate: '2024-05-17T00:00:00Z',
+          priority: 'MEDIUM',
+          status: 'PENDING',
+          assignedTo: 'John D.',
+          estimatedHours: 4,
+          actualHours: 0,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        {
+          id: '1-3',
+          timelineId: '1',
+          title: 'Setup sound system',
+          description: 'Install and test sound equipment',
+          dueDate: '2024-05-19T00:00:00Z',
+          priority: 'MEDIUM',
+          status: 'PENDING',
+          assignedTo: 'Mike R.',
+          estimatedHours: 2,
+          actualHours: 0,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        }
+      ],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-05-15T00:00:00Z'
+    },
+    {
+      id: '2',
+      timelineId: '1',
+      title: 'Marketing Campaign',
+      description: 'Launch social media and email campaigns',
+      dueDate: '2024-05-24T00:00:00Z',
+      priority: 'MEDIUM',
+      status: 'PENDING',
+      assignedTo: 'Emma L.',
+      estimatedHours: 6,
+      actualHours: 0,
+      dependencies: [],
+      tags: ['MARKETING'],
+      subtasks: [
+        {
+          id: '2-1',
+          timelineId: '1',
+          title: 'Design promotional posters',
+          description: 'Create marketing materials',
+          dueDate: '2024-05-20T00:00:00Z',
+          priority: 'MEDIUM',
+          status: 'PENDING',
+          assignedTo: 'Emma L.',
+          estimatedHours: 3,
+          actualHours: 0,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        {
+          id: '2-2',
+          timelineId: '1',
+          title: 'Schedule social posts',
+          description: 'Plan and schedule social media content',
+          dueDate: '2024-05-22T00:00:00Z',
+          priority: 'MEDIUM',
+          status: 'PENDING',
+          assignedTo: 'Emma L.',
+          estimatedHours: 3,
+          actualHours: 0,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        }
+      ],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-01T00:00:00Z'
+    },
+    {
+      id: '3',
+      timelineId: '1',
+      title: 'Catering Arrangements',
+      description: 'Finalize food vendors and menu',
+      dueDate: '2024-05-09T00:00:00Z',
+      priority: 'MEDIUM',
+      status: 'COMPLETED',
+      assignedTo: 'Carlos P.',
+      estimatedHours: 4,
+      actualHours: 4,
+      dependencies: [],
+      tags: ['CATERING'],
+      subtasks: [
+        {
+          id: '3-1',
+          timelineId: '1',
+          title: 'Contact food trucks',
+          description: 'Reach out to food vendors',
+          dueDate: '2024-05-07T00:00:00Z',
+          priority: 'MEDIUM',
+          status: 'COMPLETED',
+          assignedTo: 'Carlos P.',
+          estimatedHours: 2,
+          actualHours: 2,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-05-07T00:00:00Z'
+        },
+        {
+          id: '3-2',
+          timelineId: '1',
+          title: 'Finalize menu',
+          description: 'Confirm final menu selections',
+          dueDate: '2024-05-09T00:00:00Z',
+          priority: 'MEDIUM',
+          status: 'COMPLETED',
+          assignedTo: 'Carlos P.',
+          estimatedHours: 2,
+          actualHours: 2,
+          dependencies: [],
+          tags: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-05-09T00:00:00Z'
+        }
+      ],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-05-09T00:00:00Z'
+    }
+  ], []);
 
-  const Section = ({ titleText, children }: { titleText: string; children?: React.ReactNode }) => (
-    <View style={{ marginTop: spacing.lg }}>
-      <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>{titleText}</Text>
-      <View style={{ marginTop: spacing.md }}>{children}</View>
-    </View>
-  );
+  // Calculate overall progress
+  const overallProgress = useMemo(() => {
+    const allTasks = tasks.flatMap(t => [t, ...(t.subtasks || [])]);
+    const completed = allTasks.filter(t => t.status === 'COMPLETED').length;
+    return Math.round((completed / allTasks.length) * 100);
+  }, [tasks]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', height: 56, paddingHorizontal: spacing.lg, borderBottomWidth: 1, borderColor: colors.border, backgroundColor: colors.background }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text.primary, fontWeight: typography.weight.bold, fontSize: typography.size.lg }}>{t('Manage')}</Text>
+      {/* Header - Matching image design */}
+      <View style={{ 
+        backgroundColor: colors.brand.primary,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.lg
+      }}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={{ marginBottom: spacing.sm }}
+        >
+          <ArrowLeft size={20} color={colors.text.inverse} />
+        </TouchableOpacity>
+        
+        <Text style={{
+          color: colors.text.tertiary,
+          fontSize: 10,
+          fontWeight: typography.weight.semibold,
+          textTransform: 'uppercase',
+          letterSpacing: 1,
+          marginBottom: spacing.xs
+        }}>
+          EVENT PLANNER
+        </Text>
+        
+        <Text style={{
+          color: colors.text.inverse,
+          fontSize: typography.size['2xl'],
+          fontWeight: typography.weight.bold,
+          marginBottom: spacing.md
+        }}>
+          {title}
+        </Text>
+
+        {/* Overall Progress Card */}
+        <View style={{
+          backgroundColor: colors.surface,
+          borderRadius: borderRadius.xl,
+          padding: spacing.md,
+          opacity: 0.95
+        }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: spacing.sm 
+          }}>
+            <Text style={{
+              color: colors.text.primary,
+              fontSize: typography.size.sm,
+              fontWeight: typography.weight.semibold
+            }}>
+              Overall Progress
+            </Text>
+            <Text style={{
+              color: colors.text.primary,
+              fontSize: typography.size.lg,
+              fontWeight: typography.weight.bold
+            }}>
+              {overallProgress}%
+            </Text>
+          </View>
+          <View style={{
+            height: 6,
+            backgroundColor: colors.border,
+            borderRadius: borderRadius.full,
+            overflow: 'hidden'
+          }}>
+            <View style={{
+              width: `${overallProgress}%`,
+              height: '100%',
+              backgroundColor: colors.text.primary,
+              borderRadius: borderRadius.full
+            }} />
+          </View>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing['2xl'] }}>
-        {/* Event hero */}
-        <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
-          <View style={{ borderRadius: borderRadius.xl, overflow: 'hidden', borderWidth: 1, borderColor: colors.border }}>
-            <Image source={{ uri: imageUrl }} style={{ width: '100%', height: 160 }} />
-          </View>
-          <Text style={{ color: colors.text.primary, fontWeight: typography.weight.bold, fontSize: typography.size['2xl'], marginTop: spacing.md }}>{title}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm }}>
-            <CalendarClock size={16} color={brand.primary} />
-            <Text style={{ color: colors.text.secondary }}>{date}</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.xs }}>
-            <MapPin size={16} color={brand.primary} />
-            <Text style={{ color: colors.text.secondary }}>{location}</Text>
-          </View>
-        </View>
+      {/* View Toggle */}
+      <View style={{
+        flexDirection: 'row',
+        backgroundColor: colors.surface,
+        borderRadius: borderRadius.xl,
+        padding: spacing.xs,
+        marginHorizontal: spacing.lg,
+        marginTop: spacing.lg,
+        marginBottom: spacing.md,
+        gap: spacing.xs
+      }}>
+        <TouchableOpacity
+          onPress={() => setTaskView('list')}
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.xs,
+            paddingVertical: spacing.md,
+            borderRadius: borderRadius.lg,
+            backgroundColor: taskView === 'list' ? colors.brand.primary : 'transparent'
+          }}
+        >
+          <List size={18} color={taskView === 'list' ? colors.text.inverse : colors.text.secondary} />
+          <Text style={{
+            color: taskView === 'list' ? colors.text.inverse : colors.text.secondary,
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.semibold
+          }}>
+            List View
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setTaskView('timeline')}
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: spacing.xs,
+            paddingVertical: spacing.md,
+            borderRadius: borderRadius.lg,
+            backgroundColor: taskView === 'timeline' ? colors.brand.primary : 'transparent'
+          }}
+        >
+          <BarChart3 size={18} color={taskView === 'timeline' ? colors.text.inverse : colors.text.secondary} />
+          <Text style={{
+            color: taskView === 'timeline' ? colors.text.inverse : colors.text.secondary,
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.semibold
+          }}>
+            Timeline
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* Tabs */}
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
-            <TabButton keyTab="budget" label={t('Budget')} Icon={Wallet} />
-            <TabButton keyTab="vendors" label={t('Vendors')} Icon={Store} />
-            <TabButton keyTab="guests" label={t('GuestList')} Icon={UsersRound} />
-            <TabButton keyTab="wishlist" label={t('Wishlist')} Icon={Gift} />
-            <TabButton keyTab="tasks" label={t('Tasks')} Icon={ClipboardCheck} />
-            <TabButton keyTab="rsvp" label={t('RSVP')} Icon={CalendarCheck} />
-          </ScrollView>
-        </View>
-
-        {/* Content */}
-        <View style={{ paddingHorizontal: spacing.lg }}>
-          {tab === 'budget' && (
-            <Section titleText={t('BudgetSubtitle')}>
-              <Text style={{ color: colors.text.tertiary }}>{t('BudgetSubtitle')}</Text>
-            </Section>
-          )}
-          {tab === 'vendors' && (
-            <Section titleText={t('VendorsSubtitle')}>
-              <Text style={{ color: colors.text.tertiary }}>{t('VendorsSubtitle')}</Text>
-            </Section>
-          )}
-          {tab === 'guests' && (
-            <Section titleText={t('GuestListSubtitle')}>
-              <Text style={{ color: colors.text.tertiary }}>{t('GuestListSubtitle')}</Text>
-            </Section>
-          )}
-          {tab === 'wishlist' && (
-            <Section titleText={t('WishlistSubtitle')}>
-              <Text style={{ color: colors.text.tertiary }}>{t('WishlistSubtitle')}</Text>
-            </Section>
-          )}
-          {tab === 'tasks' && (
-            <Section titleText={t('TasksSubtitle')}>
-              <Text style={{ color: colors.text.tertiary }}>{t('TasksSubtitle')}</Text>
-            </Section>
-          )}
-          {tab === 'rsvp' && (
-            <Section titleText={t('RSVPSubtitle')}>
-              <Text style={{ color: colors.text.tertiary }}>{t('RSVPSubtitle')}</Text>
-            </Section>
-          )}
-        </View>
-      </ScrollView>
+      {/* Task Content */}
+      {taskView === 'list' ? (
+        <ListView
+          tasks={tasks}
+          filterStatus={taskFilter}
+          onFilterChange={setTaskFilter}
+        />
+      ) : (
+        <TimelineView tasks={tasks} eventId={id} />
+      )}
     </SafeAreaView>
   );
 }
-
-
