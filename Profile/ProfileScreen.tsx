@@ -69,7 +69,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
                 }}
               >
                 <Text style={{
-                  color: section === t.key ? '#FFFFFF' : colors.text.secondary,
+                  color: section === t.key ? colors.text.inverse : colors.text.secondary,
                   fontWeight: section === t.key ? typography.weight.semibold : typography.weight.medium,
                   fontSize: typography.size.sm,
                 }}>

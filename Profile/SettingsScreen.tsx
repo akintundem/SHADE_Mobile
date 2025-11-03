@@ -9,6 +9,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import {
   Accessibility,
@@ -23,6 +24,7 @@ import {
   KeyRound,
   Lock,
   LogOut,
+  Mail,
   MailCheck,
   Palette,
   Shield,
@@ -32,6 +34,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { useI18n } from '../i18n/I18nProvider';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import Button from '../components/ui/Button';
 import KeyboardOptimizedInput from '../components/ui/KeyboardOptimizedInput';
 import { authService } from '../services/authService';
@@ -48,9 +51,20 @@ type BannerState = {
   tone: 'success' | 'error';
 };
 
-export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Props) {
-  const { isDark, setDark, colors, spacing, borderRadius, typography } = useTheme();
+export default function SettingsScreen({
+  user,
+  onClose: _onClose,
+  onLogout,
+}: Props) {
+  const { isDark, setDark, colors, spacing, borderRadius, typography } =
+    useTheme();
   const { lang, setLang, t } = useI18n();
+  const {
+    user: currentUser,
+    loading: userLoading,
+    isEmailVerified,
+    refetch,
+  } = useCurrentUser();
 
   const [isPrivate, setIsPrivate] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -66,8 +80,17 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
   const [isResendingVerification, setIsResendingVerification] = useState(false);
 
   const Section = ({ title }: { title: string }) => (
-    <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.md }}>
-      <Text style={{ color: colors.text.tertiary, fontWeight: typography.weight.semibold }}>{title}</Text>
+    <View
+      style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.md }}
+    >
+      <Text
+        style={{
+          color: colors.text.tertiary,
+          fontWeight: typography.weight.semibold,
+        }}
+      >
+        {title}
+      </Text>
     </View>
   );
 
@@ -101,8 +124,18 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
       }}
       activeOpacity={onPress ? 0.65 : 1}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 }}>
-        <Icon size={18} color={danger ? colors.semantic.error : colors.text.primary} />
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          flex: 1,
+        }}
+      >
+        <Icon
+          size={18}
+          color={danger ? colors.semantic.error : colors.text.primary}
+        />
         <View style={{ flex: 1 }}>
           <Text
             style={{
@@ -159,8 +192,15 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
       return;
     }
 
-    if (!/[A-Z]/.test(trimmedNew) || !/[a-z]/.test(trimmedNew) || !/[0-9]/.test(trimmedNew) || !/[!@#$%^&*()_\-+=\[{\]};:'"\\|,.<>/?]/.test(trimmedNew)) {
-      setChangeError('Password must include uppercase, lowercase, number, and special character');
+    if (
+      !/[A-Z]/.test(trimmedNew) ||
+      !/[a-z]/.test(trimmedNew) ||
+      !/[0-9]/.test(trimmedNew) ||
+      !/[!@#$%^&*()_\-+=\[{\]};:'"\\|,.<>/?]/.test(trimmedNew)
+    ) {
+      setChangeError(
+        'Password must include uppercase, lowercase, number, and special character',
+      );
       return;
     }
 
@@ -178,7 +218,7 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
         trimmedNew,
         trimmedConfirm,
         'mobile-app',
-        'capsule-app'
+        'capsule-app',
       );
 
       setBanner({
@@ -191,7 +231,10 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
       }
     } catch (error: unknown) {
       const message =
-        typeof error === 'object' && error && 'message' in error && typeof (error as any).message === 'string'
+        typeof error === 'object' &&
+        error &&
+        'message' in error &&
+        typeof (error as any).message === 'string'
           ? (error as any).message
           : 'Unable to change password';
       setChangeError(message);
@@ -201,7 +244,8 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
   };
 
   const handleResendVerification = async () => {
-    if (!user.email) {
+    const emailToUse = currentUser?.email || user.email;
+    if (!emailToUse) {
       setBanner({
         text: 'Email address is required to resend verification',
         tone: 'error',
@@ -211,14 +255,23 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
 
     try {
       setIsResendingVerification(true);
-      const response = await authService.resendEmailVerification(user.email);
+      const response = await authService.resendEmailVerification(emailToUse);
       setBanner({
-        text: response.message || 'Verification email sent if the account exists',
+        text:
+          response.message || 'Verification email sent if the account exists',
         tone: response.success ? 'success' : 'error',
       });
+
+      // Refresh user data after successful resend
+      if (response.success) {
+        await refetch();
+      }
     } catch (error: unknown) {
       const message =
-        typeof error === 'object' && error && 'message' in error && typeof (error as any).message === 'string'
+        typeof error === 'object' &&
+        error &&
+        'message' in error &&
+        typeof (error as any).message === 'string'
           ? (error as any).message
           : 'Unable to send verification email';
       setBanner({ text: message, tone: 'error' });
@@ -254,7 +307,9 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
           >
             {t('Settings')}
           </Text>
-          <Text style={{ color: colors.text.tertiary, marginTop: 4 }}>{headerSubtitle}</Text>
+          <Text style={{ color: colors.text.tertiary, marginTop: 4 }}>
+            {headerSubtitle}
+          </Text>
         </View>
 
         {banner ? (
@@ -264,25 +319,40 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
               marginTop: spacing.lg,
               padding: spacing.md,
               borderRadius: borderRadius.lg,
-              backgroundColor: banner.tone === 'success' ? colors.semantic.successLight : colors.semantic.errorLight,
+              backgroundColor:
+                banner.tone === 'success'
+                  ? colors.semantic.successLight
+                  : colors.semantic.errorLight,
               borderWidth: 1,
-              borderColor: banner.tone === 'success' ? colors.semantic.success : colors.semantic.error,
+              borderColor:
+                banner.tone === 'success'
+                  ? colors.semantic.success
+                  : colors.semantic.error,
               gap: spacing.sm,
             }}
           >
             <Text
               style={{
-                color: banner.tone === 'success' ? colors.semantic.successDark : colors.semantic.errorDark,
+                color:
+                  banner.tone === 'success'
+                    ? colors.semantic.successDark
+                    : colors.semantic.errorDark,
                 fontWeight: typography.weight.semibold,
                 fontSize: typography.size.sm,
               }}
             >
               {banner.text}
             </Text>
-            <TouchableOpacity onPress={() => setBanner(null)} accessibilityRole="button">
+            <TouchableOpacity
+              onPress={() => setBanner(null)}
+              accessibilityRole="button"
+            >
               <Text
                 style={{
-                  color: banner.tone === 'success' ? colors.semantic.successDark : colors.semantic.errorDark,
+                  color:
+                    banner.tone === 'success'
+                      ? colors.semantic.successDark
+                      : colors.semantic.errorDark,
                   fontWeight: typography.weight.medium,
                   fontSize: typography.size.xs,
                   textDecorationLine: 'underline',
@@ -295,7 +365,11 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
         ) : null}
 
         <Section title="Account" />
-        <Row icon={User} title="Edit Profile" subtitle="Update your profile information" />
+        <Row
+          icon={User}
+          title="Edit Profile"
+          subtitle="Update your profile information"
+        />
         <Row
           icon={KeyRound}
           title="Change Password"
@@ -305,24 +379,113 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
             setChangePasswordVisible(true);
           }}
         />
+
+        {/* Email Verification - Conditional based on emailVerified status */}
+        {userLoading ? (
+          <View
+            style={{
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.md + 2,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottomWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+              }}
+            >
+              <ActivityIndicator size="small" color={colors.text.tertiary} />
+              <Text
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.size.sm,
+                }}
+              >
+                Checking verification status...
+              </Text>
+            </View>
+          </View>
+        ) : !isEmailVerified ? (
+          <Row
+            icon={Mail}
+            title="Verify Email"
+            subtitle={`Send to ${
+              currentUser?.email || user.email || 'your email'
+            }`}
+            onPress={
+              isResendingVerification ? undefined : handleResendVerification
+            }
+            end={
+              <Text
+                style={{
+                  color: colors.semantic.warning,
+                  fontSize: typography.size.xs,
+                  fontWeight: typography.weight.semibold,
+                }}
+              >
+                {isResendingVerification ? 'Sending…' : 'Send'}
+              </Text>
+            }
+          />
+        ) : (
+          <View
+            style={{
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.md + 2,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottomWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+              }}
+            >
+              <MailCheck size={18} color={colors.semantic.success} />
+              <Text
+                style={{
+                  color: colors.semantic.success,
+                  fontWeight: typography.weight.semibold,
+                  fontSize: typography.size.sm,
+                }}
+              >
+                Email Verified ✓
+              </Text>
+            </View>
+          </View>
+        )}
         <Row
-          icon={MailCheck}
-          title="Resend Verification Email"
-          subtitle={`Send to ${user.email ?? 'your email'}`}
-          onPress={isResendingVerification ? undefined : handleResendVerification}
-          end={
-            <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs }}>
-              {isResendingVerification ? 'Sending…' : 'Send'}
-            </Text>
-          }
+          icon={Lock}
+          title="Privacy and Safety"
+          subtitle="Control who can see your content"
         />
-        <Row icon={Lock} title="Privacy and Safety" subtitle="Control who can see your content" />
-        <Row icon={Bell} title="Notifications" subtitle="Manage your notification preferences" />
+        <Row
+          icon={Bell}
+          title="Notifications"
+          subtitle="Manage your notification preferences"
+        />
         <Row
           icon={Shield}
           title="Security"
           subtitle="Two-factor authentication and more"
-          end={<Text style={{ color: colors.text.secondary }}>Setup recommended</Text>}
+          end={
+            <Text style={{ color: 'green', fontSize: 12 }}>
+              Setup recommended
+            </Text>
+          }
         />
 
         <Section title="Quick Settings" />
@@ -358,10 +521,20 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
                   paddingHorizontal: spacing.md,
                   paddingVertical: spacing.xs,
                   borderRadius: borderRadius.md,
-                  backgroundColor: lang === 'en' ? colors.text.primary : colors.surfaceElevated,
+                  backgroundColor:
+                    lang === 'en'
+                      ? colors.text.primary
+                      : colors.surfaceElevated,
                 }}
               >
-                <Text style={{ color: lang === 'en' ? colors.text.inverse : colors.text.primary }}>EN</Text>
+                <Text
+                  style={{
+                    color:
+                      lang === 'en' ? colors.text.inverse : colors.text.primary,
+                  }}
+                >
+                  EN
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setLang('fr')}
@@ -369,34 +542,93 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
                   paddingHorizontal: spacing.md,
                   paddingVertical: spacing.xs,
                   borderRadius: borderRadius.md,
-                  backgroundColor: lang === 'fr' ? colors.text.primary : colors.surfaceElevated,
+                  backgroundColor:
+                    lang === 'fr'
+                      ? colors.text.primary
+                      : colors.surfaceElevated,
                 }}
               >
-                <Text style={{ color: lang === 'fr' ? colors.text.inverse : colors.text.primary }}>FR</Text>
+                <Text
+                  style={{
+                    color:
+                      lang === 'fr' ? colors.text.inverse : colors.text.primary,
+                  }}
+                >
+                  FR
+                </Text>
               </TouchableOpacity>
             </View>
           }
         />
-        <Row icon={HardDrive} title="Data and Storage" subtitle="Manage downloads and storage" />
-        <Row icon={Accessibility} title="Accessibility" subtitle="Features to improve your experience" />
+        <Row
+          icon={HardDrive}
+          title="Data and Storage"
+          subtitle="Manage downloads and storage"
+        />
+        <Row
+          icon={Accessibility}
+          title="Accessibility"
+          subtitle="Features to improve your experience"
+        />
 
         <Section title="Support & About" />
-        <Row icon={HelpCircle} title="Help Center" subtitle="Get support and find answers" />
-        <Row icon={Info} title="About" subtitle="App version and legal information" />
-        <Row icon={FlagTriangleRight} title="Report a Problem" subtitle="Let us know about any issues" />
+        <Row
+          icon={HelpCircle}
+          title="Help Center"
+          subtitle="Get support and find answers"
+        />
+        <Row
+          icon={Info}
+          title="About"
+          subtitle="App version and legal information"
+        />
+        <Row
+          icon={FlagTriangleRight}
+          title="Report a Problem"
+          subtitle="Let us know about any issues"
+        />
 
         <Section title="Account Management" />
-        <Row icon={LogOut} title="Log Out" subtitle="Sign out of your account" onPress={onLogout} danger />
+        <Row
+          icon={LogOut}
+          title="Log Out"
+          subtitle="Sign out of your account"
+          onPress={onLogout}
+          danger
+        />
 
         <Section title="Danger Zone" />
-        <Row icon={Download} title="Download Your Data" subtitle="Request a copy of your information" />
-        <Row icon={XCircle} title="Deactivate Account" subtitle="Temporarily disable your account" />
-        <Row icon={Trash2} title="Delete Account" subtitle="Permanently delete your account and data" danger />
+        <Row
+          icon={Download}
+          title="Download Your Data"
+          subtitle="Request a copy of your information"
+        />
+        <Row
+          icon={XCircle}
+          title="Deactivate Account"
+          subtitle="Temporarily disable your account"
+        />
+        <Row
+          icon={Trash2}
+          title="Delete Account"
+          subtitle="Permanently delete your account and data"
+          danger
+        />
 
-        <View style={{ alignItems: 'center', paddingVertical: spacing['3xl'], gap: spacing.xs }}>
+        <View
+          style={{
+            alignItems: 'center',
+            paddingVertical: spacing['3xl'],
+            gap: spacing.xs,
+          }}
+        >
           <Text style={{ color: colors.text.tertiary }}>Capsule v1.0.0</Text>
-          <Text style={{ color: colors.text.tertiary }}>Terms   Privacy   Cookies</Text>
-          <Text style={{ color: colors.text.tertiary }}>© {new Date().getFullYear()} Capsule. All rights reserved.</Text>
+          <Text style={{ color: colors.text.tertiary }}>
+            Terms Privacy Cookies
+          </Text>
+          <Text style={{ color: colors.text.tertiary }}>
+            © {new Date().getFullYear()} Capsule. All rights reserved.
+          </Text>
         </View>
       </ScrollView>
 
@@ -414,7 +646,9 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
             padding: spacing['2xl'],
           }}
         >
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
             <View
               style={{
                 backgroundColor: colors.surfaceElevated,
@@ -435,7 +669,7 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
               <KeyboardOptimizedInput
                 label="Current password"
                 value={currentPassword}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setCurrentPassword(text);
                   setChangeError(null);
                 }}
@@ -445,7 +679,7 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
               <KeyboardOptimizedInput
                 label="New password"
                 value={newPassword}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setNewPassword(text);
                   setChangeError(null);
                 }}
@@ -455,7 +689,7 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
               <KeyboardOptimizedInput
                 label="Confirm new password"
                 value={confirmPassword}
-                onChangeText={(text) => {
+                onChangeText={text => {
                   setConfirmPassword(text);
                   setChangeError(null);
                 }}
@@ -473,8 +707,18 @@ export default function SettingsScreen({ user, onClose: _onClose, onLogout }: Pr
                 </Text>
               ) : null}
 
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: spacing.md }}>
-                <Button variant="ghost" onPress={closeChangePasswordModal} disabled={changeSubmitting}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                  gap: spacing.md,
+                }}
+              >
+                <Button
+                  variant="ghost"
+                  onPress={closeChangePasswordModal}
+                  disabled={changeSubmitting}
+                >
                   Cancel
                 </Button>
                 <Button
