@@ -133,42 +133,82 @@ export const authService = {
 
   // Forgot Password
   async forgotPassword(email: string) {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/forgot-password', { email });
-    return res.data;
+    console.log('🔐 [API] Forgot Password - Request:', { email });
+    try {
+      const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/forgot-password', { email });
+      console.log('✅ [API] Forgot Password - Success:', res.data);
+      return res.data;
+    } catch (error: any) {
+      console.error('❌ [API] Forgot Password - Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Reset Password
   async resetPassword(token: string, newPassword: string, confirmPassword?: string) {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/reset-password', {
-      token,
-      newPassword,
-      confirmPassword: confirmPassword ?? newPassword
-    });
-    return res.data;
+    console.log('🔐 [API] Reset Password - Request:', { token: token.substring(0, 20) + '...', passwordLength: newPassword.length });
+    try {
+      const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/reset-password', {
+        token,
+        newPassword,
+        confirmPassword: confirmPassword ?? newPassword
+      });
+      console.log('✅ [API] Reset Password - Success:', res.data);
+      return res.data;
+    } catch (error: any) {
+      console.error('❌ [API] Reset Password - Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Change Password
   async changePassword(currentPassword: string, newPassword: string, confirmPassword: string, deviceId?: string, clientId?: string) {
-    const res = await http.post<ApiMessageResponse>('/api/v1/auth/change-password', {
-      currentPassword,
-      newPassword,
-      confirmPassword,
+    console.log('🔐 [API] Change Password - Request:', {
+      currentPasswordLength: currentPassword.length,
+      newPasswordLength: newPassword.length,
       deviceId,
       clientId
     });
-    return res.data;
+    try {
+      const res = await http.post<ApiMessageResponse>('/api/v1/auth/change-password', {
+        currentPassword,
+        newPassword,
+        confirmPassword,
+        deviceId,
+        clientId
+      });
+      console.log('✅ [API] Change Password - Success:', res.data);
+      return res.data;
+    } catch (error: any) {
+      console.error('❌ [API] Change Password - Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Resend Email Verification
   async resendEmailVerification(email: string) {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/verify-email', { email });
-    return res.data;
+    console.log('📧 [API] Resend Email Verification - Request:', { email });
+    try {
+      const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/verify-email', { email });
+      console.log('✅ [API] Resend Email Verification - Success:', res.data);
+      return res.data;
+    } catch (error: any) {
+      console.error('❌ [API] Resend Email Verification - Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Verify Email
   async verifyEmail(token: string) {
-    const res = await httpUnauthenticated.get<ApiMessageResponse>(`/api/v1/auth/verify-email/${token}`);
-    return res.data;
+    console.log('📧 [API] Verify Email - Request:', { token: token.substring(0, 20) + '...' });
+    try {
+      const res = await httpUnauthenticated.get<ApiMessageResponse>(`/api/v1/auth/verify-email/${token}`);
+      console.log('✅ [API] Verify Email - Success:', res.data);
+      return res.data;
+    } catch (error: any) {
+      console.error('❌ [API] Verify Email - Error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   // Legacy methods for backward compatibility
@@ -212,3 +252,4 @@ export const authService = {
   },
 
 };
+
