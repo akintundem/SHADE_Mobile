@@ -1,58 +1,165 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import { Bot, Sparkles } from 'lucide-react-native';
+import { Bot, Sparkles, AlertTriangle, Lightbulb } from 'lucide-react-native';
 import { useAgent } from '../Agent/AgentProvider';
 
-export const AgentBanner = ({ onOpenChat, onSelect }: { onOpenChat: () => void; onSelect?: (text: string) => void }) => {
-  const { colors, borderRadius, spacing, typography, brand, shadows } = useTheme();
+export const AgentBanner = ({
+  onOpenChat,
+  onSelect,
+}: {
+  onOpenChat: () => void;
+  onSelect?: (text: string) => void;
+}) => {
+  const { colors, borderRadius, spacing, typography, brand, shadows } =
+    useTheme();
   const { suggestions } = useAgent();
   if (!suggestions?.length) return null;
   const primary = suggestions[0];
   const isRisk = primary.type === 'risk';
 
-  // Subtle pulse on the avatar to make it feel alive
+  // Get semantic colors based on type with proper dark mode support
+  const getSemanticColors = () => {
+    if (isRisk) {
+      // Check if we're in dark mode by looking at background color
+      const isDark =
+        colors.background === '#000000' || colors.background === '#111827';
+      return {
+        background: isDark
+          ? 'rgba(220, 38, 38, 0.15)'
+          : 'rgba(220, 38, 38, 0.08)',
+        borderColor: colors.semantic?.error || '#DC2626',
+        iconBackground: isDark
+          ? 'rgba(220, 38, 38, 0.25)'
+          : 'rgba(220, 38, 38, 0.15)',
+        iconColor: isDark ? '#FCA5A5' : '#DC2626',
+        dotColor: isDark ? '#FCA5A5' : '#DC2626',
+        Icon: AlertTriangle,
+      };
+    }
+    const isDark =
+      colors.background === '#000000' || colors.background === '#111827';
+    return {
+      background: isDark
+        ? 'rgba(245, 158, 11, 0.15)'
+        : 'rgba(245, 158, 11, 0.08)',
+      borderColor: isDark ? '#FBBF24' : '#F59E0B',
+      iconBackground: isDark
+        ? 'rgba(245, 158, 11, 0.25)'
+        : 'rgba(245, 158, 11, 0.15)',
+      iconColor: isDark ? '#FBBF24' : '#F59E0B',
+      dotColor: isDark ? '#FBBF24' : '#F59E0B',
+      Icon: Lightbulb,
+    };
+  };
+
+  const semanticColors = getSemanticColors();
+
+  // Subtle pulse on the icon to make it feel alive
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.1, duration: 650, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 650, useNativeDriver: true }),
-      ])
+        Animated.timing(pulse, {
+          toValue: 1.15,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
     );
     loop.start();
     return () => loop.stop();
   }, [pulse]);
 
   return (
-    <TouchableOpacity onPress={onOpenChat} activeOpacity={0.9}>
-      <View style={{
-        backgroundColor: colors.card,
-        borderColor: colors.border,
-        borderWidth: 1,
+    <View
+      style={{
+        backgroundColor: semanticColors.background,
+        borderColor: semanticColors.borderColor,
+        borderWidth: 1.5,
         borderRadius: borderRadius['2xl'] || borderRadius.xl,
-        padding: spacing.md,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-        ...shadows.sm,
-      }}>
-        <Animated.View style={{ transform: [{ scale: pulse }] }}>
-          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: `${brand.primary}22`, alignItems: 'center', justifyContent: 'center' }}>
-            <Bot size={18} color={brand.primary} />
+        padding: spacing.lg,
+        // ...shadows.md,
+      }}
+    >
+      {/* Icon and suggestions */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          gap: spacing.md,
+           marginBottom: 20
+        }}
+      >
+        {/* <Animated.View style={{ transform: [{ scale: pulse }] }}>
+          <View style={{
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: semanticColors.iconBackground,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1.5,
+            borderColor: semanticColors.borderColor,
+          }}>
+            <semanticColors.Icon size={22} color={semanticColors.iconColor} strokeWidth={2.5} />
           </View>
-        </Animated.View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>
-            {isRisk ? 'Shade spotted a risk' : 'Shade has a suggestion'}
-          </Text>
-          {/* conversational list inside the banner */}
-          <View style={{ marginTop: spacing.xs, gap: 6 }}>
+        </Animated.View> */}
+        <View style={{ flex: 1, marginBottom: 20 }}>
+          {/* Suggestions list */}
+          <View style={{ gap: 12 }}>
             {suggestions.slice(0, 3).map((s, idx) => (
-              <TouchableOpacity key={idx} activeOpacity={0.85} onPress={() => onSelect?.(s.text)}>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                  <View style={{ width: 6, height: 6, borderRadius: 3, marginTop: 6, backgroundColor: s.type === 'risk' ? '#ef4444' : brand.primary }} />
-                  <Text style={{ color: s.type === 'risk' ? colors.text.primary : colors.text.secondary, flex: 1 }} numberOfLines={2}>
+              <TouchableOpacity
+                key={idx}
+                activeOpacity={0.85}
+                onPress={() => onSelect?.(s.text)}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    gap: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      marginTop: 2,
+                      backgroundColor: semanticColors.dotColor,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {s.type === 'risk' ? (
+                      <AlertTriangle
+                        size={10}
+                        color={colors.background}
+                        strokeWidth={3}
+                      />
+                    ) : (
+                      <Lightbulb
+                        size={10}
+                        color={colors.background}
+                        strokeWidth={3}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={{
+                      color: colors.text.primary,
+                      flex: 1,
+                      fontSize: typography.size.sm,
+                      lineHeight: typography.size.sm * 1.5,
+                    }}
+                    numberOfLines={2}
+                  >
                     {s.text}
                   </Text>
                 </View>
@@ -60,18 +167,59 @@ export const AgentBanner = ({ onOpenChat, onSelect }: { onOpenChat: () => void; 
             ))}
           </View>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View style={{ backgroundColor: brand.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: 999 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Sparkles size={16} color={'#FFFFFF'} />
-              <Text style={{ color: '#FFFFFF', fontWeight: typography.weight.semibold }}>Open Shade</Text>
-            </View>
-          </View>
-        </View>
-        {/* small bubble tail */}
-        <View style={{ position: 'absolute', left: 22, bottom: -6, width: 12, height: 12, backgroundColor: colors.card, transform: [{ rotate: '45deg' }], borderLeftWidth: 1, borderBottomWidth: 1, borderColor: colors.border }} />
       </View>
-    </TouchableOpacity>
+
+      {/* Divider */}
+      <View
+        style={{
+          height: 1,
+          backgroundColor: colors.divider,
+          marginVertical: spacing.md,
+        }}
+      />
+
+      {/* Bottom section with label and button */}
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.medium,
+          }}
+        >
+          {isRisk ? 'Shade spotted a risk' : 'Shade has a suggestion'}
+        </Text>
+        <TouchableOpacity
+          onPress={onOpenChat}
+          activeOpacity={0.85}
+          style={{
+            backgroundColor: brand.secondary,
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            borderRadius: 999,
+            ...shadows.sm,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Sparkles size={16} color={colors.background} />
+            <Text
+              style={{
+                color: colors.background,
+                fontWeight: typography.weight.semibold,
+                fontSize: typography.size.sm,
+              }}
+            >
+              Open Shade
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
-
