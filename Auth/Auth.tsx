@@ -10,13 +10,42 @@ import { CompleteProfile } from './components/CompleteProfile';
 import { Footer } from './components/Footer';
 import { User } from '../types';
 import KeyboardAwareContainer from '../components/ui/KeyboardAwareContainer';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
+import EmailVerificationScreen from './screens/EmailVerificationScreen';
 
-type Props = { onLogin?: (user: User) => void };
+type Props = {
+  onLogin?: (user: User) => void;
+  initialScreen?: 'signIn' | 'signUp' | 'resetPassword' | 'verifyEmail';
+  resetToken?: string;
+  verifyToken?: string;
+};
 
-export default function Auth({ onLogin }: Props) {
+export default function Auth({ onLogin, initialScreen = 'signIn', resetToken, verifyToken }: Props) {
   const { colors, spacing } = useTheme();
-  const [mode, setMode] = useState<'signIn' | 'signUp' | 'completeProfile'>('signIn');
+  const [mode, setMode] = useState<'signIn' | 'signUp' | 'completeProfile' | 'resetPassword' | 'verifyEmail'>(initialScreen);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+
+  // Handle reset password flow
+  if (mode === 'resetPassword' && resetToken) {
+    return (
+      <ResetPasswordScreen
+        token={resetToken}
+        onSuccess={() => setMode('signIn')}
+        onCancel={() => setMode('signIn')}
+      />
+    );
+  }
+
+  // Handle email verification flow
+  if (mode === 'verifyEmail') {
+    return (
+      <EmailVerificationScreen
+        verifyToken={verifyToken}
+        onSuccess={() => setMode('signIn')}
+        onCancel={() => setMode('signIn')}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>

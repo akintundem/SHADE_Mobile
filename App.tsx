@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Linking } from 'react-native';
 import { I18nProvider } from './i18n/I18nProvider';
 import { AgentProvider } from './Agent/AgentProvider';
 import { NavigationContainer } from '@react-navigation/native';
@@ -17,10 +18,19 @@ import EventManageScreen from './Home/screens/EventManageScreen';
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [authScreen, setAuthScreen] = useState<'signIn' | 'signUp' | 'resetPassword' | 'verifyEmail'>('signIn');
+  const [resetToken, setResetToken] = useState<string | undefined>();
+  const [verifyToken, setVerifyToken] = useState<string | undefined>();
 
   useEffect(() => {
     (async () => {
       try {
+        // Check for deep link on app start
+        const url = await Linking.getInitialURL();
+        if (url) {
+          handleDeepLink(url);
+        }
+
         // Attempt to restore session from storage
         const token = await getToken();
         if (token) {
@@ -69,7 +79,51 @@ function App() {
         setIsLoading(false);
       }
     })();
+
+    // Listen for deep links while app is running
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLink(url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
+
+  const handleDeepLink = (url: string) => {
+    console.log('🔗 Deep link received:', url);
+
+    try {
+      // Parse URL manually for reset password
+      if (url.includes('reset-password')) {
+        // Extract token from URL (supports both query param and path param)
+        const tokenMatch = url.match(/[?&]token=([^&]+)/) || url.match(/reset-password\/([^/?]+)/);
+        const token = tokenMatch ? tokenMatch[1] : null;
+
+        if (token) {
+          console.log('🔑 Reset password token received');
+          setResetToken(token);
+          setAuthScreen('resetPassword');
+          setUser(null);
+        }
+      }
+
+      // Parse URL manually for email verification
+      if (url.includes('verify-email')) {
+        const tokenMatch = url.match(/[?&]token=([^&]+)/) || url.match(/verify-email\/([^/?]+)/);
+        const token = tokenMatch ? tokenMatch[1] : null;
+
+        if (token) {
+          console.log('✉️ Email verification token received');
+          setVerifyToken(token);
+          setAuthScreen('verifyEmail');
+          setUser(null);
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing deep link:', error);
+    }
+  };
 
   const handleLogin = (u: User) => setUser(u);
   const handleLogout = () => setUser(null);
@@ -86,7 +140,12 @@ function App() {
             {isLoading ? (
               <LoadingState message="Welcome to Shade..." />
             ) : !user ? (
-              <Auth onLogin={handleLogin} />
+              <Auth
+                onLogin={handleLogin}
+                initialScreen={authScreen}
+                resetToken={resetToken}
+                verifyToken={verifyToken}
+              />
             ) : (
               <Stack.Navigator
                 screenOptions={{
