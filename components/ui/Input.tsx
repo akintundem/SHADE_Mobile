@@ -164,7 +164,7 @@ const Input = forwardRef<TextInput, Props>(({
               fontSize: typography.size.base,
               color: colors.text.primary,
               paddingVertical: 0,
-              minHeight: (textInputProps.multiline || inputType === 'description') ? 48 : 44,
+              minHeight: (textInputProps.multiline || inputType === 'description') ? 48 : 32,
               textAlignVertical: (textInputProps.multiline || inputType === 'description') ? 'top' : 'center',
             },
             style,

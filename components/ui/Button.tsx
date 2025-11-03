@@ -96,11 +96,19 @@ export default function Button({
 
     switch (variant) {
       case 'primary':
+        return {
+          ...baseStyle,
+          color: disabled ? colors.text.disabled : colors.text.inverse,
+        };
       case 'secondary':
+        return {
+          ...baseStyle,
+          color: '#FFFFFF', // Amber always has white text for contrast
+        };
       case 'danger':
         return {
           ...baseStyle,
-          color: '#FFFFFF',
+          color: '#FFFFFF', // Red always has white text for contrast
         };
       case 'outline':
         return {
@@ -127,7 +135,13 @@ export default function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'outline' || variant === 'ghost' ? brand.primary : '#FFFFFF'}
+          color={
+            variant === 'outline' || variant === 'ghost'
+              ? brand.primary
+              : variant === 'primary'
+                ? colors.text.inverse
+                : '#FFFFFF'
+          }
         />
       ) : (
         <>

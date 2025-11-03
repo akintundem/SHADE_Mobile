@@ -4,14 +4,24 @@
  */
 
 export const Colors = {
-  // Brand Colors - Pure black and white
+  // Brand Colors - Theme-aware for proper contrast
   brand: {
-    primary: '#000000',      // Pure black
-    primaryDark: '#000000',  // Pure black
-    primaryLight: '#808080', // Medium gray
-    secondary: '#F59E0B',    // Amber accent - luxury and warmth
-    secondaryDark: '#D97706',
-    secondaryLight: '#FCD34D',
+    light: {
+      primary: '#000000',      // Black in light mode
+      primaryDark: '#000000',  // Pure black
+      primaryLight: '#808080', // Medium gray
+      secondary: '#F59E0B',    // Amber accent
+      secondaryDark: '#D97706',
+      secondaryLight: '#FCD34D',
+    },
+    dark: {
+      primary: '#FFFFFF',      // White in dark mode for contrast
+      primaryDark: '#F9FAFB',  // Slightly muted white
+      primaryLight: '#D1D5DB', // Light gray
+      secondary: '#FCD34D',    // Lighter amber for dark mode
+      secondaryDark: '#F59E0B',
+      secondaryLight: '#FEF3C7',
+    },
   },
 
   // Neutral Palette - Improved accessibility and contrast
@@ -231,14 +241,15 @@ export const Components = {
 // Helper function to get themed colors
 export const getThemedColors = (isDark: boolean) => {
   const base = isDark ? Colors.dark : Colors.light;
+  const brandColors = isDark ? Colors.brand.dark : Colors.brand.light;
   return {
     ...base,
-    brand: Colors.brand,
+    brand: brandColors,
     semantic: Colors.semantic,
     social: Colors.social,
     // Primary color system for consistent theming
-    primary: Colors.brand.primary,
-    primaryDark: Colors.brand.primaryDark,
-    primaryLight: Colors.brand.primaryLight,
+    primary: brandColors.primary,
+    primaryDark: brandColors.primaryDark,
+    primaryLight: brandColors.primaryLight,
   };
 };

@@ -7,29 +7,29 @@ type Props = { children: React.ReactNode };
 
 export type ThemeColors = ReturnType<typeof getThemedColors>;
 
-type ThemeContextType = { 
-  isDark: boolean; 
-  setDark: (v: boolean) => void; 
+type ThemeContextType = {
+  isDark: boolean;
+  setDark: (v: boolean) => void;
   colors: ThemeColors;
   spacing: typeof Spacing;
   borderRadius: typeof BorderRadius;
   typography: typeof Typography;
   shadows: typeof Shadows;
-  brand: typeof Colors.brand;
+  brand: ThemeColors['brand'];
   components: typeof Components;
 };
 
 const defaultColors = getThemedColors(false);
 
-const ThemeContext = createContext<ThemeContextType>({ 
-  isDark: false, 
-  setDark: () => {}, 
+const ThemeContext = createContext<ThemeContextType>({
+  isDark: false,
+  setDark: () => {},
   colors: defaultColors,
   spacing: Spacing,
   borderRadius: BorderRadius,
   typography: Typography,
   shadows: Shadows,
-  brand: Colors.brand,
+  brand: defaultColors.brand,
   components: Components,
 });
 
@@ -57,15 +57,15 @@ export default function ThemeProvider({ children }: Props) {
 
   const colors = useMemo(() => getThemedColors(isDark), [isDark]);
 
-  const value = useMemo<ThemeContextType>(() => ({ 
-    isDark, 
-    setDark, 
+  const value = useMemo<ThemeContextType>(() => ({
+    isDark,
+    setDark,
     colors,
     spacing: Spacing,
     borderRadius: BorderRadius,
     typography: Typography,
     shadows: Shadows,
-    brand: Colors.brand,
+    brand: colors.brand,
     components: Components,
   }), [isDark, colors]);
 
