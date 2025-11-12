@@ -4,7 +4,7 @@ import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { ProfileHeader } from './components/ProfileHeader';
 import { EventMiniCard } from './components/EventMiniCard';
 import { TabBar } from '../Home/components/TabBar';
-import SettingsScreen from './SettingsScreen';
+import SettingsScreen from '../Settings/SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { User } from '../types';
 import { useTheme } from '../theme/ThemeProvider';
@@ -69,7 +69,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompo
                 }}
               >
                 <Text style={{
-                  color: section === t.key ? '#FFFFFF' : colors.text.secondary,
+                  color: section === t.key ? colors.text.inverse : colors.text.secondary,
                   fontWeight: section === t.key ? typography.weight.semibold : typography.weight.medium,
                   fontSize: typography.size.sm,
                 }}>

@@ -231,14 +231,25 @@ export const Components = {
 // Helper function to get themed colors
 export const getThemedColors = (isDark: boolean) => {
   const base = isDark ? Colors.dark : Colors.light;
+  
+  // Dynamic brand colors that adapt to theme
+  const themeBrand = {
+    primary: isDark ? '#FFFFFF' : '#000000',        // White in dark mode, black in light mode
+    primaryDark: isDark ? '#F9FAFB' : '#000000',    // Light gray in dark mode, black in light mode
+    primaryLight: isDark ? '#D1D5DB' : '#808080',   // Medium gray in both modes
+    secondary: isDark ? '#FFFFFF' : '#000000',      // White in dark mode, black in light mode
+    secondaryDark: isDark ? '#F9FAFB' : '#000000',  // Light gray in dark mode, black in light mode
+    secondaryLight: isDark ? '#D1D5DB' : '#808080', // Medium gray in both modes
+  };
+  
   return {
     ...base,
-    brand: Colors.brand,
+    brand: themeBrand,
     semantic: Colors.semantic,
     social: Colors.social,
     // Primary color system for consistent theming
-    primary: Colors.brand.primary,
-    primaryDark: Colors.brand.primaryDark,
-    primaryLight: Colors.brand.primaryLight,
+    primary: themeBrand.primary,
+    primaryDark: themeBrand.primaryDark,
+    primaryLight: themeBrand.primaryLight,
   };
 };

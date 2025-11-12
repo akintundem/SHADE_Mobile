@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { Calendar, User, CheckCircle, Circle, Clock, ChevronRight, ChevronDown, MoreVertical } from 'lucide-react-native';
+import { Calendar, User, CheckCircle, Circle, Clock, ChevronRight, ChevronDown } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { TaskDTO } from '../../types/timeline';
 
@@ -13,16 +13,7 @@ type Props = {
 
 export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPress }: Props) {
   const { colors, typography, spacing, borderRadius } = useTheme();
-  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
-
-  // Calculate statistics
-  const stats = React.useMemo(() => {
-    const all = tasks.length;
-    const done = tasks.filter(t => t.status === 'COMPLETED').length;
-    const active = tasks.filter(t => t.status === 'IN_PROGRESS').length;
-    const toDo = tasks.filter(t => t.status === 'PENDING').length;
-    return { all, done, active, toDo };
-  }, [tasks]);
+  const [expandedTasks, setExpandedTasks] = React.useState<Set<string>>(new Set());
 
   // Filter tasks
   const filteredTasks = React.useMemo(() => {
@@ -41,9 +32,9 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return <CheckCircle size={18} color={colors.semantic.success} />;
+        return <CheckCircle size={18} color="#22c55e" />;
       case 'IN_PROGRESS':
-        return <Clock size={18} color={colors.semantic.warning} />;
+        return <Clock size={18} color="#f59e0b" />;
       case 'PENDING':
         return <Circle size={18} color={colors.text.secondary} />;
       default:
@@ -54,26 +45,14 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'HIGH':
-        return colors.semantic.error;
+        return '#ef4444';
       case 'MEDIUM':
-        return colors.semantic.warning;
+        return '#f59e0b';
       case 'LOW':
-        return colors.semantic.success;
+        return '#22c55e';
       default:
         return colors.text.secondary;
     }
-  };
-
-  const getTaskProgress = (task: TaskDTO) => {
-    if (!task.subtasks || task.subtasks.length === 0) {
-      if (task.status === 'COMPLETED') return 100;
-      if (task.status === 'IN_PROGRESS') {
-        return task.estimatedHours > 0 ? Math.round((task.actualHours / task.estimatedHours) * 100) : 50;
-      }
-      return 0;
-    }
-    const completed = task.subtasks.filter(st => st.status === 'COMPLETED').length;
-    return Math.round((completed / task.subtasks.length) * 100);
   };
 
   const formatDate = (dateString: string) => {
@@ -81,323 +60,247 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const toggleSubtasks = (taskId: string) => {
+  const toggleTaskExpansion = (taskId: string) => {
     setExpandedTasks(prev => {
-      const next = new Set(prev);
-      if (next.has(taskId)) {
-        next.delete(taskId);
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
       } else {
-        next.add(taskId);
+        newSet.add(taskId);
       }
-      return next;
+      return newSet;
     });
   };
 
-  const isExpanded = (taskId: string) => expandedTasks.has(taskId);
+  const getTaskProgress = (task: TaskDTO) => {
+    if (!task.subtasks || task.subtasks.length === 0) return 0;
+    const completed = task.subtasks.filter(st => st.status === 'COMPLETED').length;
+    return Math.round((completed / task.subtasks.length) * 100);
+  };
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Status Summary Cards */}
-      <View style={{
-        flexDirection: 'row',
-        gap: spacing.sm,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md
-      }}>
-        {[
-          { key: 'all' as const, label: 'ALL', count: stats.all },
-          { key: 'to_do' as const, label: 'TO DO', count: stats.toDo },
-          { key: 'active' as const, label: 'ACTIVE', count: stats.active },
-          { key: 'done' as const, label: 'DONE', count: stats.done },
-        ].map(({ key, label, count }) => {
-          const isActive = filterStatus === key;
-          return (
+    <ScrollView
+      contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
+      showsVerticalScrollIndicator={false}
+    >
+      {filteredTasks.map((task) => {
+        const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+        const isExpanded = expandedTasks.has(task.id);
+        const progress = getTaskProgress(task);
+        const completedSubtasks = hasSubtasks ? task.subtasks!.filter(st => st.status === 'COMPLETED').length : 0;
+        
+        return (
+          <View key={task.id}>
             <TouchableOpacity
-              key={key}
-              onPress={() => onFilterChange(key)}
-              style={{
-                flex: 1,
-                backgroundColor: colors.surface,
-                borderRadius: borderRadius.lg,
-                padding: spacing.md,
-                alignItems: 'center',
-                borderWidth: isActive ? 2 : 1,
-                borderColor: isActive ? colors.text.primary : colors.border
-              }}
-            >
-              <Text style={{
-                color: colors.text.primary,
-                fontSize: typography.size['2xl'],
-                fontWeight: typography.weight.bold
-              }}>
-                {count}
-              </Text>
-              <Text style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.xs,
-                textTransform: 'uppercase',
-                marginTop: spacing.xs,
-                fontWeight: typography.weight.semibold
-              }}>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* Tasks List */}
-      <ScrollView
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredTasks.map((task) => {
-          const progress = getTaskProgress(task);
-          const hasSubtasks = task.subtasks && task.subtasks.length > 0;
-          const completedSubtasks = hasSubtasks && task.subtasks ? task.subtasks.filter(st => st.status === 'COMPLETED').length : 0;
-          const totalSubtasks = hasSubtasks && task.subtasks ? task.subtasks.length : 0;
-
-          return (
-            <TouchableOpacity
-              key={task.id}
               onPress={() => onTaskPress?.(task)}
               style={{
                 backgroundColor: colors.surface,
-                borderRadius: borderRadius.xl,
+                borderRadius: borderRadius.lg,
                 padding: spacing.lg,
-                borderWidth: 1,
-                borderColor: colors.border
+                gap: spacing.md
               }}
+              activeOpacity={0.7}
             >
-              {/* Header */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
-                  {getStatusIcon(task.status)}
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      color: task.status === 'COMPLETED' ? colors.text.secondary : colors.text.primary,
-                      fontSize: typography.size.lg,
-                      fontWeight: typography.weight.semibold,
-                      textDecorationLine: task.status === 'COMPLETED' ? 'line-through' : 'none'
-                    }}>
-                      {task.title}
-                    </Text>
-                    <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.sm,
-                      marginTop: spacing.xs
-                    }}>
-                      {task.description}
-                    </Text>
-                  </View>
+              {/* Main Task Header */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{
+                    fontSize: typography.size.lg,
+                    fontWeight: typography.weight.semibold,
+                    color: task.status === 'COMPLETED' ? colors.text.secondary : colors.text.primary,
+                    textDecorationLine: task.status === 'COMPLETED' ? 'line-through' : 'none',
+                    marginBottom: spacing.xs
+                  }}>
+                    {task.title}
+                  </Text>
+                  <Text style={{
+                    fontSize: typography.size.sm,
+                    color: colors.text.secondary
+                  }}>
+                    {task.description}
+                  </Text>
                 </View>
-                <TouchableOpacity>
-                  <MoreVertical size={18} color={colors.text.secondary} />
-                </TouchableOpacity>
+                <View style={{
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: spacing.xs,
+                  backgroundColor: getPriorityColor(task.priority) + '20',
+                  borderRadius: borderRadius.sm,
+                  borderWidth: 1,
+                  borderColor: getPriorityColor(task.priority)
+                }}>
+                  <Text style={{
+                    fontSize: typography.size.xs,
+                    fontWeight: typography.weight.medium,
+                    color: getPriorityColor(task.priority)
+                  }}>
+                    {task.priority}
+                  </Text>
+                </View>
               </View>
 
-              {/* Tags */}
-              {task.tags && task.tags.length > 0 && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm }}>
-                  <View style={{
-                    backgroundColor: colors.border,
-                    borderRadius: borderRadius.full,
-                    paddingHorizontal: spacing.sm,
-                    paddingVertical: spacing.xs
-                  }}>
-                    <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                      fontWeight: typography.weight.semibold,
-                      textTransform: 'uppercase'
-                    }}>
-                      {task.priority}
-                    </Text>
-                  </View>
-                  {task.tags.slice(0, 2).map((tag, index) => (
-                    <View
-                      key={index}
-                      style={{
-                        backgroundColor: colors.border,
-                        borderRadius: borderRadius.full,
-                        paddingHorizontal: spacing.sm,
-                        paddingVertical: spacing.xs
-                      }}
-                    >
-                      <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        fontWeight: typography.weight.semibold,
-                        textTransform: 'uppercase'
-                      }}>
-                        {tag}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {/* Date and Assignee */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                  <Calendar size={14} color={colors.text.secondary} />
+              {/* Task Details */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <Calendar size={16} color={colors.text.tertiary} />
                   <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.sm
+                    fontSize: typography.size.sm,
+                    color: colors.text.secondary
                   }}>
                     {formatDate(task.dueDate)}
                   </Text>
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                  <User size={14} color={colors.text.secondary} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  <User size={16} color={colors.text.tertiary} />
                   <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.sm
+                    fontSize: typography.size.sm,
+                    color: colors.text.secondary
                   }}>
                     {task.assignedTo}
                   </Text>
                 </View>
               </View>
 
-              {/* Subtasks Progress */}
-              {hasSubtasks && (
-                <View style={{ marginTop: spacing.sm }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs }}>
-                    <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                      fontWeight: typography.weight.semibold,
-                      textTransform: 'uppercase'
-                    }}>
-                      {completedSubtasks} OF {totalSubtasks} SUBTASKS
-                    </Text>
-                    <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                      fontWeight: typography.weight.semibold
-                    }}>
-                      {progress}%
-                    </Text>
-                  </View>
-                  <View style={{
-                    height: 6,
-                    backgroundColor: colors.border,
-                    borderRadius: borderRadius.sm,
-                    overflow: 'hidden'
-                  }}>
-                    <View style={{
-                      width: `${progress}%`,
-                      height: '100%',
-                      backgroundColor: colors.brand.primary,
-                      borderRadius: borderRadius.sm
-                    }} />
-                  </View>
-                </View>
-              )}
-
-              {/* View/Expand Subtasks */}
-              {hasSubtasks && (
-                <TouchableOpacity
-                  onPress={() => toggleSubtasks(task.id)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: spacing.xs,
-                    marginTop: spacing.sm,
-                    paddingVertical: spacing.xs
-                  }}
-                >
-                  {isExpanded(task.id) ? (
-                    <ChevronDown size={16} color={colors.text.secondary} />
-                  ) : (
-                    <ChevronRight size={16} color={colors.text.secondary} />
-                  )}
+              {/* Status & Progress */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                  {getStatusIcon(task.status)}
                   <Text style={{
+                    fontSize: typography.size.sm,
                     color: colors.text.secondary,
-                    fontSize: typography.size.sm
+                    textTransform: 'capitalize'
                   }}>
-                    {isExpanded(task.id) ? 'Hide' : 'View'} {totalSubtasks} subtasks
+                    {task.status.toLowerCase().replace('_', ' ')}
                   </Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Expanded Subtasks List */}
-              {hasSubtasks && isExpanded(task.id) && task.subtasks && (
-                <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
-                  {task.subtasks.map((subtask) => {
-                    const isCompleted = subtask.status === 'COMPLETED';
-                    return (
-                      <View
-                        key={subtask.id}
-                        style={{
-                          marginLeft: spacing.lg,
-                          paddingLeft: spacing.md,
-                          borderLeftWidth: 2,
-                          borderLeftColor: colors.border,
-                          paddingVertical: spacing.sm,
-                          paddingRight: spacing.sm,
-                          backgroundColor: colors.background,
-                          borderRadius: borderRadius.md,
-                          borderWidth: 1,
-                          borderColor: colors.border
-                        }}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs }}>
-                          {getStatusIcon(subtask.status)}
-                          <Text style={{
-                            color: isCompleted ? colors.text.secondary : colors.text.primary,
-                            fontSize: typography.size.sm,
-                            fontWeight: typography.weight.medium,
-                            textDecorationLine: isCompleted ? 'line-through' : 'none',
-                            flex: 1
-                          }}>
-                            {subtask.title}
-                          </Text>
-                        </View>
-                        
-                        {subtask.description && (
-                          <Text style={{
-                            color: colors.text.secondary,
-                            fontSize: typography.size.xs,
-                            marginLeft: spacing.lg,
-                            marginBottom: spacing.xs
-                          }}>
-                            {subtask.description}
-                          </Text>
-                        )}
-
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginLeft: spacing.lg }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                            <Calendar size={12} color={colors.text.tertiary} />
-                            <Text style={{
-                              color: colors.text.tertiary,
-                              fontSize: typography.size.xs
-                            }}>
-                              {formatDate(subtask.dueDate)}
-                            </Text>
-                          </View>
-                          {subtask.assignedTo && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                              <User size={12} color={colors.text.tertiary} />
-                              <Text style={{
-                                color: colors.text.tertiary,
-                                fontSize: typography.size.xs
-                              }}>
-                                {subtask.assignedTo}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                    );
-                  })}
                 </View>
-              )}
+
+                {/* Subtask Summary */}
+                {hasSubtasks && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                    <Text style={{
+                      fontSize: typography.size.xs,
+                      color: colors.text.tertiary
+                    }}>
+                      {completedSubtasks}/{task.subtasks!.length} tasks
+                    </Text>
+                    <View style={{
+                      width: 40,
+                      height: 4,
+                      backgroundColor: colors.border,
+                      borderRadius: borderRadius.full,
+                      overflow: 'hidden'
+                    }}>
+                      <View style={{
+                        width: `${progress}%`,
+                        height: '100%',
+                        backgroundColor: colors.brand.primary,
+                        borderRadius: borderRadius.full
+                      }} />
+                    </View>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
+
+            {/* Subtask Expand Button */}
+            {hasSubtasks && (
+              <TouchableOpacity
+                onPress={() => toggleTaskExpansion(task.id)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing.xs,
+                  paddingVertical: spacing.sm,
+                  marginTop: spacing.xs,
+                  backgroundColor: colors.surface,
+                  borderRadius: borderRadius.md,
+                  borderWidth: 1,
+                  borderColor: colors.border
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronDown size={16} color={colors.text.secondary} />
+                ) : (
+                  <ChevronRight size={16} color={colors.text.secondary} />
+                )}
+                <Text style={{
+                  fontSize: typography.size.sm,
+                  color: colors.text.secondary
+                }}>
+                  {isExpanded ? 'Hide' : 'Show'} {task.subtasks!.length} subtasks
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Expanded Subtasks */}
+            {hasSubtasks && isExpanded && (
+              <View style={{ marginTop: spacing.sm, gap: spacing.sm }}>
+                {task.subtasks!.map((subtask) => (
+                  <View
+                    key={subtask.id}
+                    style={{
+                      marginLeft: spacing.md,
+                      backgroundColor: colors.background,
+                      borderRadius: borderRadius.md,
+                      padding: spacing.md,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      borderLeftWidth: 3,
+                      borderLeftColor: subtask.status === 'COMPLETED' ? '#22c55e' : colors.brand.primary
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
+                      {getStatusIcon(subtask.status)}
+                      <Text style={{
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.medium,
+                        color: subtask.status === 'COMPLETED' ? colors.text.secondary : colors.text.primary,
+                        textDecorationLine: subtask.status === 'COMPLETED' ? 'line-through' : 'none',
+                        flex: 1
+                      }}>
+                        {subtask.title}
+                      </Text>
+                    </View>
+                    
+                    {subtask.description && (
+                      <Text style={{
+                        fontSize: typography.size.sm,
+                        color: colors.text.secondary,
+                        marginBottom: spacing.xs
+                      }}>
+                        {subtask.description}
+                      </Text>
+                    )}
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                        <Calendar size={14} color={colors.text.tertiary} />
+                        <Text style={{
+                          fontSize: typography.size.xs,
+                          color: colors.text.tertiary
+                        }}>
+                          {formatDate(subtask.dueDate)}
+                        </Text>
+                      </View>
+                      {subtask.assignedTo && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                          <User size={14} color={colors.text.tertiary} />
+                          <Text style={{
+                            fontSize: typography.size.xs,
+                            color: colors.text.tertiary
+                          }}>
+                            {subtask.assignedTo}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }
-

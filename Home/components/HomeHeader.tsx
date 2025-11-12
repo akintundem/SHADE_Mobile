@@ -20,21 +20,23 @@ export const HomeHeader = ({ user, onOpenChat }: Props) => {
     <View style={{ backgroundColor: colors.background }}>
       <View
         style={{
-          height: 56,
+          height: 46,
           paddingHorizontal: spacing.lg,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
+          paddingTop: spacing.xl,
         }}
       >
-        <View style={{ width: 24 }} />
+        {/* <View style={{ width: 24 }} /> */}
         <View style={{ flex: 1, justifyContent: 'flex-start' }}>
           <Text style={{
             color: colors.text.primary,
             fontWeight: typography.weight.bold,
-            fontSize: typography.size.xl,
+            fontSize: typography.size['2xl'],
             letterSpacing: -0.5,
             textAlign: 'left',
+
           }}>
             Shade
           </Text>
