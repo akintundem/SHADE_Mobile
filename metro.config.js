@@ -9,7 +9,7 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 const defaultConfig = getDefaultConfig(__dirname);
 
 defaultConfig.transformer = defaultConfig.transformer || {};
-defaultConfig.transformer.babelTransformerPath = require.resolve('./transformers/yamlTransformer');
+defaultConfig.transformer.babelTransformerPath = require.resolve('./config/transformers/yamlTransformer');
 
 defaultConfig.resolver = defaultConfig.resolver || {};
 defaultConfig.resolver.sourceExts = Array.from(

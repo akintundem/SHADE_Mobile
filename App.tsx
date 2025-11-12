@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
-import { I18nProvider } from './i18n/I18nProvider';
-import { AgentProvider } from './Agent/AgentProvider';
+import { I18nProvider } from './shared/i18n/I18nProvider';
+import { AgentProvider } from './features/agent/Agent/AgentProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Auth from './Auth/Auth';
-import ThemeProvider from './theme/ThemeProvider';
-import LoadingState from './components/LoadingState';
-import SocialApp from './SocialApp';
-import { User } from './types';
-import { getToken, getUser as getCachedUser } from './storage/authStorage';
-import { UserDTO } from './services/authService';
-import { EventProfileRoute } from './Home/screens/EventProfileRoute';
-import EventManageScreen from './Home/screens/EventManageScreen';
+import Auth from './features/auth/Auth/Auth';
+import ThemeProvider from './shared/theme/ThemeProvider';
+import LoadingState from './shared/components/LoadingState';
+import SocialApp from './features/social/SocialApp';
+import { User } from './shared/types';
+import { getToken, getUser as getCachedUser } from './shared/storage/authStorage';
+import { UserDTO } from './shared/services/authService';
+import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
+import EventManageScreen from './features/events/Home/screens/EventManageScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +39,7 @@ function App() {
           if (cached) {
             // Validate token with backend
             try {
-              const { authService } = await import('./services/authService');
+              const { authService } = await import('./shared/services/authService');
               await authService.getCurrentUser();
               console.log('✅ Token is valid');
               // Token is valid, set user
@@ -52,7 +52,7 @@ function App() {
               console.log('❌ Token validation failed:', message);
               if (status === 401 || message.includes('Full authentication is required')) {
                 console.log('🔐 401 Unauthorized - clearing invalid token');
-                const { clearToken, clearUser } = await import('./storage/authStorage');
+                const { clearToken, clearUser } = await import('./shared/storage/authStorage');
                 await clearToken();
                 await clearUser();
                 console.log('✅ Invalid token cleared - please log in again');
@@ -63,7 +63,7 @@ function App() {
           } else {
             // Token exists but no cached user - clear token
             console.log('⚠️  Token exists but no cached user, clearing token');
-            const { clearToken } = await import('./storage/authStorage');
+            const { clearToken } = await import('./shared/storage/authStorage');
             await clearToken();
           }
         } else {
@@ -72,7 +72,7 @@ function App() {
       } catch (error: unknown) {
         console.log('❌ Error during token validation:', error);
         // Clear any partial state
-        const { clearToken, clearUser } = await import('./storage/authStorage');
+        const { clearToken, clearUser } = await import('./shared/storage/authStorage');
         await clearToken();
         await clearUser();
       } finally {
