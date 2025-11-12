@@ -56,6 +56,43 @@ const STEPS = [
   { id: 4, title: 'Review', subtitle: 'Double-check everything looks good' },
 ];
 
+// ReviewItem component for the review step
+function ReviewItem({ 
+  label, 
+  value, 
+  onEdit,
+  colors,
+  typography,
+  spacing,
+  brand 
+}: { 
+  label: string; 
+  value: string; 
+  onEdit: () => void;
+  colors: any;
+  typography: any;
+  spacing: any;
+  brand: any;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, marginBottom: 4 }}>
+          {label}
+        </Text>
+        <Text style={{ color: colors.text.primary, fontSize: typography.size.base }}>
+          {value}
+        </Text>
+      </View>
+      <TouchableOpacity onPress={onEdit} style={{ paddingLeft: spacing.md }}>
+        <Text style={{ color: brand.secondary, fontSize: typography.size.sm }}>
+          Edit
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export default function CreateEventScreen({ onClose, onCreate }: Props) {
   // Current step state
   const [currentStep, setCurrentStep] = useState(0);
@@ -91,7 +128,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [address, setAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<Asset | null>(null);
-  const { colors, typography, spacing, borderRadius, brand, shadows } = useTheme();
+  const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
   const { setContext, ask } = useAgent();
   const [chatOpen, setChatOpen] = useState(false);
 
@@ -179,7 +216,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       form: {
         title,
         description,
-        access: free ? 'free' : 'paid',
+        access: (free ? 'free' : 'paid') as 'free' | 'paid',
         price: Number(price) || undefined,
         capacity: Number(capacity) || undefined,
       },
@@ -214,7 +251,43 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         qrCodeEnabled: true,
       };
 
+      // Step 1: Create the event
       const createdEvent = await eventService.createEvent(eventData);
+
+      // Step 2: Upload cover image if one was selected
+      if (coverImage?.uri) {
+        try {
+          console.log('Starting cover image upload...', {
+            uri: coverImage.uri,
+            fileName: coverImage.fileName,
+            type: coverImage.type,
+            size: coverImage.fileSize
+          });
+
+          // Get presigned URL for cover image upload
+          const uploadRequest = {
+            fileName: coverImage.fileName || 'cover-image.jpg',
+            contentType: coverImage.type || 'image/jpeg',
+            category: 'cover',
+            isPublic: true,
+            description: 'Event cover image'
+          };
+
+          console.log('Upload request:', uploadRequest);
+
+          // Upload the cover image
+          await eventService.uploadCoverImage(createdEvent.id, uploadRequest, coverImage);
+          console.log('Cover image uploaded successfully');
+        } catch (imageError) {
+          console.warn('Failed to upload cover image:', imageError);
+          // Don't fail the entire event creation if image upload fails
+          Alert.alert(
+            'Image Upload Failed',
+            'Your event was created successfully, but the cover image could not be uploaded. You can add it later from the event settings.',
+            [{ text: 'OK' }]
+          );
+        }
+      }
 
       Alert.alert(
         'Success!',
@@ -251,6 +324,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     onCreate,
     onClose,
     isPublic,
+    coverImage,
   ]);
 
   const handleNext = () => {
@@ -312,13 +386,13 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       case 0:
         return step1Content;
       case 1:
-        return <Step2DateTime />;
+        return Step2DateTime;
       case 2:
-        return <Step3AccessCapacity />;
+        return Step3AccessCapacity;
       case 3:
-        return <Step4TeamContributions />;
+        return Step4TeamContributions;
       case 4:
-        return <Step5Review />;
+        return Step5Review;
       default:
         return null;
     }
@@ -467,8 +541,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     </ScrollView>
   ), [title, description, tags, coverImage, errors, colors, spacing, borderRadius, brand, typography, handlePickImage, handleToggleTag, AVAILABLE_TAGS, validateField, setFieldTouched, getFieldError]);
 
-  // Step 2: Date, Time & Location
-  const Step2DateTime = useCallback(() => (
+  // Step 2: Date, Time & Location - Memoized
+  const Step2DateTime = useMemo(() => (
     <ScrollView
       contentContainerStyle={{ paddingBottom: 120 }}
       keyboardShouldPersistTaps="handled"
@@ -598,8 +672,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     </ScrollView>
   ), [startDate, startTime, endDate, endTime, locationName, address, errors, colors, spacing, borderRadius, brand, typography, validateField, setFieldTouched, getFieldError]);
 
-  // Step 3: Access & Capacity
-  const Step3AccessCapacity = useCallback(() => (
+  // Step 3: Access & Capacity - Memoized
+  const Step3AccessCapacity = useMemo(() => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <Section title="Visibility">
         <View
@@ -700,8 +774,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     </ScrollView>
   ), [isPublic, free, price, capacity, errors, colors, spacing, borderRadius, brand, typography, validateField, setFieldTouched, getFieldError]);
 
-  // Step 4: Team & Contributions
-  const Step4TeamContributions = useCallback(() => (
+  // Step 4: Team & Contributions - Memoized
+  const Step4TeamContributions = useMemo(() => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <Section title="Contributions (optional)">
         <View
@@ -789,8 +863,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     </ScrollView>
   ), [enableContrib, colors, spacing, borderRadius, brand, typography]);
 
-  // Step 5: Review
-  const Step5Review = useCallback(() => (
+  // Step 5: Review - Memoized
+  const Step5Review = useMemo(() => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <Section title="Review Your Event">
         <View
@@ -807,44 +881,76 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             label="Event Name"
             value={title}
             onEdit={() => setCurrentStep(0)}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+            brand={brand}
           />
           <ReviewItem
             label="Description"
             value={description}
             onEdit={() => setCurrentStep(0)}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+            brand={brand}
           />
           <ReviewItem
             label="Start"
             value={`${startDate} at ${startTime}`}
             onEdit={() => setCurrentStep(1)}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+            brand={brand}
           />
           {endDate && endTime && (
             <ReviewItem
               label="End"
               value={`${endDate} at ${endTime}`}
               onEdit={() => setCurrentStep(1)}
+              colors={colors}
+              typography={typography}
+              spacing={spacing}
+              brand={brand}
             />
           )}
           <ReviewItem
             label="Location"
             value={locationName}
             onEdit={() => setCurrentStep(1)}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+            brand={brand}
           />
           <ReviewItem
             label="Visibility"
             value={isPublic ? 'Public' : 'Private'}
             onEdit={() => setCurrentStep(2)}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+            brand={brand}
           />
           <ReviewItem
             label="Access"
             value={free ? 'Free' : `$${price}`}
             onEdit={() => setCurrentStep(2)}
+            colors={colors}
+            typography={typography}
+            spacing={spacing}
+            brand={brand}
           />
           {capacity && (
             <ReviewItem
               label="Capacity"
               value={`${capacity} attendees`}
               onEdit={() => setCurrentStep(2)}
+              colors={colors}
+              typography={typography}
+              spacing={spacing}
+              brand={brand}
             />
           )}
         </View>
@@ -859,24 +965,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       </View>
     </ScrollView>
   ), [title, description, startDate, startTime, endDate, endTime, locationName, isPublic, free, price, capacity, colors, spacing, borderRadius, brand, typography]);
-
-  const ReviewItem = ({ label, value, onEdit }: { label: string; value: string; onEdit: () => void }) => (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, marginBottom: 4 }}>
-          {label}
-        </Text>
-        <Text style={{ color: colors.text.primary, fontSize: typography.size.base }}>
-          {value}
-        </Text>
-      </View>
-      <TouchableOpacity onPress={onEdit} style={{ paddingLeft: spacing.md }}>
-        <Text style={{ color: brand.secondary, fontSize: typography.size.sm }}>
-          Edit
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   return (
     <SafeAreaWrapper edges={['top']}>
