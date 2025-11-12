@@ -265,7 +265,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         >
           <Text
             style={{
-              color: '#FFFFFF',
+              color: colors.background,
               fontSize: 16,
               fontWeight: typography.weight.semibold,
             }}

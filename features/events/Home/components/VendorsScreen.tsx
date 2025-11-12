@@ -11,9 +11,8 @@ type Props = {
 };
 
 export default function VendorsScreen({ eventId, onBack }: Props) {
-  const { colors, spacing, typography, borderRadius, brand, shadows } = useTheme();
+  const { colors, spacing, typography, borderRadius } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
 
   // Sample vendors data
   const vendors: Vendor[] = useMemo(() => [
@@ -122,146 +121,63 @@ export default function VendorsScreen({ eventId, onBack }: Props) {
     }
   ], []);
 
-  const categories = ['all', ...Array.from(new Set(vendors.map(v => v.category)))];
-
   const filteredVendors = useMemo(() => {
-    let filtered = vendors.filter(vendor =>
+    return vendors.filter(vendor =>
       vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vendor.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vendor.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
-    if (filterCategory !== 'all') {
-      filtered = filtered.filter(vendor => vendor.category === filterCategory);
-    }
-
-    return filtered;
-  }, [vendors, searchQuery, filterCategory]);
+  }, [vendors, searchQuery]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-      {/* Premium Header */}
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      {/* Simplified Header */}
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: spacing.xl,
-        paddingTop: spacing.lg,
-        paddingBottom: spacing.xl,
-        borderBottomWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface,
-        ...shadows.md
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        gap: spacing.md
       }}>
-        <TouchableOpacity 
-          onPress={onBack} 
-          style={{ 
-            width: 44,
-            height: 44,
-            borderRadius: borderRadius.full,
-            backgroundColor: colors.background,
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...shadows.sm
-          }}
-          activeOpacity={0.7}
-        >
-          <ArrowLeft size={22} color={colors.text.primary} strokeWidth={2.5} />
+        <TouchableOpacity onPress={onBack}>
+          <ArrowLeft size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size['2xl'],
-            letterSpacing: -1,
-            marginLeft: -44
-          }}>
-            Vendors
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: borderRadius.full,
-            backgroundColor: brand.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...shadows.lg
-          }}
-          activeOpacity={0.8}
-        >
-          <Plus size={24} color={colors.text.inverse} strokeWidth={2.5} />
-        </TouchableOpacity>
+        <Text style={{
+          fontSize: typography.size.xl,
+          fontWeight: typography.weight.semibold,
+          color: colors.text.primary
+        }}>
+          Vendors
+        </Text>
       </View>
 
-      {/* Enhanced Search and Filters */}
-      <View style={{ padding: spacing.xl, gap: spacing.lg, backgroundColor: colors.background }}>
-        {/* Premium Search Bar */}
+      {/* Simple Search */}
+      <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.md }}>
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
           backgroundColor: colors.surface,
-          borderRadius: borderRadius.xl,
-          borderWidth: 1.5,
-          borderColor: colors.border,
-          paddingHorizontal: spacing.lg,
-          height: 56,
-          ...shadows.sm
+          borderRadius: borderRadius.lg,
+          paddingHorizontal: spacing.md,
+          gap: spacing.sm,
+          height: 44
         }}>
-          <Search size={20} color={colors.text.tertiary} strokeWidth={2.5} />
+          <Search size={20} color={colors.text.tertiary} />
           <TextInput
-            placeholder="Search vendors by name, category, or description..."
+            placeholder="Search vendors..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={{
               flex: 1,
-              marginLeft: spacing.md,
               color: colors.text.primary,
-              fontSize: typography.size.base,
-              fontWeight: typography.weight.medium
+              fontSize: typography.size.base
             }}
             placeholderTextColor={colors.text.tertiary}
           />
         </View>
-
-        {/* Enhanced Category Filter Pills */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
-          {categories.map(category => (
-            <TouchableOpacity
-              key={category}
-              onPress={() => setFilterCategory(category)}
-              style={{
-                paddingHorizontal: spacing.xl,
-                paddingVertical: spacing.md,
-                backgroundColor: filterCategory === category ? brand.primary : colors.surface,
-                borderRadius: borderRadius.full,
-                borderWidth: filterCategory === category ? 0 : 1.5,
-                borderColor: colors.border,
-                ...(filterCategory === category ? shadows.lg : shadows.sm),
-                minWidth: 100,
-                alignItems: 'center'
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={{
-                color: filterCategory === category ? colors.text.inverse : colors.text.primary,
-                fontWeight: typography.weight.bold,
-                fontSize: typography.size.sm,
-                letterSpacing: 0.5
-              }}>
-                {category === 'all' ? 'All Categories' : category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
 
       {/* Vendors List */}
-      <ScrollView
-        contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}>
         {filteredVendors.map(vendor => (
           <VendorCard key={vendor.vendorId} vendor={vendor} />
         ))}
@@ -271,259 +187,76 @@ export default function VendorsScreen({ eventId, onBack }: Props) {
 }
 
 function VendorCard({ vendor }: { vendor: Vendor }) {
-  const { colors, typography, spacing, borderRadius, shadows, brand } = useTheme();
+  const { colors, typography, spacing, borderRadius } = useTheme();
 
   return (
-    <View style={{
-      backgroundColor: colors.surface,
-      borderRadius: borderRadius['2xl'],
-      borderWidth: 1.5,
-      borderColor: colors.border,
-      padding: spacing.xl,
-      gap: spacing.lg,
-      ...shadows.lg,
-      overflow: 'hidden'
-    }}>
-      {/* Gradient Accent */}
-      <View style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 4,
-        backgroundColor: brand.primary
-      }} />
-
-      {/* Header with Icon */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: spacing.xs }}>
-        <View style={{ flex: 1, gap: spacing.sm }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View style={{
-              width: 56,
-              height: 56,
-              borderRadius: borderRadius.xl,
-              backgroundColor: brand.primary,
-              alignItems: 'center',
-              justifyContent: 'center',
-              ...shadows.md
-            }}>
-              <Store size={28} color={colors.text.inverse} strokeWidth={2.5} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{
-                color: colors.text.primary,
-                fontSize: typography.size.xl,
-                fontWeight: typography.weight.bold,
-                letterSpacing: -0.5,
-                marginBottom: spacing.xs
-              }}>
-                {vendor.name}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flexWrap: 'wrap' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                  <Star size={16} fill={colors.semantic.warning} color={colors.semantic.warning} strokeWidth={2.5} />
-                  <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.base,
-                    fontWeight: typography.weight.bold
-                  }}>
-                    {vendor.rating}
-                  </Text>
-                </View>
-                <Text style={{ color: colors.text.tertiary, fontSize: typography.size.sm }}>•</Text>
-                <View style={{
-                  paddingHorizontal: spacing.sm,
-                  paddingVertical: spacing.xs,
-                  backgroundColor: colors.background,
-                  borderRadius: borderRadius.full
-                }}>
-                  <Text style={{ 
-                    color: colors.text.secondary, 
-                    fontSize: typography.size.xs,
-                    fontWeight: typography.weight.bold
-                  }}>
-                    {vendor.priceRange}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
+    <TouchableOpacity
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: borderRadius.lg,
+        padding: spacing.lg,
+        gap: spacing.md
+      }}
+      activeOpacity={0.7}
+    >
+      {/* Vendor Header */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{
+            fontSize: typography.size.lg,
+            fontWeight: typography.weight.semibold,
+            color: colors.text.primary,
+            marginBottom: spacing.xs
+          }}>
+            {vendor.name}
+          </Text>
+          <Text style={{
+            fontSize: typography.size.sm,
+            color: colors.text.secondary,
+            backgroundColor: colors.background,
+            paddingHorizontal: spacing.sm,
+            paddingVertical: spacing.xs,
+            borderRadius: borderRadius.sm,
+            alignSelf: 'flex-start'
+          }}>
+            {vendor.category}
+          </Text>
         </View>
-      </View>
-
-      {/* Description */}
-      <Text style={{
-        color: colors.text.secondary,
-        fontSize: typography.size.base,
-        lineHeight: 22,
-        fontWeight: typography.weight.medium
-      }}>
-        {vendor.description}
-      </Text>
-
-      {/* Category Badge */}
-      <View style={{
-        alignSelf: 'flex-start',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
-        backgroundColor: brand.primary,
-        borderRadius: borderRadius.full,
-        ...shadows.sm
-      }}>
-        <Text style={{
-          color: colors.text.inverse,
-          fontSize: typography.size.sm,
-          fontWeight: typography.weight.bold,
-          letterSpacing: 0.5
-        }}>
-          {vendor.category}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          <Star size={16} fill="#FFD700" color="#FFD700" />
+          <Text style={{
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.medium,
+            color: colors.text.secondary
+          }}>
+            {vendor.rating}
+          </Text>
+        </View>
       </View>
 
       {/* Location */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-        padding: spacing.md,
-        backgroundColor: colors.background,
-        borderRadius: borderRadius.lg,
-        borderWidth: 1,
-        borderColor: colors.border
-      }}>
-        <View style={{
-          width: 36,
-          height: 36,
-          borderRadius: borderRadius.md,
-          backgroundColor: colors.surface,
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <MapPin size={18} color={colors.text.secondary} strokeWidth={2.5} />
-        </View>
-        <Text style={{ 
-          color: colors.text.secondary, 
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+        <MapPin size={16} color={colors.text.tertiary} />
+        <Text style={{
           fontSize: typography.size.sm,
-          fontWeight: typography.weight.medium
+          color: colors.text.secondary
         }}>
           {vendor.location.city}, {vendor.location.state}
         </Text>
       </View>
 
-      {/* Contact Info Grid */}
-      <View style={{
-        padding: spacing.lg,
-        backgroundColor: colors.background,
-        borderRadius: borderRadius.xl,
-        gap: spacing.md,
-        borderWidth: 1,
-        borderColor: colors.border
-      }}>
-        {vendor.contactInfo.phone && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View style={{
-              width: 40,
-              height: 40,
-              borderRadius: borderRadius.md,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Phone size={18} color={colors.text.secondary} strokeWidth={2.5} />
-            </View>
-            <Text style={{ 
-              color: colors.text.secondary, 
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium
-            }}>
-              {vendor.contactInfo.phone}
-            </Text>
-          </View>
-        )}
-        {vendor.contactInfo.email && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View style={{
-              width: 40,
-              height: 40,
-              borderRadius: borderRadius.md,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Mail size={18} color={colors.text.secondary} strokeWidth={2.5} />
-            </View>
-            <Text style={{ 
-              color: colors.text.secondary, 
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium
-            }}>
-              {vendor.contactInfo.email}
-            </Text>
-          </View>
-        )}
-        {vendor.contactInfo.website && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View style={{
-              width: 40,
-              height: 40,
-              borderRadius: borderRadius.md,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Globe size={18} color={colors.text.secondary} strokeWidth={2.5} />
-            </View>
-            <Text style={{ 
-              color: brand.primary, 
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.semibold
-            }}>
-              {vendor.contactInfo.website}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Services */}
-      {vendor.services.length > 0 && (
-        <View style={{ gap: spacing.md }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <Award size={16} color={colors.text.secondary} strokeWidth={2.5} />
-            <Text style={{
-              color: colors.text.primary,
-              fontSize: typography.size.base,
-              fontWeight: typography.weight.bold,
-              letterSpacing: -0.3
-            }}>
-              Services Offered
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-            {vendor.services.map((service, index) => (
-              <View
-                key={index}
-                style={{
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  backgroundColor: colors.background,
-                  borderRadius: borderRadius.full,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  ...shadows.sm
-                }}
-              >
-                <Text style={{
-                  color: colors.text.secondary,
-                  fontSize: typography.size.sm,
-                  fontWeight: typography.weight.semibold
-                }}>
-                  {service}
-                </Text>
-              </View>
-            ))}
-          </View>
+      {/* Contact (simplified) */}
+      {vendor.contactInfo.phone && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <Phone size={16} color={colors.text.tertiary} />
+          <Text style={{
+            fontSize: typography.size.sm,
+            color: colors.text.secondary
+          }}>
+            {vendor.contactInfo.phone}
+          </Text>
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 }

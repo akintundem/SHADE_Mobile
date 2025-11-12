@@ -227,7 +227,7 @@ export const EventProfileRoute = () => {
             )}
 
             <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', marginBottom: spacing.sm }}>
                 {statusLabel ? <Pill label={statusLabel} color={statusColor} /> : null}
                 {event?.isPublic !== null && event?.isPublic !== undefined ? (
                   <Pill label={event.isPublic ? 'Public event' : 'Private event'} />
@@ -257,36 +257,90 @@ export const EventProfileRoute = () => {
                 {event?.description ?? params.description ?? 'No description provided yet.'}
               </Text>
 
-              <Section title="Schedule">
-                <InfoRow icon={CalendarClock} label="Start" value={formattedStart} />
-                <InfoRow icon={CalendarClock} label="End" value={formattedEnd} />
-                <InfoRow icon={CalendarClock} label="Registration deadline" value={formattedRegistration} />
-              </Section>
+              {/* Event Info Cards */}
+              <View style={{ gap: spacing.md }}>
+                {/* Schedule Card */}
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: borderRadius.xl,
+                  padding: spacing.lg,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  ...shadows.sm,
+                }}>
+                  <Text style={{
+                    color: colors.text.primary,
+                    fontSize: typography.size.lg,
+                    fontWeight: typography.weight.semibold,
+                    marginBottom: spacing.md,
+                  }}>
+                    Schedule
+                  </Text>
+                  <View style={{ gap: spacing.sm }}>
+                    <InfoRow icon={CalendarClock} label="Start" value={formattedStart} />
+                    <InfoRow icon={CalendarClock} label="End" value={formattedEnd} />
+                    <InfoRow icon={CalendarClock} label="Registration deadline" value={formattedRegistration} />
+                  </View>
+                </View>
 
-              <Section title="Details">
-                <InfoRow icon={MapPin} label="Theme" value={event?.theme} />
-                <InfoRow icon={Users} label="Target audience" value={event?.targetAudience} />
-                <InfoRow icon={ShieldCheck} label="Capacity" value={capacityText} />
-                <InfoRow icon={Globe} label="Website" value={event?.eventWebsiteUrl} />
-                <InfoRow icon={Hash} label="Hashtag" value={event?.hashtag} />
-              </Section>
+                {/* Details Card */}
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: borderRadius.xl,
+                  padding: spacing.lg,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  ...shadows.sm,
+                }}>
+                  <Text style={{
+                    color: colors.text.primary,
+                    fontSize: typography.size.lg,
+                    fontWeight: typography.weight.semibold,
+                    marginBottom: spacing.md,
+                  }}>
+                    Details
+                  </Text>
+                  <View style={{ gap: spacing.sm }}>
+                    <InfoRow icon={MapPin} label="Theme" value={event?.theme} />
+                    <InfoRow icon={Users} label="Target audience" value={event?.targetAudience} />
+                    <InfoRow icon={ShieldCheck} label="Capacity" value={capacityText} />
+                    <InfoRow icon={Globe} label="Website" value={event?.eventWebsiteUrl} />
+                    <InfoRow icon={Hash} label="Hashtag" value={event?.hashtag} />
+                  </View>
+                </View>
+              </View>
 
-              {/* Managed Section */}
-              <Section title="Managed">
-                <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
+              {/* Management Options */}
+              <View style={{ marginTop: spacing['2xl'] }}>
+                <Text style={{
+                  color: colors.text.primary,
+                  fontSize: typography.size.xl,
+                  fontWeight: typography.weight.bold,
+                  marginBottom: spacing.lg,
+                }}>
+                  Manage Event
+                </Text>
+                
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: borderRadius.xl,
+                  padding: spacing.lg,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  ...shadows.sm,
+                  gap: spacing.sm,
+                }}>
                   {/* Details */}
                   <TouchableOpacity
                     onPress={() => {}}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: colors.surface,
+                      backgroundColor: colors.background,
                       borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
+                      padding: spacing.lg,
+                      gap: spacing.md,
                     }}
                   >
                     <View style={{
@@ -589,8 +643,7 @@ export const EventProfileRoute = () => {
                     </View>
                   </TouchableOpacity>
                 </View>
-
-              </Section>
+              </View>
             </View>
           </View>
         </ScrollView>

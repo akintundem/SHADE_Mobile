@@ -122,7 +122,10 @@ const buildQueryString = (params?: Record<string, unknown>) => {
   return query ? `?${query}` : '';
 };
 
-const toListResponse = (events: EventResponse[], params?: PaginationParams): EventListResponse => ({
+const toListResponse = (
+  events: EventResponse[],
+  params?: PaginationParams,
+): EventListResponse => ({
   events,
   total: events.length,
   page: params?.page ?? 1,
@@ -135,7 +138,7 @@ const makeCacheKey = (prefix: string, params?: Record<string, unknown>) =>
 const fetchEventList = async (
   endpoint: string,
   params?: Record<string, unknown>,
-  cachePrefix?: string
+  cachePrefix?: string,
 ): Promise<EventListResponse> => {
   const url = `${endpoint}${buildQueryString(params)}`;
   const cacheKey = cachePrefix ? makeCacheKey(cachePrefix, params) : undefined;
@@ -150,7 +153,10 @@ const fetchEventList = async (
 
   try {
     const res = await http.get<EventResponse[]>(url);
-    const list = toListResponse(res.data, params as PaginationParams | undefined);
+    const list = toListResponse(
+      res.data,
+      params as PaginationParams | undefined,
+    );
     if (cacheKey) {
       await OfflineStorage.setCache(cacheKey, list);
     }
@@ -190,16 +196,24 @@ export const eventService = {
     }
   },
 
-  async updateEvent(eventId: string, updates: UpdateEventRequest): Promise<EventResponse> {
+  async updateEvent(
+    eventId: string,
+    updates: UpdateEventRequest,
+  ): Promise<EventResponse> {
     try {
       const isOnline = await OfflineStorage.isOnline();
 
       if (!isOnline) {
         await offlineUtils.storeEventUpdate(eventId, updates);
-        throw new Error('Update saved offline and will sync when you are back online');
+        throw new Error(
+          'Update saved offline and will sync when you are back online',
+        );
       }
 
-      const res = await http.put<EventResponse>(`/api/v1/events/${eventId}`, updates);
+      const res = await http.put<EventResponse>(
+        `/api/v1/events/${eventId}`,
+        updates,
+      );
       return res.data;
     } catch (error) {
       ErrorHandler.handle(error, 'updateEvent');
@@ -217,7 +231,9 @@ export const eventService = {
     }
   },
 
-  async getEvents(params?: PaginationParams & { type?: string; status?: string; q?: string }) {
+  async getEvents(
+    params?: PaginationParams & { type?: string; status?: string; q?: string },
+  ) {
     const { q, type, status, ...rest } = params || {};
     if (q || type || status) {
       return eventService.searchEvents({
@@ -249,11 +265,19 @@ export const eventService = {
   },
 
   async getEventsByType(type: string, params?: PaginationParams) {
-    return fetchEventList(`/api/v1/events/by-type/${type}`, params, `events_type_${type}`);
+    return fetchEventList(
+      `/api/v1/events/by-type/${type}`,
+      params,
+      `events_type_${type}`,
+    );
   },
 
   async getEventsByStatus(status: string, params?: PaginationParams) {
-    return fetchEventList(`/api/v1/events/by-status/${status}`, params, `events_status_${status}`);
+    return fetchEventList(
+      `/api/v1/events/by-status/${status}`,
+      params,
+      `events_status_${status}`,
+    );
   },
 
   async searchEvents(params: SearchEventsParams = {}) {
@@ -268,43 +292,67 @@ export const eventService = {
     return fetchEventList('/api/v1/events/search', query, 'events_search');
   },
 
-  async getEventsForUser(userId: string): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(`/api/v1/events/user/${userId}`);
+  async getEventsForUser(
+    userId: string,
+  ): Promise<UserEventRelationshipResponse[]> {
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      `/api/v1/events/user/${userId}`,
+    );
     return res.data;
   },
 
-  async getEventsOwnedByUser(userId: string): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(`/api/v1/events/user/${userId}/owned`);
+  async getEventsOwnedByUser(
+    userId: string,
+  ): Promise<UserEventRelationshipResponse[]> {
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      `/api/v1/events/user/${userId}/owned`,
+    );
     return res.data;
   },
 
-  async getUpcomingEventsForUser(userId: string): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(`/api/v1/events/user/${userId}/upcoming`);
+  async getUpcomingEventsForUser(
+    userId: string,
+  ): Promise<UserEventRelationshipResponse[]> {
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      `/api/v1/events/user/${userId}/upcoming`,
+    );
     return res.data;
   },
 
-  async getPastEventsForUser(userId: string): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(`/api/v1/events/user/${userId}/past`);
+  async getPastEventsForUser(
+    userId: string,
+  ): Promise<UserEventRelationshipResponse[]> {
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      `/api/v1/events/user/${userId}/past`,
+    );
     return res.data;
   },
 
   async getMyEventsSummary(): Promise<EventSummaryResponse> {
-    const res = await http.get<EventSummaryResponse>('/api/v1/events/my-events');
+    const res = await http.get<EventSummaryResponse>(
+      '/api/v1/events/my-events',
+    );
     return res.data;
   },
 
   async getMyOwnedEvents(): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>('/api/v1/events/my-events/owned');
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      '/api/v1/events/my-events/owned',
+    );
     return res.data;
   },
 
   async getMyUpcomingEvents(): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>('/api/v1/events/my-events/upcoming');
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      '/api/v1/events/my-events/upcoming',
+    );
     return res.data;
   },
 
   async getMyPastEvents(): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>('/api/v1/events/my-events/past');
+    const res = await http.get<UserEventRelationshipResponse[]>(
+      '/api/v1/events/my-events/past',
+    );
     return res.data;
   },
 
@@ -313,8 +361,13 @@ export const eventService = {
     return res.data;
   },
 
-  async updateEventStatus(eventId: string, eventStatus: EventStatus): Promise<Event> {
-    const res = await http.put<Event>(`/api/v1/events/${eventId}/status`, { eventStatus });
+  async updateEventStatus(
+    eventId: string,
+    eventStatus: EventStatus,
+  ): Promise<Event> {
+    const res = await http.put<Event>(`/api/v1/events/${eventId}/status`, {
+      eventStatus,
+    });
     return res.data;
   },
 
@@ -324,7 +377,10 @@ export const eventService = {
   },
 
   async cancelEvent(eventId: string, reason?: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/cancel`, reason ? { reason } : undefined);
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/cancel`,
+      reason ? { reason } : undefined,
+    );
     return res.data;
   },
 
@@ -334,47 +390,69 @@ export const eventService = {
   },
 
   async openRegistration(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/open-registration`);
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/open-registration`,
+    );
     return res.data;
   },
 
   async closeRegistration(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/close-registration`);
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/close-registration`,
+    );
     return res.data;
   },
 
   async getEventCapacity(eventId: string): Promise<EventCapacityResponse> {
-    const res = await http.get<EventCapacityResponse>(`/api/v1/events/${eventId}/capacity`);
+    const res = await http.get<EventCapacityResponse>(
+      `/api/v1/events/${eventId}/capacity`,
+    );
     return res.data;
   },
 
   async updateEventCapacity(eventId: string, capacity: number): Promise<Event> {
-    const res = await http.put<Event>(`/api/v1/events/${eventId}/capacity`, { capacity });
+    const res = await http.put<Event>(`/api/v1/events/${eventId}/capacity`, {
+      capacity,
+    });
     return res.data;
   },
 
   async getAvailableCapacity(eventId: string): Promise<number> {
-    const res = await http.get<number>(`/api/v1/events/${eventId}/capacity/available`);
+    const res = await http.get<number>(
+      `/api/v1/events/${eventId}/capacity/available`,
+    );
     return res.data;
   },
 
-  async updateRegistrationDeadline(eventId: string, deadline: string): Promise<Event> {
-    const res = await http.put<Event>(`/api/v1/events/${eventId}/registration-deadline`, { deadline });
+  async updateRegistrationDeadline(
+    eventId: string,
+    deadline: string,
+  ): Promise<Event> {
+    const res = await http.put<Event>(
+      `/api/v1/events/${eventId}/registration-deadline`,
+      { deadline },
+    );
     return res.data;
   },
 
   async getEventQRCode(eventId: string): Promise<EventQRCodeResponse> {
-    const res = await http.get<EventQRCodeResponse>(`/api/v1/events/${eventId}/qr-code`);
+    const res = await http.get<EventQRCodeResponse>(
+      `/api/v1/events/${eventId}/qr-code`,
+    );
     return res.data;
   },
 
   async generateEventQRCode(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/qr-code/generate`);
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/qr-code/generate`,
+    );
     return res.data;
   },
 
   async regenerateEventQRCode(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/qr-code/regenerate`);
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/qr-code/regenerate`,
+    );
     return res.data;
   },
 
@@ -384,12 +462,20 @@ export const eventService = {
   },
 
   async getEventVisibility(eventId: string): Promise<EventVisibilityResponse> {
-    const res = await http.get<EventVisibilityResponse>(`/api/v1/events/${eventId}/visibility`);
+    const res = await http.get<EventVisibilityResponse>(
+      `/api/v1/events/${eventId}/visibility`,
+    );
     return res.data;
   },
 
-  async updateEventVisibility(eventId: string, payload: VisibilityRequest): Promise<Event> {
-    const res = await http.put<Event>(`/api/v1/events/${eventId}/visibility`, payload);
+  async updateEventVisibility(
+    eventId: string,
+    payload: VisibilityRequest,
+  ): Promise<Event> {
+    const res = await http.put<Event>(
+      `/api/v1/events/${eventId}/visibility`,
+      payload,
+    );
     return res.data;
   },
 
@@ -399,74 +485,127 @@ export const eventService = {
   },
 
   async makeEventPrivate(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/make-private`);
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/make-private`,
+    );
     return res.data;
   },
 
   async getEventAnalytics(eventId: string): Promise<EventAnalyticsResponse> {
-    const res = await http.get<EventAnalyticsResponse>(`/api/v1/events/${eventId}/analytics`);
+    const res = await http.get<EventAnalyticsResponse>(
+      `/api/v1/events/${eventId}/analytics`,
+    );
     return res.data;
   },
 
-  async duplicateEvent(eventId: string, request: DuplicateEventRequest): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/duplicate`, request);
+  async duplicateEvent(
+    eventId: string,
+    request: DuplicateEventRequest,
+  ): Promise<Event> {
+    const res = await http.post<Event>(
+      `/api/v1/events/${eventId}/duplicate`,
+      request,
+    );
     return res.data;
   },
 
   async validateEvent(eventId: string): Promise<EventValidationResponse> {
-    const res = await http.get<EventValidationResponse>(`/api/v1/events/${eventId}/validation`);
+    const res = await http.get<EventValidationResponse>(
+      `/api/v1/events/${eventId}/validation`,
+    );
     return res.data;
   },
 
   async getEventHealth(eventId: string): Promise<EventHealthCheckResponse> {
-    const res = await http.get<EventHealthCheckResponse>(`/api/v1/events/${eventId}/health`);
-    return res.data;
-  },
-
-  async getCollaborators(eventId: string, params?: PaginationParams): Promise<EventCollaboratorResponse[]> {
-    const res = await http.get<EventCollaboratorResponse[]>(
-      `/api/v1/events/${eventId}/collaborators${buildQueryString(params)}`
+    const res = await http.get<EventHealthCheckResponse>(
+      `/api/v1/events/${eventId}/health`,
     );
     return res.data;
   },
 
-  async addCollaborator(eventId: string, payload: CollaboratorRequest): Promise<EventCollaboratorResponse> {
-    const res = await http.post<EventCollaboratorResponse>(`/api/v1/events/${eventId}/collaborators`, payload);
+  async getCollaborators(
+    eventId: string,
+    params?: PaginationParams,
+  ): Promise<EventCollaboratorResponse[]> {
+    const res = await http.get<EventCollaboratorResponse[]>(
+      `/api/v1/events/${eventId}/collaborators${buildQueryString(params)}`,
+    );
     return res.data;
   },
 
-  async updateCollaborator(eventId: string, collaboratorId: string, payload: CollaboratorRequest): Promise<EventCollaboratorResponse> {
+  async addCollaborator(
+    eventId: string,
+    payload: CollaboratorRequest,
+  ): Promise<EventCollaboratorResponse> {
+    const res = await http.post<EventCollaboratorResponse>(
+      `/api/v1/events/${eventId}/collaborators`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async updateCollaborator(
+    eventId: string,
+    collaboratorId: string,
+    payload: CollaboratorRequest,
+  ): Promise<EventCollaboratorResponse> {
     const res = await http.put<EventCollaboratorResponse>(
       `/api/v1/events/${eventId}/collaborators/${collaboratorId}`,
-      payload
+      payload,
     );
     return res.data;
   },
 
-  async removeCollaborator(eventId: string, collaboratorId: string): Promise<boolean> {
-    await http.delete(`/api/v1/events/${eventId}/collaborators/${collaboratorId}`);
+  async removeCollaborator(
+    eventId: string,
+    collaboratorId: string,
+  ): Promise<boolean> {
+    await http.delete(
+      `/api/v1/events/${eventId}/collaborators/${collaboratorId}`,
+    );
     return true;
   },
 
-  async getEventMedia(eventId: string, params?: { category?: string; type?: string }): Promise<EventMediaResponse[]> {
+  async getEventMedia(
+    eventId: string,
+    params?: { category?: string; type?: string },
+  ): Promise<EventMediaResponse[]> {
     const res = await http.get<EventMediaResponse[]>(
-      `/api/v1/events/${eventId}/media${buildQueryString(params)}`
+      `/api/v1/events/${eventId}/media${buildQueryString(params)}`,
     );
     return res.data;
   },
 
-  async uploadEventMedia(eventId: string, payload: MediaUploadRequest): Promise<EventPresignedUploadResponse> {
-    const res = await http.post<EventPresignedUploadResponse>(`/api/v1/events/${eventId}/media`, payload);
+  async uploadEventMedia(
+    eventId: string,
+    payload: MediaUploadRequest,
+  ): Promise<EventPresignedUploadResponse> {
+    const res = await http.post<EventPresignedUploadResponse>(
+      `/api/v1/events/${eventId}/media`,
+      payload,
+    );
     return res.data;
   },
 
-  async getEventMediaItem(eventId: string, mediaId: string): Promise<EventMediaResponse> {
-    const res = await http.get<EventMediaResponse>(`/api/v1/events/${eventId}/media/${mediaId}`);
+  async getEventMediaItem(
+    eventId: string,
+    mediaId: string,
+  ): Promise<EventMediaResponse> {
+    const res = await http.get<EventMediaResponse>(
+      `/api/v1/events/${eventId}/media/${mediaId}`,
+    );
     return res.data;
   },
 
-  async updateEventMedia(eventId: string, mediaId: string, payload: Partial<MediaUploadRequest>): Promise<EventMediaResponse> {
-    const res = await http.put<EventMediaResponse>(`/api/v1/events/${eventId}/media/${mediaId}`, payload);
+  async updateEventMedia(
+    eventId: string,
+    mediaId: string,
+    payload: Partial<MediaUploadRequest>,
+  ): Promise<EventMediaResponse> {
+    const res = await http.put<EventMediaResponse>(
+      `/api/v1/events/${eventId}/media/${mediaId}`,
+      payload,
+    );
     return res.data;
   },
 
@@ -476,75 +615,198 @@ export const eventService = {
   },
 
   async getEventAssets(eventId: string): Promise<EventMediaResponse[]> {
-    const res = await http.get<EventMediaResponse[]>(`/api/v1/events/${eventId}/assets`);
-    return res.data;
-  },
-
-  async uploadEventAsset(eventId: string, payload: MediaUploadRequest): Promise<EventPresignedUploadResponse> {
-    const res = await http.post<EventPresignedUploadResponse>(`/api/v1/events/${eventId}/assets`, payload);
-    return res.data;
-  },
-
-  async updateEventCoverImage(eventId: string, payload: MediaUploadRequest): Promise<EventPresignedUploadResponse> {
-    const res = await http.put<EventPresignedUploadResponse>(`/api/v1/events/${eventId}/cover-image`, payload);
-    return res.data;
-  },
-
-  async removeEventCoverImage(eventId: string): Promise<EventCoverImageResponse> {
-    const res = await http.delete<EventCoverImageResponse>(`/api/v1/events/${eventId}/cover-image`);
-    return res.data;
-  },
-
-  async getNotificationSettings(eventId: string): Promise<EventNotificationSettingsResponse> {
-    const res = await http.get<EventNotificationSettingsResponse>(`/api/v1/events/${eventId}/notifications`);
-    return res.data;
-  },
-
-  async updateNotificationSettings(eventId: string, payload: NotificationSettingsRequest): Promise<EventNotificationSettingsResponse> {
-    const res = await http.put<EventNotificationSettingsResponse>(`/api/v1/events/${eventId}/notifications`, payload);
-    return res.data;
-  },
-
-  async sendEventNotification(eventId: string, payload: SendNotificationRequest): Promise<EventNotificationResponse> {
-    const res = await http.post<EventNotificationResponse>(`/api/v1/events/${eventId}/notifications/send`, payload);
-    return res.data;
-  },
-
-  async getEventReminders(eventId: string, params?: PaginationParams): Promise<EventReminderResponse[]> {
-    const res = await http.get<EventReminderResponse[]>(
-      `/api/v1/events/${eventId}/reminders${buildQueryString(params)}`
+    const res = await http.get<EventMediaResponse[]>(
+      `/api/v1/events/${eventId}/assets`,
     );
     return res.data;
   },
 
-  async createEventReminder(eventId: string, payload: CreateReminderRequest): Promise<EventReminderResponse> {
-    const res = await http.post<EventReminderResponse>(`/api/v1/events/${eventId}/reminders`, payload);
+  async uploadEventAsset(
+    eventId: string,
+    payload: MediaUploadRequest,
+  ): Promise<EventPresignedUploadResponse> {
+    const res = await http.post<EventPresignedUploadResponse>(
+      `/api/v1/events/${eventId}/assets`,
+      payload,
+    );
     return res.data;
   },
 
-  async updateEventReminder(eventId: string, reminderId: string, payload: UpdateReminderRequest): Promise<EventReminderResponse> {
+  async updateEventCoverImage(
+    eventId: string,
+    payload: MediaUploadRequest,
+  ): Promise<EventPresignedUploadResponse> {
+    const res = await http.put<EventPresignedUploadResponse>(
+      `/api/v1/events/${eventId}/cover-image`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async uploadCoverImage(
+    eventId: string,
+    uploadRequest: MediaUploadRequest,
+    imageAsset: any,
+  ): Promise<boolean> {
+    try {
+      // Step 1: Get presigned URL
+      const presignedResponse = await this.updateEventCoverImage(
+        eventId,
+        uploadRequest,
+      );
+
+      // Step 2: Upload the actual file to the presigned URL
+      if (presignedResponse.uploadUrl && imageAsset.uri) {
+        // Prepare FormData for the upload
+        const formData = new FormData();
+
+        // Add any required fields from the presigned response
+        if (presignedResponse.fields) {
+          Object.entries(presignedResponse.fields).forEach(([key, value]) => {
+            formData.append(key, value);
+          });
+        }
+
+        // Add the file - React Native specific format
+        formData.append('file', {
+          uri: imageAsset.uri,
+          type: imageAsset.type || 'image/jpeg',
+          name: imageAsset.fileName || 'cover-image.jpg',
+        } as any);
+
+        // Create request headers
+        const headers: Record<string, string> = {
+          'Content-Type': 'multipart/form-data',
+        };
+
+        // Add any required headers from the presigned response
+        if (presignedResponse.headers) {
+          Object.assign(headers, presignedResponse.headers);
+        }
+
+        // Upload to presigned URL
+        const uploadResponse = await fetch(presignedResponse.uploadUrl, {
+          method: 'POST',
+          body: formData,
+          headers,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          throw new Error(
+            `Upload failed (${uploadResponse.status}): ${errorText}`,
+          );
+        }
+
+        return true;
+      }
+
+      throw new Error('No upload URL provided in presigned response');
+    } catch (error) {
+      console.error('Cover image upload error:', error);
+      ErrorHandler.handle(error, 'uploadCoverImage');
+      throw error;
+    }
+  },
+
+  async removeEventCoverImage(
+    eventId: string,
+  ): Promise<EventCoverImageResponse> {
+    const res = await http.delete<EventCoverImageResponse>(
+      `/api/v1/events/${eventId}/cover-image`,
+    );
+    return res.data;
+  },
+
+  async getNotificationSettings(
+    eventId: string,
+  ): Promise<EventNotificationSettingsResponse> {
+    const res = await http.get<EventNotificationSettingsResponse>(
+      `/api/v1/events/${eventId}/notifications`,
+    );
+    return res.data;
+  },
+
+  async updateNotificationSettings(
+    eventId: string,
+    payload: NotificationSettingsRequest,
+  ): Promise<EventNotificationSettingsResponse> {
+    const res = await http.put<EventNotificationSettingsResponse>(
+      `/api/v1/events/${eventId}/notifications`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async sendEventNotification(
+    eventId: string,
+    payload: SendNotificationRequest,
+  ): Promise<EventNotificationResponse> {
+    const res = await http.post<EventNotificationResponse>(
+      `/api/v1/events/${eventId}/notifications/send`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async getEventReminders(
+    eventId: string,
+    params?: PaginationParams,
+  ): Promise<EventReminderResponse[]> {
+    const res = await http.get<EventReminderResponse[]>(
+      `/api/v1/events/${eventId}/reminders${buildQueryString(params)}`,
+    );
+    return res.data;
+  },
+
+  async createEventReminder(
+    eventId: string,
+    payload: CreateReminderRequest,
+  ): Promise<EventReminderResponse> {
+    const res = await http.post<EventReminderResponse>(
+      `/api/v1/events/${eventId}/reminders`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async updateEventReminder(
+    eventId: string,
+    reminderId: string,
+    payload: UpdateReminderRequest,
+  ): Promise<EventReminderResponse> {
     const res = await http.put<EventReminderResponse>(
       `/api/v1/events/${eventId}/reminders/${reminderId}`,
-      payload
+      payload,
     );
     return res.data;
   },
 
-  async deleteEventReminder(eventId: string, reminderId: string): Promise<boolean> {
+  async deleteEventReminder(
+    eventId: string,
+    reminderId: string,
+  ): Promise<boolean> {
     await http.delete(`/api/v1/events/${eventId}/reminders/${reminderId}`);
     return true;
   },
 
-  async getEventReminder(eventId: string, reminderId: string): Promise<EventReminderResponse> {
-    const res = await http.get<EventReminderResponse>(`/api/v1/events/${eventId}/reminders/${reminderId}`);
+  async getEventReminder(
+    eventId: string,
+    reminderId: string,
+  ): Promise<EventReminderResponse> {
+    const res = await http.get<EventReminderResponse>(
+      `/api/v1/events/${eventId}/reminders/${reminderId}`,
+    );
     return res.data;
   },
 
   async generateEventSuggestion(prompt: string) {
-    const res = await http.post<ApiResponse<{ suggestion: string; eventData: Partial<CreateEventRequest> }>>(
-      '/api/v1/events/ai/generate',
-      { prompt }
-    );
+    const res = await http.post<
+      ApiResponse<{
+        suggestion: string;
+        eventData: Partial<CreateEventRequest>;
+      }>
+    >('/api/v1/events/ai/generate', { prompt });
     const body = res.data;
     if (body.status === 200 && body.data) {
       return body.data;
@@ -552,11 +814,13 @@ export const eventService = {
     throw new Error(body.message || 'Failed to generate event suggestion');
   },
 
-  async optimizeEvent(eventId: string, optimizationType: 'budget' | 'timeline' | 'attendance') {
-    const res = await http.post<ApiResponse<{ optimizedEvent: Event; recommendations: string[] }>>(
-      `/api/v1/events/${eventId}/ai/optimize`,
-      { optimizationType }
-    );
+  async optimizeEvent(
+    eventId: string,
+    optimizationType: 'budget' | 'timeline' | 'attendance',
+  ) {
+    const res = await http.post<
+      ApiResponse<{ optimizedEvent: Event; recommendations: string[] }>
+    >(`/api/v1/events/${eventId}/ai/optimize`, { optimizationType });
     const body = res.data;
     if (body.status === 200 && body.data) {
       return body.data;
@@ -565,7 +829,9 @@ export const eventService = {
   },
 
   async healthCheck() {
-    const res = await http.get<ApiResponse<{ status: string; timestamp: string }>>('/services/events/actuator/health');
+    const res = await http.get<
+      ApiResponse<{ status: string; timestamp: string }>
+    >('/services/events/actuator/health');
     return res.data;
   },
 };

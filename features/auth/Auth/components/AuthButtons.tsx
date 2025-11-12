@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
 import { Apple, Mail, Sparkles } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 
-type Props = { 
+type Props = {
   onApplePress?: () => void;
   onGooglePress?: () => void;
   onSpotifyPress?: () => void;
@@ -13,24 +13,28 @@ type Props = {
 export const AuthButtons = ({ onApplePress, onSpotifyPress }: Props) => {
   const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
   const { t } = useI18n();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   
   return (
     <View style={{ gap: spacing.md }}>
-      <TouchableOpacity 
-        activeOpacity={0.8} 
+      <TouchableOpacity
+        activeOpacity={0.8}
         style={{
           backgroundColor: colors.social.apple,
-          height: 56,
+          height: 48,
           borderRadius: borderRadius.full,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: spacing.sm,
-          ...shadows.md,
+          ...shadows.sm,
+          borderWidth: 0.5,
+          borderColor: '#FFFFFF' ,
         }}
         onPress={onApplePress}
       >
-        <Apple size={20} color="#FFFFFF" fill="#FFFFFF" />
+        <Apple size={18} color="#FFFFFF" fill="#FFFFFF" />
         <Text style={{
           color: '#FFFFFF',
           fontSize: typography.size.base,
@@ -44,21 +48,17 @@ export const AuthButtons = ({ onApplePress, onSpotifyPress }: Props) => {
         activeOpacity={0.8} 
         style={{
           backgroundColor: colors.social.spotify,
-          height: 56,
+          height: 48,
           borderRadius: borderRadius.full,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: spacing.sm,
-          shadowColor: colors.social.spotify,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.25,
-          shadowRadius: 8,
-          elevation: 4,
+          ...shadows.sm,
         }}
         onPress={onSpotifyPress}
       >
-        <Mail size={20} color="#FFFFFF" />
+        <Mail size={18} color="#FFFFFF" />
         <Text style={{
           color: '#FFFFFF',
           fontSize: typography.size.base,
@@ -67,22 +67,6 @@ export const AuthButtons = ({ onApplePress, onSpotifyPress }: Props) => {
           {t('ContinueWithSpotify')}
         </Text>
       </TouchableOpacity>
-
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: spacing.sm,
-        gap: spacing.xs,
-      }}>
-        <Sparkles size={16} color={colors.text.tertiary} />
-        <Text style={{
-          color: colors.text.tertiary,
-          fontSize: typography.size.sm,
-        }}>
-          {t('QuickSecureAuth')}
-        </Text>
-      </View>
     </View>
   );
 };

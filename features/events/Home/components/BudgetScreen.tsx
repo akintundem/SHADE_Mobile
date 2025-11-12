@@ -117,58 +117,53 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-      {/* Premium Header */}
+      {/* Clean Modern Header */}
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: spacing.xl,
-        paddingTop: spacing.lg,
-        paddingBottom: spacing.xl,
-        borderBottomWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface,
-        ...shadows.md
+        paddingVertical: spacing.lg,
+        backgroundColor: colors.background,
       }}>
         <TouchableOpacity 
           onPress={onBack} 
           style={{ 
-            width: 44,
-            height: 44,
-            borderRadius: borderRadius.full,
-            backgroundColor: colors.background,
+            width: 40,
+            height: 40,
+            borderRadius: borderRadius.lg,
+            backgroundColor: colors.surface,
             alignItems: 'center',
             justifyContent: 'center',
-            ...shadows.sm
+            borderWidth: 1,
+            borderColor: colors.border,
           }}
           activeOpacity={0.7}
         >
-          <ArrowLeft size={22} color={colors.text.primary} strokeWidth={2.5} />
+          <ArrowLeft size={20} color={colors.text.primary} />
         </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size['2xl'],
-            letterSpacing: -1,
-            marginLeft: -44
-          }}>
-            Budget & Finance
-          </Text>
-        </View>
+        
+        <Text style={{
+          color: colors.text.primary,
+          fontWeight: typography.weight.bold,
+          fontSize: typography.size.xl,
+          letterSpacing: -0.5,
+        }}>
+          Budget
+        </Text>
+        
         <TouchableOpacity
           style={{
-            width: 48,
-            height: 48,
-            borderRadius: borderRadius.full,
+            width: 40,
+            height: 40,
+            borderRadius: borderRadius.lg,
             backgroundColor: brand.primary,
             alignItems: 'center',
             justifyContent: 'center',
-            ...shadows.lg
           }}
           activeOpacity={0.8}
         >
-          <Plus size={24} color={colors.text.inverse} strokeWidth={2.5} />
+          <Plus size={20} color={colors.text.inverse} />
         </TouchableOpacity>
       </View>
 
@@ -176,36 +171,20 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
         contentContainerStyle={{ padding: spacing.xl, gap: spacing.xl }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Premium Budget Overview - Hero Card */}
+        {/* Clean Budget Overview */}
         <View style={{
           backgroundColor: colors.surface,
-          borderRadius: borderRadius['2xl'],
-          padding: spacing['2xl'],
+          borderRadius: borderRadius.xl,
+          padding: spacing.xl,
           borderWidth: 1,
           borderColor: colors.border,
-          ...shadows.lg,
-          overflow: 'hidden'
         }}>
-          {/* Gradient Background Effect */}
-          <View style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: 200,
-            height: 200,
-            borderRadius: borderRadius.full,
-            backgroundColor: brand.primary,
-            opacity: 0.05
-          }} />
-          
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.xl }}>
-            <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg }}>
+            <View>
               <Text style={{
                 color: colors.text.secondary,
-                fontSize: typography.size.xs,
-                fontWeight: typography.weight.semibold,
-                textTransform: 'uppercase',
-                letterSpacing: 1.2,
+                fontSize: typography.size.sm,
+                fontWeight: typography.weight.medium,
                 marginBottom: spacing.xs
               }}>
                 Total Budget
@@ -213,169 +192,127 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
               <Text style={{
                 color: colors.text.primary,
                 fontWeight: typography.weight.bold,
-                fontSize: 42,
-                letterSpacing: -1.5,
-                lineHeight: 48
+                fontSize: typography.size['3xl'],
+                letterSpacing: -1
               }}>
                 ${totalBudget.toLocaleString()}
               </Text>
             </View>
             <View style={{
-              width: 72,
-              height: 72,
-              borderRadius: borderRadius.xl,
+              width: 56,
+              height: 56,
+              borderRadius: borderRadius.lg,
               backgroundColor: brand.primary,
               alignItems: 'center',
               justifyContent: 'center',
-              ...shadows.lg
             }}>
-              <DollarSign size={32} color={colors.text.inverse} strokeWidth={2.5} />
+              <DollarSign size={28} color={colors.text.inverse} />
             </View>
           </View>
 
-          {/* Enhanced Progress Bar */}
+          {/* Simple Progress Bar */}
           <View style={{ 
-            height: 14, 
-            backgroundColor: colors.border, 
-            borderRadius: borderRadius.full, 
+            height: 8, 
+            backgroundColor: colors.background, 
+            borderRadius: borderRadius.sm, 
             overflow: 'hidden',
-            marginBottom: spacing.xl,
-            ...shadows.sm
+            marginBottom: spacing.md,
           }}>
             <View style={{
               width: `${Math.min(spentPercentage, 100)}%`,
               height: '100%',
               backgroundColor: spentPercentage > 80 ? colors.semantic.error : brand.primary,
-              borderRadius: borderRadius.full,
-              shadowColor: brand.primary,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.3,
-              shadowRadius: 4,
-              elevation: 4
+              borderRadius: borderRadius.sm,
             }} />
           </View>
+          
           <Text style={{
             color: colors.text.secondary,
             fontSize: typography.size.xs,
             textAlign: 'right',
-            marginTop: spacing.xs,
-            fontWeight: typography.weight.semibold
+            marginBottom: spacing.lg,
           }}>
             {spentPercentage.toFixed(1)}% spent
           </Text>
 
-          <View style={{ gap: spacing.lg, marginTop: spacing.xl }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            gap: spacing.md,
+          }}>
             <View style={{ 
-              flexDirection: 'row', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
+              flex: 1,
               paddingVertical: spacing.md,
               paddingHorizontal: spacing.lg,
               backgroundColor: colors.background,
-              borderRadius: borderRadius.xl,
-              borderWidth: 1,
-              borderColor: colors.border
+              borderRadius: borderRadius.lg,
+              alignItems: 'center',
             }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <View style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: borderRadius.full,
-                  backgroundColor: colors.semantic.error,
-                  ...shadows.sm
-                }} />
-                <Text style={{ 
-                  color: colors.text.secondary, 
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.semibold
-                }}>
-                  Spent
-                </Text>
-              </View>
+              <Text style={{ 
+                color: colors.text.secondary, 
+                fontSize: typography.size.xs,
+                marginBottom: spacing.xs,
+              }}>
+                Spent
+              </Text>
               <Text style={{
-                color: colors.semantic.error,
+                color: colors.text.primary,
                 fontWeight: typography.weight.bold,
-                fontSize: typography.size['2xl'],
-                letterSpacing: -0.8
+                fontSize: typography.size.lg,
               }}>
                 ${totalSpent.toLocaleString()}
               </Text>
             </View>
 
             <View style={{ 
-              flexDirection: 'row', 
-              justifyContent: 'space-between', 
-              alignItems: 'center',
+              flex: 1,
               paddingVertical: spacing.md,
               paddingHorizontal: spacing.lg,
               backgroundColor: colors.background,
-              borderRadius: borderRadius.xl,
-              borderWidth: 1,
-              borderColor: colors.border
+              borderRadius: borderRadius.lg,
+              alignItems: 'center',
             }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                <View style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: borderRadius.full,
-                  backgroundColor: remaining > 0 ? colors.semantic.success : colors.semantic.error,
-                  ...shadows.sm
-                }} />
-                <Text style={{ 
-                  color: colors.text.secondary, 
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.semibold
-                }}>
-                  Remaining
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                {remaining > 0 ? (
-                  <TrendingDown size={20} color={colors.semantic.success} strokeWidth={2.5} />
-                ) : (
-                  <TrendingUp size={20} color={colors.semantic.error} strokeWidth={2.5} />
-                )}
-                <Text style={{
-                  color: remaining > 0 ? colors.semantic.success : colors.semantic.error,
-                  fontWeight: typography.weight.bold,
-                  fontSize: typography.size['2xl'],
-                  letterSpacing: -0.8
-                }}>
-                  ${remaining.toLocaleString()}
-                </Text>
-              </View>
+              <Text style={{ 
+                color: colors.text.secondary, 
+                fontSize: typography.size.xs,
+                marginBottom: spacing.xs,
+              }}>
+                Remaining
+              </Text>
+              <Text style={{
+                color: remaining > 0 ? colors.semantic.success : colors.semantic.error,
+                fontWeight: typography.weight.bold,
+                fontSize: typography.size.lg,
+              }}>
+                ${remaining.toLocaleString()}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Enhanced Category Filter Pills */}
+        {/* Category Filter */}
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={{ gap: spacing.sm, paddingHorizontal: spacing.xs }}
+          contentContainerStyle={{ gap: spacing.sm, paddingHorizontal: spacing.md }}
         >
           {categories.map(category => (
             <TouchableOpacity
               key={category}
               onPress={() => setFilterCategory(category)}
               style={{
-                paddingHorizontal: spacing.xl,
-                paddingVertical: spacing.md,
-                borderRadius: borderRadius.full,
+                paddingHorizontal: spacing.lg,
+                paddingVertical: spacing.sm,
+                borderRadius: borderRadius.lg,
                 backgroundColor: filterCategory === category ? brand.primary : colors.surface,
-                borderWidth: filterCategory === category ? 0 : 1.5,
-                borderColor: colors.border,
-                ...(filterCategory === category ? shadows.lg : shadows.sm),
-                minWidth: 100,
-                alignItems: 'center'
+                borderWidth: 1,
+                borderColor: filterCategory === category ? brand.primary : colors.border,
               }}
               activeOpacity={0.7}
             >
               <Text style={{
                 color: filterCategory === category ? colors.text.inverse : colors.text.primary,
-                fontWeight: typography.weight.bold,
+                fontWeight: typography.weight.semibold,
                 fontSize: typography.size.sm,
-                letterSpacing: 0.5
               }}>
                 {category === 'all' ? 'All' : category}
               </Text>
@@ -383,87 +320,58 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
           ))}
         </ScrollView>
 
-        {/* Premium Category Breakdown */}
+        {/* Category Breakdown */}
         <View style={{
           backgroundColor: colors.surface,
-          borderRadius: borderRadius['2xl'],
-          padding: spacing['2xl'],
+          borderRadius: borderRadius.xl,
+          padding: spacing.xl,
           borderWidth: 1,
           borderColor: colors.border,
-          ...shadows.lg
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xl }}>
-            <Text style={{
-              color: colors.text.primary,
-              fontSize: typography.size['2xl'],
-              fontWeight: typography.weight.bold,
-              letterSpacing: -1
-            }}>
-              Category Breakdown
-            </Text>
-            <View style={{
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.xs,
-              backgroundColor: colors.background,
-              borderRadius: borderRadius.full,
-              borderWidth: 1,
-              borderColor: colors.border
-            }}>
-              <Text style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.xs,
-                fontWeight: typography.weight.semibold
-              }}>
-                {budget.categories.length} categories
-              </Text>
-            </View>
-          </View>
+          <Text style={{
+            color: colors.text.primary,
+            fontSize: typography.size.lg,
+            fontWeight: typography.weight.bold,
+            marginBottom: spacing.lg,
+          }}>
+            Categories
+          </Text>
 
-          <View style={{ gap: spacing.xl }}>
-            {budget.categories.map((category, index) => {
+          <View style={{ gap: spacing.lg }}>
+            {budget.categories.map((category) => {
               const categoryPercentage = category.budgeted > 0 ? (category.spent / category.budgeted) * 100 : 0;
               const isOverBudget = category.spent > category.budgeted;
 
               return (
-                <View key={category.name} style={{ gap: spacing.md }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                      <View style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: borderRadius.full,
-                        backgroundColor: brand.primary
-                      }} />
-                      <Text style={{
-                        color: colors.text.primary,
-                        fontWeight: typography.weight.bold,
-                        fontSize: typography.size.lg,
-                        letterSpacing: -0.5
-                      }}>
-                        {category.name}
-                      </Text>
-                    </View>
+                <View key={category.name}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm }}>
+                    <Text style={{
+                      color: colors.text.primary,
+                      fontWeight: typography.weight.semibold,
+                      fontSize: typography.size.base,
+                    }}>
+                      {category.name}
+                    </Text>
                     <Text style={{ 
                       color: colors.text.secondary, 
                       fontSize: typography.size.sm,
-                      fontWeight: typography.weight.semibold
                     }}>
                       ${category.spent.toLocaleString()} / ${category.budgeted.toLocaleString()}
                     </Text>
                   </View>
 
                   <View style={{
-                    height: 10,
-                    backgroundColor: colors.border,
-                    borderRadius: borderRadius.full,
+                    height: 6,
+                    backgroundColor: colors.background,
+                    borderRadius: borderRadius.sm,
                     overflow: 'hidden',
-                    ...shadows.sm
+                    marginBottom: spacing.sm,
                   }}>
                     <View style={{
                       width: `${Math.min(categoryPercentage, 100)}%`,
                       height: '100%',
                       backgroundColor: isOverBudget ? colors.semantic.error : brand.primary,
-                      borderRadius: borderRadius.full
+                      borderRadius: borderRadius.sm
                     }} />
                   </View>
 
@@ -471,24 +379,16 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
                     <Text style={{
                       color: colors.text.tertiary,
                       fontSize: typography.size.xs,
-                      fontWeight: typography.weight.medium
                     }}>
-                      {categoryPercentage.toFixed(1)}% spent
+                      {categoryPercentage.toFixed(1)}% used
                     </Text>
-                    <View style={{
-                      paddingHorizontal: spacing.md,
-                      paddingVertical: spacing.xs,
-                      backgroundColor: category.remaining > 0 ? colors.semantic.success + '15' : colors.semantic.error + '15',
-                      borderRadius: borderRadius.full
+                    <Text style={{
+                      color: category.remaining > 0 ? colors.semantic.success : colors.semantic.error,
+                      fontSize: typography.size.xs,
+                      fontWeight: typography.weight.semibold,
                     }}>
-                      <Text style={{
-                        color: category.remaining > 0 ? colors.semantic.success : colors.semantic.error,
-                        fontSize: typography.size.sm,
-                        fontWeight: typography.weight.bold
-                      }}>
-                        ${category.remaining.toLocaleString()} remaining
-                      </Text>
-                    </View>
+                      ${category.remaining.toLocaleString()} left
+                    </Text>
                   </View>
                 </View>
               );
@@ -496,67 +396,63 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
           </View>
         </View>
 
-        {/* Premium Expenses List */}
+        {/* Expenses List */}
         <View style={{
           backgroundColor: colors.surface,
-          borderRadius: borderRadius['2xl'],
-          padding: spacing['2xl'],
+          borderRadius: borderRadius.xl,
+          padding: spacing.xl,
           borderWidth: 1,
           borderColor: colors.border,
-          ...shadows.lg
         }}>
           <View style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: spacing.xl
+            marginBottom: spacing.lg
           }}>
             <Text style={{
               color: colors.text.primary,
-              fontSize: typography.size['2xl'],
+              fontSize: typography.size.lg,
               fontWeight: typography.weight.bold,
-              letterSpacing: -1
             }}>
               Recent Expenses
             </Text>
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               <TouchableOpacity 
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: borderRadius.full,
+                  width: 36,
+                  height: 36,
+                  borderRadius: borderRadius.lg,
                   backgroundColor: colors.background,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
                   borderColor: colors.border,
-                  ...shadows.sm
                 }}
                 activeOpacity={0.7}
               >
-                <Filter size={18} color={colors.text.primary} strokeWidth={2.5} />
+                <Filter size={16} color={colors.text.primary} />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: borderRadius.full,
+                  width: 36,
+                  height: 36,
+                  borderRadius: borderRadius.lg,
                   backgroundColor: colors.background,
                   alignItems: 'center',
                   justifyContent: 'center',
                   borderWidth: 1,
                   borderColor: colors.border,
-                  ...shadows.sm
                 }}
                 activeOpacity={0.7}
               >
-                <Download size={18} color={colors.text.primary} strokeWidth={2.5} />
+                <Download size={16} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
           </View>
 
-          <View style={{ gap: spacing.md }}>
-            {filteredExpenses.map((expense, index) => (
+          <View style={{ gap: spacing.sm }}>
+            {filteredExpenses.map((expense) => (
               <ExpenseCard key={expense.id} expense={expense} />
             ))}
           </View>
@@ -567,7 +463,7 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
 }
 
 function ExpenseCard({ expense }: { expense: ExpenseDTO }) {
-  const { colors, typography, spacing, borderRadius, shadows } = useTheme();
+  const { colors, typography, spacing, borderRadius } = useTheme();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -586,35 +482,33 @@ function ExpenseCard({ expense }: { expense: ExpenseDTO }) {
     <View style={{
       padding: spacing.lg,
       backgroundColor: colors.background,
-      borderRadius: borderRadius.xl,
-      borderWidth: 1.5,
+      borderRadius: borderRadius.lg,
+      borderWidth: 1,
       borderColor: colors.border,
-      ...shadows.md
     }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md }}>
         <View style={{ flex: 1 }}>
           <Text style={{
             color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size.lg,
+            fontWeight: typography.weight.semibold,
+            fontSize: typography.size.base,
             marginBottom: spacing.xs,
-            letterSpacing: -0.5
           }}>
             {expense.description}
           </Text>
-          <Text style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium
-          }}>
-            {expense.vendor || 'No vendor'}
-          </Text>
+          {expense.vendor && (
+            <Text style={{
+              color: colors.text.secondary,
+              fontSize: typography.size.sm,
+            }}>
+              {expense.vendor}
+            </Text>
+          )}
         </View>
         <Text style={{
           color: colors.text.primary,
           fontWeight: typography.weight.bold,
-          fontSize: typography.size['2xl'],
-          letterSpacing: -1
+          fontSize: typography.size.lg,
         }}>
           ${expense.amount.toLocaleString()}
         </Text>
@@ -624,51 +518,39 @@ function ExpenseCard({ expense }: { expense: ExpenseDTO }) {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: spacing.md,
-        borderTopWidth: 1,
-        borderTopColor: colors.border
       }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <View style={{
-            paddingHorizontal: spacing.md,
+            paddingHorizontal: spacing.sm,
             paddingVertical: spacing.xs,
             backgroundColor: colors.surface,
-            borderRadius: borderRadius.full,
-            borderWidth: 1,
-            borderColor: colors.border
+            borderRadius: borderRadius.sm,
           }}>
             <Text style={{ 
               color: colors.text.secondary, 
               fontSize: typography.size.xs, 
-              fontWeight: typography.weight.semibold 
             }}>
               {expense.category}
             </Text>
           </View>
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>•</Text>
           <Text style={{ 
             color: colors.text.tertiary, 
             fontSize: typography.size.xs, 
-            fontWeight: typography.weight.medium 
           }}>
-            {dateUtils.formatDate(expense.date, DATE_FORMATS.SHORT_DATE)}
+            {dateUtils.formatDate(expense.date, DATE_FORMATS.DISPLAY_DATE)}
           </Text>
         </View>
 
         <View style={{
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.xs,
           backgroundColor: getStatusColor(expense.status) + '20',
-          borderRadius: borderRadius.full,
-          borderWidth: 1.5,
-          borderColor: getStatusColor(expense.status) + '40'
+          borderRadius: borderRadius.sm,
         }}>
           <Text style={{
             color: getStatusColor(expense.status),
             fontSize: typography.size.xs,
-            fontWeight: typography.weight.bold,
-            textTransform: 'uppercase',
-            letterSpacing: 0.8
+            fontWeight: typography.weight.semibold,
           }}>
             {expense.status}
           </Text>
@@ -680,15 +562,12 @@ function ExpenseCard({ expense }: { expense: ExpenseDTO }) {
           marginTop: spacing.md,
           padding: spacing.md,
           backgroundColor: colors.surface,
-          borderRadius: borderRadius.lg,
-          borderLeftWidth: 3,
-          borderLeftColor: brand.primary
+          borderRadius: borderRadius.sm,
         }}>
           <Text style={{
             color: colors.text.secondary,
             fontSize: typography.size.xs,
             fontStyle: 'italic',
-            lineHeight: 18
           }}>
             {expense.notes}
           </Text>

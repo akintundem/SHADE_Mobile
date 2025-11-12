@@ -65,7 +65,7 @@ export default function ThemeProvider({ children }: Props) {
     borderRadius: BorderRadius,
     typography: Typography,
     shadows: Shadows,
-    brand: Colors.brand,
+    brand: colors.brand,
     components: Components,
   }), [isDark, colors]);
 
