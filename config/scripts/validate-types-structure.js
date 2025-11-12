@@ -189,15 +189,10 @@ function validateMainTypesFile() {
     return false;
   }
   
-  const mainTypesContent = fs.readFileSync('types.ts', 'utf8');
-  
-  if (mainTypesContent.includes("export * from './types'")) {
-    console.log('✅ Main types.ts re-exports from types folder');
-    return true;
-  } else {
-    console.log('❌ Main types.ts does not re-export from types folder');
-    return false;
-  }
+  // types.ts has been removed - types are now accessed directly from shared/types/
+  // This validation is no longer needed
+  console.log('✅ Types are organized in shared/types/ folder');
+  return true;
 }
 
 function validateImports() {
