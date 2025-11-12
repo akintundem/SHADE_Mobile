@@ -12,30 +12,46 @@ export const Header = () => {
   
   return (
     <View style={{ alignItems: 'center', marginBottom: spacing['3xl'] }}>
-      <BrandLogo
-        size={ICON_SIZE}
-        borderRadius={ICON_RADIUS}
-        style={{
-          marginBottom: spacing.xl,
-          ...shadows.brand,
-        }}
-      />
-      <Text style={{
-        fontSize: typography.size['4xl'],
-        fontWeight: typography.weight.bold,
-        color: colors.text.primary,
-        marginBottom: spacing.sm,
-        letterSpacing: -0.5,
+      <View style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        backgroundColor: colors.background,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderRadius: 20,
+        // ...shadows.sm,
       }}>
-        Shade
-      </Text>
-      <Text style={{
-        fontSize: typography.size.lg,
-        color: colors.text.secondary,
-        textAlign: 'center',
-      }}>
-        {t('HeaderTagline')}
-      </Text>
+        <BrandLogo
+          size={ICON_SIZE}
+          borderRadius={ICON_RADIUS}
+          style={{
+            marginRight: spacing.md,
+            ...shadows.brand,
+          }}
+        />
+
+        <View>
+          <Text
+            style={{
+              fontSize: typography.size['4xl'],
+              fontWeight: typography.weight.bold,
+              color: colors.text.primary,
+              letterSpacing: -0.5,
+            }}
+          >
+            Shade
+          </Text>
+
+          <Text
+            style={{
+              fontSize: Math.max(12, Math.round(typography.size.lg * 0.66)),
+              color: colors.text.secondary,
+            }}
+          >
+            {t('HeaderTagline')}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };

@@ -123,11 +123,15 @@ export const authService = {
   async logout() {
     try {
       const res = await http.post<ApiMessageResponse>('/api/v1/auth/logout');
-      return res.data;
-    } finally {
-      // Regardless of server response, client removes token (stateless JWT)
+      // Only clear after successful logout
       const { clearToken, clearUser } = await import('../storage/authStorage');
       await Promise.all([clearToken(), clearUser()]);
+      return res.data;
+    } catch (error) {
+      // Even if logout fails, clear client-side token (stateless JWT)
+      const { clearToken, clearUser } = await import('../storage/authStorage');
+      await Promise.all([clearToken(), clearUser()]);
+      throw error;
     }
   },
 
