@@ -6,30 +6,25 @@ export const Footer = () => {
   const { colors, typography, spacing } = useTheme();
   
   return (
-    <View style={{ marginTop: spacing['4xl'], alignItems: 'center' }}>
-      <View style={{ 
-        height: 1, 
-        backgroundColor: colors.divider, 
-        alignSelf: 'stretch',
-        marginBottom: spacing.lg,
-      }} />
+    <View style={{ marginTop: spacing['3xl'], alignItems: 'center' }}>
       <Text style={{ 
         color: colors.text.tertiary,
         fontSize: typography.size.xs,
         textAlign: 'center',
-        lineHeight: 18,
+        lineHeight: 16,
+        paddingHorizontal: spacing.lg,
       }}>
         By continuing, you agree to our{' '}
         <Text style={{ 
-          color: colors.text.primary,
-          fontWeight: typography.weight.semibold,
+          color: colors.text.secondary,
+          fontWeight: typography.weight.medium,
         }}>
           Terms of Service
         </Text>
         {' '}and{' '}
         <Text style={{ 
-          color: colors.text.primary,
-          fontWeight: typography.weight.semibold,
+          color: colors.text.secondary,
+          fontWeight: typography.weight.medium,
         }}>
           Privacy Policy
         </Text>

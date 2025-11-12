@@ -9,11 +9,11 @@ export const OrDivider = () => {
     <View style={{
       flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: spacing['2xl'],
+      marginVertical: spacing.xl,
     }}>
       <View style={{ flex: 1, height: 1, backgroundColor: colors.divider }} />
       <Text style={{
-        marginHorizontal: spacing.lg,
+        marginHorizontal: spacing.md,
         color: colors.text.tertiary,
         fontSize: typography.size.sm,
         fontWeight: typography.weight.medium,
