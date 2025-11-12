@@ -213,47 +213,48 @@ export default function EventManageScreen({ route }: Props) {
   }, [tasks]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-      {/* Header - Matching image design */}
-      <View style={{ 
-        backgroundColor: colors.brand.primary,
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      {/* Header with Progress */}
+      <View style={{
         paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
-        paddingBottom: spacing.lg
+        paddingVertical: spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border
       }}>
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          style={{ marginBottom: spacing.sm }}
-        >
-          <ArrowLeft size={20} color={colors.text.inverse} />
-        </TouchableOpacity>
-        
-        <Text style={{
-          color: colors.text.tertiary,
-          fontSize: 10,
-          fontWeight: typography.weight.semibold,
-          textTransform: 'uppercase',
-          letterSpacing: 1,
-          marginBottom: spacing.xs
-        }}>
-          EVENT PLANNER
-        </Text>
-        
-        <Text style={{
-          color: colors.text.inverse,
-          fontSize: typography.size['2xl'],
-          fontWeight: typography.weight.bold,
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
           marginBottom: spacing.md
         }}>
-          {title}
-        </Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ArrowLeft size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={{
+              fontSize: typography.size.xl,
+              fontWeight: typography.weight.bold,
+              color: colors.text.primary
+            }}>
+              {title}
+            </Text>
+            <Text style={{
+              fontSize: typography.size.sm,
+              color: colors.text.secondary,
+              marginTop: spacing.xs
+            }}>
+              Tasks & Timeline
+            </Text>
+          </View>
+        </View>
 
-        {/* Overall Progress Card */}
+        {/* Progress Card */}
         <View style={{
           backgroundColor: colors.surface,
-          borderRadius: borderRadius.xl,
+          borderRadius: borderRadius.lg,
           padding: spacing.md,
-          opacity: 0.95
+          borderWidth: 1,
+          borderColor: colors.border
         }}>
           <View style={{ 
             flexDirection: 'row', 
@@ -264,9 +265,9 @@ export default function EventManageScreen({ route }: Props) {
             <Text style={{
               color: colors.text.primary,
               fontSize: typography.size.sm,
-              fontWeight: typography.weight.semibold
+              fontWeight: typography.weight.medium
             }}>
-              Overall Progress
+              Progress
             </Text>
             <Text style={{
               color: colors.text.primary,
@@ -285,7 +286,7 @@ export default function EventManageScreen({ route }: Props) {
             <View style={{
               width: `${overallProgress}%`,
               height: '100%',
-              backgroundColor: colors.text.primary,
+              backgroundColor: colors.brand.primary,
               borderRadius: borderRadius.full
             }} />
           </View>
@@ -296,11 +297,10 @@ export default function EventManageScreen({ route }: Props) {
       <View style={{
         flexDirection: 'row',
         backgroundColor: colors.surface,
-        borderRadius: borderRadius.xl,
+        borderRadius: borderRadius.lg,
         padding: spacing.xs,
         marginHorizontal: spacing.lg,
-        marginTop: spacing.lg,
-        marginBottom: spacing.md,
+        marginVertical: spacing.md,
         gap: spacing.xs
       }}>
         <TouchableOpacity
@@ -311,18 +311,18 @@ export default function EventManageScreen({ route }: Props) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: spacing.xs,
-            paddingVertical: spacing.md,
-            borderRadius: borderRadius.lg,
+            paddingVertical: spacing.sm,
+            borderRadius: borderRadius.md,
             backgroundColor: taskView === 'list' ? colors.brand.primary : 'transparent'
           }}
         >
-          <List size={18} color={taskView === 'list' ? colors.text.inverse : colors.text.secondary} />
+          <List size={16} color={taskView === 'list' ? colors.text.inverse : colors.text.secondary} />
           <Text style={{
             color: taskView === 'list' ? colors.text.inverse : colors.text.secondary,
             fontSize: typography.size.sm,
-            fontWeight: typography.weight.semibold
+            fontWeight: typography.weight.medium
           }}>
-            List View
+            List
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -333,16 +333,16 @@ export default function EventManageScreen({ route }: Props) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: spacing.xs,
-            paddingVertical: spacing.md,
-            borderRadius: borderRadius.lg,
+            paddingVertical: spacing.sm,
+            borderRadius: borderRadius.md,
             backgroundColor: taskView === 'timeline' ? colors.brand.primary : 'transparent'
           }}
         >
-          <BarChart3 size={18} color={taskView === 'timeline' ? colors.text.inverse : colors.text.secondary} />
+          <BarChart3 size={16} color={taskView === 'timeline' ? colors.text.inverse : colors.text.secondary} />
           <Text style={{
             color: taskView === 'timeline' ? colors.text.inverse : colors.text.secondary,
             fontSize: typography.size.sm,
-            fontWeight: typography.weight.semibold
+            fontWeight: typography.weight.medium
           }}>
             Timeline
           </Text>
