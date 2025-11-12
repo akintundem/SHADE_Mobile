@@ -1,10 +1,9 @@
 package com.capsule.video
 
-import android.content.Context
 import android.media.*
-import android.net.Uri
 import com.facebook.react.bridge.*
 import java.io.File
+import java.nio.ByteBuffer
 
 class VideoEditorModule(private val ctx: ReactApplicationContext) : ReactContextBaseJavaModule(ctx) {
   override fun getName() = "VideoEditor"
@@ -31,7 +30,6 @@ class VideoEditorModule(private val ctx: ReactApplicationContext) : ReactContext
     val muxer = MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
     val trackCount = extractor.trackCount
     val indexMap = HashMap<Int, Int>(trackCount)
-    var videoTimeUs = 0L
 
     for (i in 0 until trackCount) {
       extractor.selectTrack(i)
@@ -40,9 +38,6 @@ class VideoEditorModule(private val ctx: ReactApplicationContext) : ReactContext
       if (muted && mime.startsWith("audio/")) continue
       val dstIndex = muxer.addTrack(format)
       indexMap[i] = dstIndex
-      if (mime.startsWith("video/")) {
-        videoTimeUs = format.getLong(MediaFormat.KEY_FRAME_RATE, 30).toLong()
-      }
       extractor.unselectTrack(i)
     }
 

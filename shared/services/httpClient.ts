@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 import { getToken, setToken } from '../storage/authStorage';
-import yamlConfig from '../../dev-config.yml';
-import jsonConfig from '../../dev-config.json';
+import devConfig from '../../dev-config.json';
 
 type DevConfig = {
   apiBaseUrl?: string;
@@ -14,9 +13,6 @@ const sanitizeBaseUrl = (value?: string) => {
   return trimmed.length > 0 ? trimmed : undefined;
 };
 
-const configs: DevConfig[] = [jsonConfig, yamlConfig];
-const resolvedConfig = configs.find((cfg) => sanitizeBaseUrl(cfg?.apiBaseUrl));
-
 const FALLBACK_BASE_URL =
   Platform.select({
     ios: 'http://localhost:8080',
@@ -24,14 +20,14 @@ const FALLBACK_BASE_URL =
     default: 'http://localhost:8080',
   }) ?? 'http://localhost:8080';
 
-if (__DEV__ && !sanitizeBaseUrl(resolvedConfig?.apiBaseUrl)) {
+if (__DEV__ && !sanitizeBaseUrl(devConfig?.apiBaseUrl)) {
   console.warn(
-    '⚠️  dev-config.json / dev-config.yml do not define apiBaseUrl. Falling back to platform default:',
+    '⚠️  dev-config.json does not define apiBaseUrl. Falling back to platform default:',
     FALLBACK_BASE_URL
   );
 }
 
-const BASE_URL = sanitizeBaseUrl(resolvedConfig?.apiBaseUrl) || FALLBACK_BASE_URL;
+const BASE_URL = sanitizeBaseUrl(devConfig?.apiBaseUrl) || FALLBACK_BASE_URL;
 
 // Base HTTP client for unauthenticated requests (registration, login, health checks)
 export const httpUnauthenticated = axios.create({

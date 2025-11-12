@@ -41,7 +41,13 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func bundleURL() -> URL? {
 #if DEBUG
     // Use explicit URL for Metro bundler on port 8082
-    return URL(string: "http://localhost:8082/index.bundle?platform=ios&dev=true")
+    // iOS Simulator can use localhost, but for physical devices use your machine's IP
+    #if targetEnvironment(simulator)
+      return URL(string: "http://localhost:8082/index.bundle?platform=ios&dev=true")
+    #else
+      // For physical devices, replace with your machine's IP address
+      return URL(string: "http://192.168.2.17:8082/index.bundle?platform=ios&dev=true")
+    #endif
 #else
     Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
