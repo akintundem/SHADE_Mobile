@@ -55,83 +55,138 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
   );
 
   return (
-    <View style={{ gap: spacing.lg }}>
-      <KeyboardOptimizedInput
-        label="Full Name"
-        value={name}
-        onChangeText={text => {
-          setName(text);
-          setError(null);
-        }}
-        placeholder="Enter your full name"
-        inputType="name"
-        enableNativeAutocomplete={true}
-      />
+    <View style={{ gap: spacing.md }}>
+      {/* Basic Information */}
+      <View style={{
+        backgroundColor: colors.surface,
+        padding: spacing.lg,
+        borderRadius: 16,
+        gap: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+      }}>
+        <Text style={{
+          fontSize: typography.size.sm,
+          fontWeight: typography.weight.semibold,
+          color: colors.text.secondary,
+          marginBottom: spacing.xs,
+        }}>
+          Basic Information
+        </Text>
+        
+        <KeyboardOptimizedInput
+          label="Full Name"
+          value={name}
+          onChangeText={text => {
+            setName(text);
+            setError(null);
+          }}
+          placeholder="Enter your full name"
+          inputType="name"
+          enableNativeAutocomplete={true}
+        />
 
-      <KeyboardOptimizedInput
-        label="Email Address"
-        value={email}
-        onChangeText={text => {
-          setEmail(text);
-          setError(null);
-        }}
-        placeholder="Enter your email address"
-        inputType="email"
-        enableNativeAutocomplete={true}
-      />
+        <KeyboardOptimizedInput
+          label="Email Address"
+          value={email}
+          onChangeText={text => {
+            setEmail(text);
+            setError(null);
+          }}
+          placeholder="Enter your email address"
+          inputType="email"
+          enableNativeAutocomplete={true}
+        />
+      </View>
 
-      <KeyboardOptimizedInput
-        label="Phone Number (Optional)"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        placeholder="Enter your phone number"
-        inputType="phone"
-        enableNativeAutocomplete={true}
-      />
+      {/* Optional Information */}
+      <View style={{
+        backgroundColor: colors.surface,
+        padding: spacing.lg,
+        borderRadius: 16,
+        gap: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+      }}>
+        <Text style={{
+          fontSize: typography.size.sm,
+          fontWeight: typography.weight.semibold,
+          color: colors.text.secondary,
+          marginBottom: spacing.xs,
+        }}>
+          Optional Details
+        </Text>
+        
+        <KeyboardOptimizedInput
+          label="Phone Number"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          placeholder="Enter your phone number"
+          inputType="phone"
+          enableNativeAutocomplete={true}
+        />
 
-      <KeyboardOptimizedInput
-        label="Date of Birth (Optional)"
-        value={dateOfBirth}
-        onChangeText={setDateOfBirth}
-        placeholder="Select your date of birth"
-        inputType="date"
-        enableNativeAutocomplete={true}
-      />
+        <KeyboardOptimizedInput
+          label="Date of Birth"
+          value={dateOfBirth}
+          onChangeText={setDateOfBirth}
+          placeholder="Select your date of birth"
+          inputType="date"
+          enableNativeAutocomplete={true}
+        />
+      </View>
 
-      <KeyboardOptimizedInput
-        label="Password"
-        value={password}
-        onChangeText={text => {
-          setPassword(text);
-          setError(null);
-        }}
-        placeholder="Create a strong password"
-        inputType="password"
-        enableNativeAutocomplete={true}
-      />
+      {/* Security */}
+      <View style={{
+        backgroundColor: colors.surface,
+        padding: spacing.lg,
+        borderRadius: 16,
+        gap: spacing.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+      }}>
+        <Text style={{
+          fontSize: typography.size.sm,
+          fontWeight: typography.weight.semibold,
+          color: colors.text.secondary,
+          marginBottom: spacing.xs,
+        }}>
+          Security
+        </Text>
+        
+        <KeyboardOptimizedInput
+          label="Password"
+          value={password}
+          onChangeText={text => {
+            setPassword(text);
+            setError(null);
+          }}
+          placeholder="Create a strong password"
+          inputType="password"
+          enableNativeAutocomplete={true}
+        />
 
-      <KeyboardOptimizedInput
-        label="Confirm Password"
-        value={confirm}
-        onChangeText={text => {
-          setConfirm(text);
-          setError(null);
-        }}
-        placeholder="Confirm your password"
-        inputType="password"
-        enableNativeAutocomplete={true}
-      />
+        <KeyboardOptimizedInput
+          label="Confirm Password"
+          value={confirm}
+          onChangeText={text => {
+            setConfirm(text);
+            setError(null);
+          }}
+          placeholder="Confirm your password"
+          inputType="password"
+          enableNativeAutocomplete={true}
+        />
+      </View>
 
       {password.length > 0 && (
         <View
           style={{
-            gap: spacing.sm,
-            marginTop: -spacing.sm,
-            backgroundColor: colors.surface,
+            backgroundColor: colors.background,
             padding: spacing.md,
-            borderRadius: spacing.sm,
+            borderRadius: 12,
             borderWidth: 1,
-            borderColor: colors.border,
+            borderColor: colors.divider,
           }}
         >
           <Text
@@ -139,131 +194,122 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
               fontSize: typography.size.xs,
               fontWeight: typography.weight.semibold,
               color: colors.text.secondary,
-              marginBottom: spacing.xs,
+              marginBottom: spacing.sm,
             }}
           >
-            Your password must include:
+            Password Requirements
           </Text>
 
-          <View style={{ flexDirection: 'row', gap: spacing.md }}>
-            <View style={{ flex: 1, gap: spacing.xs }}>
+          <View style={{ gap: spacing.xs }}>
+            {[
+              { key: 'minLength', text: '8+ characters' },
+              { key: 'hasUppercase', text: 'Uppercase letter' },
+              { key: 'hasLowercase', text: 'Lowercase letter' },
+              { key: 'hasNumber', text: 'Number' },
+              { key: 'hasSpecial', text: 'Special character' },
+            ].map(({ key, text }) => (
               <View
+                key={key}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: spacing.xs,
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: typography.size.xs,
-                    color: passwordRequirements.minLength
-                      ? colors.semantic.success
-                      : colors.text.secondary,
-                  }}
-                >
-                  {passwordRequirements.minLength ? '✓' : '○'} 8+ characters
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.xs,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.size.xs,
-                    color: passwordRequirements.hasUppercase
-                      ? colors.semantic.success
-                      : colors.text.secondary,
-                  }}
-                >
-                  {passwordRequirements.hasUppercase ? '✓' : '○'} Uppercase
-                  letter
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.xs,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.size.xs,
-                    color: passwordRequirements.hasLowercase
-                      ? colors.semantic.success
-                      : colors.text.secondary,
-                  }}
-                >
-                  {passwordRequirements.hasLowercase ? '✓' : '○'} Lowercase
-                  letter
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.xs,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.size.xs,
-                    color: passwordRequirements.hasNumber
-                      ? colors.semantic.success
-                      : colors.text.secondary,
-                  }}
-                >
-                  {passwordRequirements.hasNumber ? '✓' : '○'} Number
-                </Text>
-              </View>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.xs,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: typography.size.xs,
-                    color: passwordRequirements.hasSpecial
-                      ? colors.semantic.success
-                      : colors.text.secondary,
-                  }}
-                >
-                  {passwordRequirements.hasSpecial ? '✓' : '○'} Special
-                  character
-                </Text>
-              </View>
-              {confirm.length > 0 && (
                 <View
                   style={{
-                    flexDirection: 'row',
+                    width: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: passwordRequirements[key as keyof typeof passwordRequirements]
+                      ? colors.semantic.success
+                      : colors.surface,
+                    borderWidth: 1,
+                    borderColor: passwordRequirements[key as keyof typeof passwordRequirements]
+                      ? colors.semantic.success
+                      : colors.divider,
                     alignItems: 'center',
-                    gap: spacing.xs,
+                    justifyContent: 'center',
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: typography.size.xs,
-                      color: passwordRequirements.match
-                        ? colors.semantic.success
-                        : colors.text.secondary,
-                    }}
-                  >
-                    {passwordRequirements.match ? '✓' : '○'} Passwords match
-                  </Text>
+                  {passwordRequirements[key as keyof typeof passwordRequirements] && (
+                    <Text
+                      style={{
+                        fontSize: 8,
+                        color: 'white',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      ✓
+                    </Text>
+                  )}
                 </View>
-              )}
-            </View>
+                <Text
+                  style={{
+                    fontSize: typography.size.xs,
+                    color: passwordRequirements[key as keyof typeof passwordRequirements]
+                      ? colors.text.primary
+                      : colors.text.tertiary,
+                  }}
+                >
+                  {text}
+                </Text>
+              </View>
+            ))}
+            
+            {confirm.length > 0 && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: spacing.xs,
+                  marginTop: spacing.xs,
+                  paddingTop: spacing.xs,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.divider,
+                }}
+              >
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 7,
+                    backgroundColor: passwordRequirements.match
+                      ? colors.semantic.success
+                      : colors.surface,
+                    borderWidth: 1,
+                    borderColor: passwordRequirements.match
+                      ? colors.semantic.success
+                      : colors.divider,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {passwordRequirements.match && (
+                    <Text
+                      style={{
+                        fontSize: 8,
+                        color: 'white',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      ✓
+                    </Text>
+                  )}
+                </View>
+                <Text
+                  style={{
+                    fontSize: typography.size.xs,
+                    color: passwordRequirements.match
+                      ? colors.text.primary
+                      : colors.text.tertiary,
+                    fontWeight: typography.weight.medium,
+                  }}
+                >
+                  Passwords match
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       )}
@@ -335,14 +381,14 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           flexDirection: 'row',
           justifyContent: 'center',
           alignItems: 'center',
-          marginTop: spacing.lg,
-          gap: spacing.sm,
+          marginTop: spacing.md,
+          gap: spacing.xs,
         }}
       >
         <Text
           style={{
             color: colors.text.secondary,
-            fontSize: typography.size.sm,
+            fontSize: typography.size.base,
           }}
         >
           Already have an account?
@@ -350,8 +396,8 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
         <TouchableOpacity onPress={onSwitchToSignIn}>
           <Text
             style={{
-              color: colors.brand.primary,
-              fontSize: typography.size.sm,
+              color: brand.primary,
+              fontSize: typography.size.base,
               fontWeight: typography.weight.semibold,
             }}
           >
