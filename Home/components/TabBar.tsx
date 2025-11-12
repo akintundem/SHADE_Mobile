@@ -5,9 +5,20 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { useI18n } from '../../i18n/I18nProvider';
 import { Home, ClipboardList, User } from 'lucide-react-native';
 
-type Props = { active: 'home' | 'discover' | 'profile'; onChange?: (tab: Props['active']) => void };
+type Props = {
+  active: 'home' | 'discover' | 'profile';
+  onChange?: (tab: Props['active']) => void;
+};
 
-const Item = ({ active, onPress, Icon }: { active: boolean; onPress?: () => void; Icon: any }) => {
+const Item = ({
+  active,
+  onPress,
+  Icon,
+}: {
+  active: boolean;
+  onPress?: () => void;
+  Icon: any;
+}) => {
   const { colors, brand } = useTheme();
   return (
     <TouchableOpacity
@@ -16,7 +27,11 @@ const Item = ({ active, onPress, Icon }: { active: boolean; onPress?: () => void
       style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
       hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
     >
-      <Icon size={24} color={active ? brand.primary : colors.text.tertiary} strokeWidth={active ? 2.4 : 2} />
+      <Icon
+        size={24}
+        color={active ? brand.primary : colors.text.tertiary}
+        strokeWidth={active ? 2.4 : 2}
+      />
     </TouchableOpacity>
   );
 };
@@ -37,10 +52,21 @@ export const TabBar = ({ active, onChange }: Props) => {
         paddingBottom: Math.max(insets.bottom, 0),
       }}
     >
-      <Item active={active === 'home'} onPress={() => onChange?.('home')} Icon={Home} />
-      <Item active={active === 'discover'} onPress={() => onChange?.('discover')} Icon={ClipboardList} />
-      <Item active={active === 'profile'} onPress={() => onChange?.('profile')} Icon={User} />
+      <Item
+        active={active === 'home'}
+        onPress={() => onChange?.('home')}
+        Icon={Home}
+      />
+      <Item
+        active={active === 'discover'}
+        onPress={() => onChange?.('discover')}
+        Icon={ClipboardList}
+      />
+      <Item
+        active={active === 'profile'}
+        onPress={() => onChange?.('profile')}
+        Icon={User}
+      />
     </View>
   );
 };
-

@@ -14,6 +14,8 @@ import { getToken, getUser as getCachedUser } from './storage/authStorage';
 import { UserDTO } from './services/authService';
 import { EventProfileRoute } from './Home/screens/EventProfileRoute';
 import EventManageScreen from './Home/screens/EventManageScreen';
+import EventDetailScreen from './screens/EventDetailScreen';
+import EditEventScreen from './screens/EditEventScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -183,6 +185,26 @@ function App() {
                     <EventManageScreen {...(props as any)} />
                   )}
                 </Stack.Screen>
+                <Stack.Screen
+                  name="EventDetail"
+                  component={EventDetailScreen}
+                  options={{
+                    headerShown: false,
+                    gestureEnabled: true,
+                    fullScreenGestureEnabled: true,
+                    animation: 'slide_from_right',
+                  }}
+                />
+                <Stack.Screen
+                  name="EditEvent"
+                  component={EditEventScreen}
+                  options={{
+                    headerShown: false,
+                    gestureEnabled: true,
+                    fullScreenGestureEnabled: true,
+                    animation: 'slide_from_right',
+                  }}
+                />
               </Stack.Navigator>
             )}
             </NavigationContainer>
