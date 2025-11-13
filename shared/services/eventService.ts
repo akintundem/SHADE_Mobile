@@ -29,6 +29,15 @@ import {
 } from '../types';
 import { ErrorHandler } from '../utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
+import { getMockEvents, getMockEvent } from '../utils/mockEvents';
+
+// Enable mock mode in development when backend is not connected
+// Set to true to use mock data, false to use real API
+const USE_MOCK_DATA = __DEV__ && true; // Change to false when backend is ready
+
+if (USE_MOCK_DATA) {
+  console.log('📦 Using mock event data for development');
+}
 
 type PaginationParams = {
   page?: number;
@@ -175,6 +184,13 @@ const fetchEventList = async (
 
 export const eventService = {
   async getEvent(eventId: string): Promise<Event> {
+    if (USE_MOCK_DATA) {
+      const mockEvent = getMockEvent(eventId);
+      if (mockEvent) {
+        return mockEvent;
+      }
+      throw new Error(`Event with id ${eventId} not found`);
+    }
     const res = await http.get<Event>(`/api/v1/events/${eventId}`);
     return res.data;
   },
@@ -234,6 +250,15 @@ export const eventService = {
   async getEvents(
     params?: PaginationParams & { type?: string; status?: string; q?: string },
   ) {
+    if (USE_MOCK_DATA) {
+      return getMockEvents({
+        page: params?.page,
+        size: params?.size,
+        status: params?.status,
+        type: params?.type,
+        q: params?.q,
+      });
+    }
     const { q, type, status, ...rest } = params || {};
     if (q || type || status) {
       return eventService.searchEvents({
@@ -249,6 +274,12 @@ export const eventService = {
   },
 
   async getPublicEvents(params?: PaginationParams) {
+    if (USE_MOCK_DATA) {
+      return getMockEvents({
+        page: params?.page,
+        size: params?.size,
+      });
+    }
     return fetchEventList('/api/v1/events/public', params, 'events_public');
   },
 
@@ -281,6 +312,15 @@ export const eventService = {
   },
 
   async searchEvents(params: SearchEventsParams = {}) {
+    if (USE_MOCK_DATA) {
+      return getMockEvents({
+        page: params.page,
+        size: params.size,
+        status: params.status,
+        type: params.type,
+        q: params.q,
+      });
+    }
     const { q, type, status, dateFrom, dateTo, ...pagination } = params;
     const query: Record<string, unknown> = { ...pagination };
     if (q) query.q = q;

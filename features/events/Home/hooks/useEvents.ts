@@ -1,0 +1,41 @@
+import { useState, useEffect, useCallback } from 'react';
+import { Event } from '../../../../shared/types';
+import { eventService } from '../../../../shared/services/eventService';
+import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+
+export const useEvents = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchEvents = useCallback(async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const response = await eventService.getEvents({ page: 1, size: 20 });
+      setEvents(response.events);
+    } catch (error) {
+      ErrorHandler.handle(error, 'fetchEvents');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchEvents(false);
+    setRefreshing(false);
+  }, [fetchEvents]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
+  return {
+    events,
+    isLoading,
+    refreshing,
+    onRefresh,
+    refetch: fetchEvents,
+  };
+};
+

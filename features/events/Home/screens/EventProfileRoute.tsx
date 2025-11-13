@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking } from 'react-native';
+import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, Heart, ChevronUp, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../shared/components/LoadingStates';
@@ -175,16 +175,7 @@ export const EventProfileRoute = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: spacing.xs }}>
-          <ChevronLeft size={24} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={{ flex: 1, textAlign: 'center', color: colors.text.primary, fontSize: typography.size.lg, fontWeight: typography.weight.semibold }}>
-          Event details
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'bottom']}>
 
       {showEmpty ? (
         <EmptyState
@@ -194,267 +185,326 @@ export const EventProfileRoute = () => {
         />
       ) : (
         <ScrollView
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={brand.primary}
-              colors={[brand.primary]}
+              tintColor="#000000"
+              colors={['#000000']}
             />
           }
         >
           <View style={{ paddingBottom: spacing['4xl'] }}>
-            {event?.coverImageUrl ?? params.imageUrl ? (
-              <Image
-                source={{ uri: event?.coverImageUrl ?? params.imageUrl! }}
-                style={{ width: '100%', height: 220 }}
-                resizeMode="cover"
-              />
-            ) : (
-              <View
+            {/* Header with Image */}
+            <View style={{ position: 'relative' }}>
+              {event?.coverImageUrl ?? params.imageUrl ? (
+                <ImageBackground
+                  source={{ uri: event?.coverImageUrl ?? params.imageUrl! }}
+                  style={{ width: '100%', height: 320 }}
+                  resizeMode="cover"
+                >
+                  {/* Dark overlay for text readability */}
+                  <View style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 120,
+                    backgroundColor: 'rgba(0,0,0,0.4)',
+                  }} />
+                  
+                  {/* Back button */}
+                  <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <TouchableOpacity 
+                      onPress={() => navigation.goBack()} 
+                      style={{ 
+                        position: 'absolute',
+                        top: spacing.lg,
+                        left: spacing.lg,
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        backgroundColor: 'rgba(0,0,0,0.3)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <ChevronLeft size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </SafeAreaView>
+
+                  {/* Event Name */}
+                  <View style={{
+                    position: 'absolute',
+                    bottom: spacing.xl,
+                    left: spacing.xl,
+                    right: spacing.xl,
+                  }}>
+                    <Text
+                      style={{
+                        color: '#FFFFFF',
+                        fontWeight: typography.weight.bold,
+                        fontSize: typography.size['3xl'],
+                        marginBottom: spacing.xs,
+                      }}
+                    >
+                      {event?.name ?? params.title ?? 'Event Name'}
+                    </Text>
+                    
+                    {/* Swipe up indicator */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
+                      <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, opacity: 0.8 }}>
+                        Swipe up
+                      </Text>
+                      <ChevronUp size={14} color="#FFFFFF" style={{ opacity: 0.8 }} />
+                    </View>
+                  </View>
+                </ImageBackground>
+              ) : (
+                <View
+                  style={{
+                    height: 320,
+                    width: '100%',
+                    backgroundColor: '#000000',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                    <TouchableOpacity 
+                      onPress={() => navigation.goBack()} 
+                      style={{ 
+                        position: 'absolute',
+                        top: spacing.lg,
+                        left: spacing.lg,
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <ChevronLeft size={24} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </SafeAreaView>
+                  
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontWeight: typography.weight.bold,
+                      fontSize: typography.size['3xl'],
+                      textAlign: 'center',
+                      paddingHorizontal: spacing.xl,
+                    }}
+                  >
+                    {event?.name ?? params.title ?? 'Event Name'}
+                  </Text>
+                  
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
+                    <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, opacity: 0.8 }}>
+                      Swipe up
+                    </Text>
+                    <ChevronUp size={14} color="#FFFFFF" style={{ opacity: 0.8 }} />
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Action Buttons */}
+            <View style={{ 
+              paddingHorizontal: spacing.xl, 
+              paddingTop: spacing.xl,
+              flexDirection: 'row',
+              gap: spacing.md,
+              alignItems: 'center',
+            }}>
+              {/* Get Tickets Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
                 style={{
-                  height: 220,
-                  width: '100%',
-                  backgroundColor: colors.surface,
+                  flex: 1,
+                  backgroundColor: '#000000',
+                  borderRadius: borderRadius.xl,
+                  paddingVertical: spacing.lg,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ color: colors.text.tertiary, fontSize: typography.size.sm }}>
-                  No cover image
-                </Text>
-              </View>
-            )}
-
-            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', marginBottom: spacing.sm }}>
-                {statusLabel ? <Pill label={statusLabel} color={statusColor} /> : null}
-                {event?.isPublic !== null && event?.isPublic !== undefined ? (
-                  <Pill label={event.isPublic ? 'Public event' : 'Private event'} />
-                ) : null}
-                {event?.requiresApproval ? <Pill label="Requires approval" /> : null}
-              </View>
-
-              <Text
-                style={{
-                  color: colors.text.primary,
+                <Text style={{
+                  color: '#FFFFFF',
                   fontWeight: typography.weight.bold,
-                  fontSize: typography.size['2xl'],
-                  marginTop: spacing.md,
-                }}
-              >
-                {event?.name ?? params.title ?? 'Event'}
-              </Text>
+                  fontSize: typography.size.base,
+                }}>
+                  Get Tickets
+                </Text>
+              </TouchableOpacity>
 
-              <Text
+              {/* Share Button */}
+              <TouchableOpacity
+                onPress={() => {}}
+                activeOpacity={0.7}
                 style={{
-                  color: colors.text.secondary,
-                  fontSize: typography.size.sm,
-                  lineHeight: 22,
-                  marginTop: spacing.sm,
+                  width: 56,
+                  height: 56,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: '#FFFFFF',
+                  borderWidth: 1,
+                  borderColor: '#000000',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                {event?.description ?? params.description ?? 'No description provided yet.'}
-              </Text>
+                <Share2 size={24} color="#000000" />
+              </TouchableOpacity>
 
-              {/* Event Info Cards */}
-              <View style={{ gap: spacing.md }}>
-                {/* Schedule Card */}
-                <View style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: borderRadius.xl,
-                  padding: spacing.lg,
+              {/* Heart Button */}
+              <TouchableOpacity
+                onPress={() => {}}
+                activeOpacity={0.7}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: '#FFFFFF',
                   borderWidth: 1,
-                  borderColor: colors.border,
-                  ...shadows.sm,
-                }}>
-                  <Text style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.lg,
-                    fontWeight: typography.weight.semibold,
-                    marginBottom: spacing.md,
-                  }}>
-                    Schedule
-                  </Text>
-                  <View style={{ gap: spacing.sm }}>
-                    <InfoRow icon={CalendarClock} label="Start" value={formattedStart} />
-                    <InfoRow icon={CalendarClock} label="End" value={formattedEnd} />
-                    <InfoRow icon={CalendarClock} label="Registration deadline" value={formattedRegistration} />
-                  </View>
-                </View>
+                  borderColor: '#000000',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Heart size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
 
-                {/* Details Card */}
-                <View style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: borderRadius.xl,
-                  padding: spacing.lg,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  ...shadows.sm,
-                }}>
-                  <Text style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.lg,
-                    fontWeight: typography.weight.semibold,
-                    marginBottom: spacing.md,
-                  }}>
-                    Details
-                  </Text>
-                  <View style={{ gap: spacing.sm }}>
-                    <InfoRow icon={MapPin} label="Theme" value={event?.theme} />
-                    <InfoRow icon={Users} label="Target audience" value={event?.targetAudience} />
-                    <InfoRow icon={ShieldCheck} label="Capacity" value={capacityText} />
-                    <InfoRow icon={Globe} label="Website" value={event?.eventWebsiteUrl} />
-                    <InfoRow icon={Hash} label="Hashtag" value={event?.hashtag} />
-                  </View>
-                </View>
-              </View>
+            {/* Content */}
+            <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.xl }}>
 
-              {/* Management Options */}
+              {/* Schedule Section */}
               <View style={{ marginTop: spacing['2xl'] }}>
                 <Text style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.xl,
+                  color: '#000000',
+                  fontSize: typography.size['2xl'],
                   fontWeight: typography.weight.bold,
                   marginBottom: spacing.lg,
                 }}>
-                  Manage Event
+                  Schedule
+                </Text>
+                <View style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: borderRadius.xl,
+                  padding: spacing.xl,
+                  borderWidth: 2,
+                  borderColor: '#000000',
+                  minHeight: 120,
+                }}>
+                  {(formattedStart || formattedEnd || formattedRegistration) ? (
+                    <View style={{ gap: spacing.md }}>
+                      {formattedStart && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                          <CalendarClock size={20} color="#000000" />
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ color: '#000000', fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                              Start
+                            </Text>
+                            <Text style={{ color: '#000000', fontSize: typography.size.base, marginTop: 2 }}>
+                              {formattedStart}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      {formattedEnd && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                          <CalendarClock size={20} color="#000000" />
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ color: '#000000', fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                              End
+                            </Text>
+                            <Text style={{ color: '#000000', fontSize: typography.size.base, marginTop: 2 }}>
+                              {formattedEnd}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      {formattedRegistration && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                          <CalendarClock size={20} color="#000000" />
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ color: '#000000', fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                              Registration deadline
+                            </Text>
+                            <Text style={{ color: '#000000', fontSize: typography.size.base, marginTop: 2 }}>
+                              {formattedRegistration}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  ) : (
+                    <Text style={{ color: '#000000', fontSize: typography.size.base, opacity: 0.5 }}>
+                      No schedule information available
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Manage Section */}
+              <View style={{ marginTop: spacing['2xl'] }}>
+                <Text style={{
+                  color: '#000000',
+                  fontSize: typography.size['2xl'],
+                  fontWeight: typography.weight.bold,
+                  marginBottom: spacing.lg,
+                }}>
+                  Manage
                 </Text>
                 
-                <View style={{
-                  backgroundColor: colors.surface,
-                  borderRadius: borderRadius.xl,
-                  padding: spacing.lg,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  ...shadows.sm,
-                  gap: spacing.sm,
-                }}>
-                  {/* Details */}
+                <View style={{ gap: spacing.sm }}>
+                  {/* Event Details */}
                   <TouchableOpacity
                     onPress={() => {}}
-                    activeOpacity={0.8}
+                    activeOpacity={0.7}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: colors.background,
-                      borderRadius: borderRadius.lg,
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
                       padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 40,
-                      height: 40,
+                      width: 48,
+                      height: 48,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
+                      backgroundColor: '#000000',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Hash size={20} color={brand.primary} />
+                      <Hash size={24} color="#FFFFFF" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: colors.text.primary,
+                        color: '#000000',
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
+                        fontWeight: typography.weight.bold
                       }}>
-                        Details
+                        Event Details
                       </Text>
                       <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
                       }}>
-                        View event information
+                        Edit information
                       </Text>
                     </View>
-                  </TouchableOpacity>
-
-                  {/* Budget */}
-                  <TouchableOpacity
-                    onPress={() => setActiveScreen('budget')}
-                    activeOpacity={0.7}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
-                    }}
-                  >
-                    <View style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Wallet size={20} color={brand.primary} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{
-                        color: colors.text.primary,
-                        fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
-                      }}>
-                        {t('Budget')}
-                      </Text>
-                      <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
-                      }}>
-                        Track expenses and budget
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Vendors */}
-                  <TouchableOpacity
-                    onPress={() => setActiveScreen('vendors')}
-                    activeOpacity={0.7}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
-                    }}
-                  >
-                    <View style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Store size={20} color={brand.primary} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{
-                        color: colors.text.primary,
-                        fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
-                      }}>
-                        {t('Vendors')}
-                      </Text>
-                      <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
-                      }}>
-                        Manage vendors and suppliers
-                      </Text>
-                    </View>
+                    <ChevronRight size={20} color="#000000" />
                   </TouchableOpacity>
 
                   {/* Guest List */}
@@ -464,83 +514,132 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 40,
-                      height: 40,
+                      width: 48,
+                      height: 48,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
+                      backgroundColor: '#000000',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <UsersRound size={20} color={brand.primary} />
+                      <UsersRound size={24} color="#FFFFFF" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: colors.text.primary,
+                        color: '#000000',
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
+                        fontWeight: typography.weight.bold
                       }}>
-                        {t('GuestList')}
+                        Guest List
                       </Text>
                       <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
                       }}>
-                        Manage attendees and invitations
+                        Manage attendees
                       </Text>
                     </View>
+                    <ChevronRight size={20} color="#000000" />
                   </TouchableOpacity>
 
-                  {/* Wishlist */}
+                  {/* Budget */}
                   <TouchableOpacity
-                    onPress={() => {}}
+                    onPress={() => setActiveScreen('budget')}
                     activeOpacity={0.7}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 40,
-                      height: 40,
+                      width: 48,
+                      height: 48,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
+                      backgroundColor: '#000000',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Gift size={20} color={brand.primary} />
+                      <Wallet size={24} color="#FFFFFF" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: colors.text.primary,
+                        color: '#000000',
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
+                        fontWeight: typography.weight.bold
                       }}>
-                        {t('Wishlist')}
+                        Budget
                       </Text>
                       <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
                       }}>
-                        Create and manage wishlist
+                        Track expenses and budget
                       </Text>
                     </View>
+                    <ChevronRight size={20} color="#000000" />
+                  </TouchableOpacity>
+
+                  {/* Vendors */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('vendors')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: '#000000',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Store size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: '#000000',
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.bold
+                      }}>
+                        {t('Vendors')}
+                      </Text>
+                      <Text style={{
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
+                      }}>
+                        Manage vendors and suppliers
+                      </Text>
+                    </View>
+                    <ChevronRight size={20} color="#000000" />
                   </TouchableOpacity>
 
                   {/* Tasks */}
@@ -563,41 +662,42 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 40,
-                      height: 40,
+                      width: 48,
+                      height: 48,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
+                      backgroundColor: '#000000',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <ClipboardCheck size={20} color={brand.primary} />
+                      <ClipboardCheck size={24} color="#FFFFFF" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: colors.text.primary,
+                        color: '#000000',
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
+                        fontWeight: typography.weight.bold
                       }}>
                         {t('Tasks')}
                       </Text>
                       <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
                       }}>
                         View timeline and manage tasks
                       </Text>
                     </View>
-                    <BarChart3 size={18} color={colors.text.tertiary} />
+                    <ChevronRight size={20} color="#000000" />
                   </TouchableOpacity>
 
                   {/* RSVP */}
@@ -607,40 +707,42 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      gap: spacing.md
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 40,
-                      height: 40,
+                      width: 48,
+                      height: 48,
                       borderRadius: borderRadius.md,
-                      backgroundColor: colors.brand.primaryLight,
+                      backgroundColor: '#000000',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <CalendarCheck size={20} color={brand.primary} />
+                      <CalendarCheck size={24} color="#FFFFFF" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: colors.text.primary,
+                        color: '#000000',
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
+                        fontWeight: typography.weight.bold
                       }}>
                         {t('RSVP')}
                       </Text>
                       <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        marginTop: 2
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
                       }}>
                         Track responses and attendance
                       </Text>
                     </View>
+                    <ChevronRight size={20} color="#000000" />
                   </TouchableOpacity>
                 </View>
               </View>

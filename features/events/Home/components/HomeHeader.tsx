@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { User } from '../../../../shared/types';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { MessageCircle } from 'lucide-react-native';
 
 type Props = {
@@ -11,11 +10,9 @@ type Props = {
   onOpenChat?: () => void;
 };
 
-export const HomeHeader = ({ user, onOpenChat }: Props) => {
+export const HomeHeader = ({ onOpenChat }: Props) => {
   const { colors, typography, spacing, brand, borderRadius, shadows } = useTheme();
-  const { t } = useI18n();
-  const name = user.name || user.email;
-  
+
   return (
     <View style={{ backgroundColor: colors.background }}>
       <View
@@ -28,16 +25,16 @@ export const HomeHeader = ({ user, onOpenChat }: Props) => {
           paddingTop: spacing.xl,
         }}
       >
-        {/* <View style={{ width: 24 }} /> */}
         <View style={{ flex: 1, justifyContent: 'flex-start' }}>
-          <Text style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size['2xl'],
-            letterSpacing: -0.5,
-            textAlign: 'left',
-
-          }}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontWeight: typography.weight.bold,
+              fontSize: typography.size['2xl'],
+              letterSpacing: -0.5,
+              textAlign: 'left',
+            }}
+          >
             Shade
           </Text>
         </View>
