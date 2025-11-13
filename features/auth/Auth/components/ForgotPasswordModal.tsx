@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Lock } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { authService } from '../../../../shared/services/authService';
 import KeyboardOptimizedInput from '../../../../shared/components/ui/KeyboardOptimizedInput';
@@ -18,7 +19,7 @@ type Props = {
 };
 
 export const ForgotPasswordModal = ({ visible, initialEmail = '', onClose }: Props) => {
-  const { colors, brand, typography, spacing, borderRadius } = useTheme();
+  const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
   const [email, setEmail] = useState(initialEmail);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -80,61 +81,105 @@ export const ForgotPasswordModal = ({ visible, initialEmail = '', onClose }: Pro
         >
           <View
             style={{
-              backgroundColor: brand.primary,
+              backgroundColor: colors.surfaceElevated,
               borderRadius: borderRadius['2xl'],
-              padding: spacing['2xl'],
-              gap: spacing.md,
+              padding: spacing['3xl'],
+              ...shadows.xl,
+              borderWidth: 1,
+              borderColor: colors.border,
             }}
           >
-            <Text
-              style={{
-                fontSize: typography.size.lg,
-                fontWeight: typography.weight.semibold,
-                color: colors.text.inverse,
-              }}
-            >
-              Reset your password
-            </Text>
-            <Text
-              style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.sm,
-              }}
-            >
-              Enter your email address and we'll send a reset link if the account exists.
-            </Text>
-            <KeyboardOptimizedInput
-              label="Email Address"
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                setMessage(null);
-              }}
-              inputType="email"
-              enableNativeAutocomplete
-            />
-            {message ? (
-              <Text
+            {/* Icon Header */}
+            <View style={{ alignItems: 'center', marginBottom: spacing.xl }}>
+              <View
                 style={{
-                  color: success
-                    ? colors.semantic.successDark
-                    : colors.semantic.error,
-                  fontSize: typography.size.sm,
+                  width: 64,
+                  height: 64,
+                  borderRadius: borderRadius.full,
+                  backgroundColor: brand.primaryLight,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: spacing.lg,
                 }}
               >
-                {message}
+                <Lock size={32} color={brand.primary} strokeWidth={2} />
+              </View>
+              <Text
+                style={{
+                  fontSize: typography.size['2xl'],
+                  fontWeight: typography.weight.bold,
+                  color: colors.text.primary,
+                  marginBottom: spacing.xs,
+                  textAlign: 'center',
+                }}
+              >
+                Reset your password
               </Text>
+              <Text
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.size.base,
+                  textAlign: 'center',
+                  lineHeight: 20,
+                  paddingHorizontal: spacing.md,
+                }}
+              >
+                Enter your email address and we'll send a reset link if the account exists.
+              </Text>
+            </View>
+
+            {/* Input Section */}
+            <View style={{ marginBottom: spacing.lg }}>
+              <KeyboardOptimizedInput
+                label="Email Address"
+                value={email}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  setMessage(null);
+                }}
+                inputType="email"
+                enableNativeAutocomplete
+              />
+            </View>
+
+            {/* Message Section */}
+            {message ? (
+              <View
+                style={{
+                  backgroundColor: success
+                    ? colors.semantic.successLight
+                    : colors.semantic.errorLight,
+                  padding: spacing.md,
+                  borderRadius: borderRadius.lg,
+                  marginBottom: spacing.lg,
+                }}
+              >
+                <Text
+                  style={{
+                    color: success
+                      ? colors.semantic.successDark
+                      : colors.semantic.error,
+                    fontSize: typography.size.sm,
+                    textAlign: 'center',
+                    lineHeight: 18,
+                  }}
+                >
+                  {message}
+                </Text>
+              </View>
             ) : null}
+
+            {/* Action Buttons */}
             <View
               style={{
                 flexDirection: 'row',
                 justifyContent: 'flex-end',
                 gap: spacing.md,
-                marginTop: spacing.sm,
+                marginTop: spacing.md,
               }}
             >
               <Button
-                variant="ghost"
+                variant="outline"
                 onPress={handleClose}
                 disabled={submitting}
               >
