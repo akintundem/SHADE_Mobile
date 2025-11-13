@@ -129,7 +129,7 @@ export default function VendorsScreen({ eventId, onBack }: Props) {
   }, [vendors, searchQuery]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Simplified Header */}
       <View style={{
         flexDirection: 'row',

@@ -108,7 +108,7 @@ export default function RSVPScreen({ eventId, onBack }: Props) {
   }, [responses, searchQuery]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Simplified Header */}
       <View style={{
         flexDirection: 'row',

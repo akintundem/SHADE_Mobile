@@ -213,7 +213,7 @@ export default function EventManageScreen({ route }: Props) {
   }, [tasks]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Header with Progress */}
       <View style={{
         paddingHorizontal: spacing.lg,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, User, Mail, Crown, Shield, Settings, UserPlus } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { EventCollaboratorResponse } from '../../types/events';
@@ -94,7 +95,7 @@ export default function CollaborationScreen({ eventId, onBack, onAddCollaborator
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={{
         flexDirection: 'row',

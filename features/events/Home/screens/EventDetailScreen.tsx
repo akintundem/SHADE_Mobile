@@ -219,7 +219,7 @@ export default function EventDetailScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.background }}
-      edges={['top']}
+      edges={['top', 'bottom']}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Cover Image */}

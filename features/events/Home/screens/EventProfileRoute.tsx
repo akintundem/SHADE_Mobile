@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, Heart, ChevronUp, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, Heart, ChevronUp, ChevronRight, MessageSquare } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../shared/components/LoadingStates';
@@ -15,6 +15,7 @@ import BudgetScreen from '../components/BudgetScreen';
 import GuestListScreen from '../components/GuestListScreen';
 import VendorsScreen from '../components/VendorsScreen';
 import RSVPScreen from '../components/RSVPScreen';
+import { EventFeedsScreen } from './EventFeedsScreen';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
 
@@ -87,7 +88,7 @@ export const EventProfileRoute = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | null>(null);
+  const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | null>(null);
 
   const eventId = params.eventId;
 
@@ -172,6 +173,9 @@ export const EventProfileRoute = () => {
   }
   if (activeScreen === 'rsvp' && eventId) {
     return <RSVPScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+  }
+  if (activeScreen === 'feeds' && eventId) {
+    return <EventFeedsScreen eventId={eventId} eventName={event?.name ?? params.title ?? 'Event'} onBack={() => setActiveScreen(null)} />;
   }
 
   return (
@@ -740,6 +744,51 @@ export const EventProfileRoute = () => {
                         opacity: 0.6
                       }}>
                         Track responses and attendance
+                      </Text>
+                    </View>
+                    <ChevronRight size={20} color="#000000" />
+                  </TouchableOpacity>
+
+                  {/* Feeds */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('feeds')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: '#000000',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <MessageSquare size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: '#000000',
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.bold
+                      }}>
+                        Feeds
+                      </Text>
+                      <Text style={{
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
+                      }}>
+                        View posts, photos, and videos
                       </Text>
                     </View>
                     <ChevronRight size={20} color="#000000" />
