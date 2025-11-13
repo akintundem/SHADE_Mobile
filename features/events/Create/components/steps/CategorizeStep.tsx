@@ -2,30 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { EventType } from '../../../../../shared/types';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
-
-const EVENT_CATEGORIES = [
-  { label: 'Conference', value: EventType.CONFERENCE },
-  { label: 'Party', value: EventType.PARTY },
-  { label: 'Concert', value: EventType.CONCERT },
-  { label: 'Workshop', value: EventType.WORKSHOP },
-  { label: 'Networking', value: EventType.NETWORKING },
-  { label: 'Exhibition', value: EventType.TRADE_SHOW },
-];
-
-const AVAILABLE_TAGS = [
-  'Music',
-  'Amapiano',
-  'Fashion',
-  'Food',
-  'Culture',
-  'Dance',
-  'Art',
-  'Sports',
-  'Tech',
-  'Business',
-  'Networking',
-  'Workshop',
-];
+import { EVENT_CATEGORIES, AVAILABLE_TAGS } from '../../constants';
 
 type Props = {
   selectedEventType: EventType | null;

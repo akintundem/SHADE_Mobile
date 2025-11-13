@@ -20,11 +20,9 @@ type Props = {
   venue: Venue | null;
   locationSearchQuery: string;
   isGettingLocation: boolean;
-  capacity: string;
   onVenueChange: (venue: Venue | null) => void;
   onLocationSearchChange: (query: string) => void;
   onGettingLocationChange: (isGetting: boolean) => void;
-  onCapacityChange: (capacity: string) => void;
 };
 
 type LocationSuggestion = {
@@ -46,17 +44,17 @@ export function LocationStep({
   venue,
   locationSearchQuery,
   isGettingLocation,
-  capacity,
   onVenueChange,
   onLocationSearchChange,
   onGettingLocationChange,
-  onCapacityChange,
 }: Props) {
   const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
 
-  const elevatedSurfaceColor = (colors as any).surfaceElevated ?? colors.surface;
-  const subtleBorderColor = (colors as any).borderLight ?? colors.border;
-  const cardBackgroundColor = (colors as any).card ?? '#F4F5F6';
+  // Pure black and white colors
+  const cardBackgroundColor = isDark ? '#000000' : '#FFFFFF';
+  const borderColor = isDark ? '#1F1F1F' : '#E5E7EB';
+  const elevatedSurfaceColor = cardBackgroundColor;
+  const subtleBorderColor = borderColor;
 
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -90,13 +88,6 @@ export function LocationStep({
     return url;
   }, [hasCoordinates, latitude, longitude]);
 
-  const handleCapacityChange = useCallback(
-    (text: string) => {
-      const sanitized = text.replace(/[^0-9]/g, '');
-      onCapacityChange(sanitized);
-    },
-    [onCapacityChange]
-  );
 
   const handleUseCurrentLocation = useCallback(async () => {
     onGettingLocationChange(true);
@@ -338,13 +329,12 @@ export function LocationStep({
           <View style={{ gap: spacing.xl }}>
             <View
               style={{
-                backgroundColor: colors.surface,
+                backgroundColor: cardBackgroundColor,
                 borderRadius: borderRadius.xl,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: borderColor,
                 padding: spacing.lg,
                 gap: spacing.md,
-                ...shadows.sm,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -425,14 +415,13 @@ export function LocationStep({
             {showSuggestions && (isSearching || suggestions.length > 0) && (
               <View
                 style={{
-                  backgroundColor: elevatedSurfaceColor,
+                  backgroundColor: cardBackgroundColor,
                   borderRadius: borderRadius.xl,
                   borderWidth: 1,
-                  borderColor: subtleBorderColor,
+                  borderColor: borderColor,
                   paddingVertical: spacing.sm,
                   paddingHorizontal: spacing.lg,
                   gap: spacing.sm,
-                  ...shadows.sm,
                 }}
               >
                 {isSearching && suggestions.length === 0 ? (
@@ -510,12 +499,11 @@ export function LocationStep({
 
             <View
               style={{
-                backgroundColor: colors.surface,
+                backgroundColor: cardBackgroundColor,
                 borderRadius: borderRadius.xl,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: borderColor,
                 overflow: 'hidden',
-                ...shadows.lg,
               }}
             >
               <View style={{ height: 220, overflow: 'hidden', position: 'relative' }}>
@@ -541,7 +529,7 @@ export function LocationStep({
                           bottom: 0,
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: isDark ? elevatedSurfaceColor : cardBackgroundColor,
+                          backgroundColor: cardBackgroundColor,
                         }}
                       >
                         <ActivityIndicator size="large" color={brand.secondary} />
@@ -563,7 +551,7 @@ export function LocationStep({
                       flex: 1,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: isDark ? elevatedSurfaceColor : cardBackgroundColor,
+                      backgroundColor: cardBackgroundColor,
                       padding: spacing.lg,
                     }}
                   >
@@ -610,7 +598,7 @@ export function LocationStep({
                 <View 
                   style={{ 
                     height: 1, 
-                    backgroundColor: colors.border,
+                    backgroundColor: borderColor,
                     opacity: 0.5,
                   }} 
                 />
@@ -621,7 +609,7 @@ export function LocationStep({
                   style={{ 
                     padding: spacing.lg,
                     paddingTop: spacing.md,
-                    backgroundColor: isDark ? colors.surface : colors.background,
+                    backgroundColor: cardBackgroundColor,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
@@ -684,7 +672,7 @@ export function LocationStep({
                     padding: spacing.xl,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: isDark ? colors.surface : colors.background,
+                    backgroundColor: cardBackgroundColor,
                   }}
                 >
                   <View
@@ -692,7 +680,7 @@ export function LocationStep({
                       width: 48,
                       height: 48,
                       borderRadius: borderRadius.full,
-                      backgroundColor: colors.border + '40',
+                      backgroundColor: isDark ? '#1F1F1F' : '#F3F4F6',
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: spacing.sm,
@@ -714,61 +702,6 @@ export function LocationStep({
               )}
             </View>
 
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: borderRadius.xl,
-                borderWidth: 1,
-                borderColor: colors.border,
-                padding: spacing.lg,
-                gap: spacing.md,
-                ...shadows.sm,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: borderRadius.full,
-                    backgroundColor: brand.primary + '15',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Users size={18} color={brand.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.sm,
-                      fontWeight: typography.weight.semibold,
-                    }}
-                  >
-                    Capacity (optional)
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.tertiary,
-                      fontSize: typography.size.xs,
-                      marginTop: 2,
-                    }}
-                  >
-                    Leave blank for unlimited attendees.
-                  </Text>
-                </View>
-              </View>
-
-              <KeyboardOptimizedInput
-                inputType="capacity"
-                placeholder="e.g. 150"
-                value={capacity}
-                onChangeText={handleCapacityChange}
-                keyboardType="number-pad"
-                containerStyle={{ marginTop: 0 }}
-              />
-            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>
