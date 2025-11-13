@@ -54,24 +54,13 @@ export default function Auth({ onLogin, initialScreen = 'signIn', resetToken, ve
         contentContainerStyle={{
           paddingHorizontal: spacing['2xl'],
           paddingTop: spacing['4xl'],
-          paddingBottom: spacing['3xl'],
+          paddingBottom: spacing.lg,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         extraScrollHeight={spacing.lg}
       >
         <Header />
-        <AuthButtons
-          onSpotifyPress={() =>
-            onLogin?.({
-              id: 'spotify-dev',
-              email: 'dev+spotify@auree.app',
-              name: 'Auree Tester',
-              provider: 'spotify',
-            })
-          }
-        />
-        <OrDivider />
         {mode === 'signIn' ? (
           <SignInForm onLogin={onLogin} onSwitchToSignUp={() => setMode('signUp')} />
         ) : mode === 'signUp' ? (
@@ -86,8 +75,19 @@ export default function Auth({ onLogin, initialScreen = 'signIn', resetToken, ve
         ) : (
           <CompleteProfile email={pendingEmail || ''} onBack={() => setMode('signUp')} />
         )}
-        <Footer />
+        <OrDivider />
+        <AuthButtons
+          onSpotifyPress={() =>
+            onLogin?.({
+              id: 'spotify-dev',
+              email: 'dev+spotify@auree.app',
+              name: 'Auree Tester',
+              provider: 'spotify',
+            })
+          }
+        />
       </KeyboardAwareContainer>
+      <Footer />
     </SafeAreaView>
   );
 }

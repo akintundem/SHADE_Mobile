@@ -55,13 +55,13 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
   );
 
   return (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ gap: spacing.lg }}>
       {/* Basic Information */}
       <View style={{
         backgroundColor: colors.surface,
         padding: spacing.lg,
-        borderRadius: 16,
-        gap: spacing.md,
+        borderRadius: borderRadius.xl,
+        gap: spacing.lg,
         borderWidth: 1,
         borderColor: colors.border,
       }}>
@@ -70,6 +70,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           fontWeight: typography.weight.semibold,
           color: colors.text.secondary,
           marginBottom: spacing.xs,
+          letterSpacing: 0.3,
         }}>
           Basic Information
         </Text>
@@ -84,6 +85,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           placeholder="Enter your full name"
           inputType="name"
           enableNativeAutocomplete={true}
+          containerStyle={{ marginBottom: 0 }}
         />
 
         <KeyboardOptimizedInput
@@ -96,6 +98,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           placeholder="Enter your email address"
           inputType="email"
           enableNativeAutocomplete={true}
+          containerStyle={{ marginBottom: 0 }}
         />
       </View>
 
@@ -103,8 +106,8 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
       <View style={{
         backgroundColor: colors.surface,
         padding: spacing.lg,
-        borderRadius: 16,
-        gap: spacing.md,
+        borderRadius: borderRadius.xl,
+        gap: spacing.lg,
         borderWidth: 1,
         borderColor: colors.border,
       }}>
@@ -113,6 +116,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           fontWeight: typography.weight.semibold,
           color: colors.text.secondary,
           marginBottom: spacing.xs,
+          letterSpacing: 0.3,
         }}>
           Optional Details
         </Text>
@@ -124,6 +128,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           placeholder="Enter your phone number"
           inputType="phone"
           enableNativeAutocomplete={true}
+          containerStyle={{ marginBottom: 0 }}
         />
 
         <KeyboardOptimizedInput
@@ -133,6 +138,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           placeholder="Select your date of birth"
           inputType="date"
           enableNativeAutocomplete={true}
+          containerStyle={{ marginBottom: 0 }}
         />
       </View>
 
@@ -140,8 +146,8 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
       <View style={{
         backgroundColor: colors.surface,
         padding: spacing.lg,
-        borderRadius: 16,
-        gap: spacing.md,
+        borderRadius: borderRadius.xl,
+        gap: spacing.lg,
         borderWidth: 1,
         borderColor: colors.border,
       }}>
@@ -150,6 +156,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           fontWeight: typography.weight.semibold,
           color: colors.text.secondary,
           marginBottom: spacing.xs,
+          letterSpacing: 0.3,
         }}>
           Security
         </Text>
@@ -164,6 +171,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           placeholder="Create a strong password"
           inputType="password"
           enableNativeAutocomplete={true}
+          containerStyle={{ marginBottom: 0 }}
         />
 
         <KeyboardOptimizedInput
@@ -176,6 +184,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           placeholder="Confirm your password"
           inputType="password"
           enableNativeAutocomplete={true}
+          containerStyle={{ marginBottom: 0 }}
         />
       </View>
 

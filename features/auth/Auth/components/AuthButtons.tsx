@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, useColorScheme } from 'react-native';
-import { Apple, Mail, Sparkles } from 'lucide-react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { AppleIcon } from './AppleIcon';
+import { SpotifyIcon } from './SpotifyIcon';
 
 type Props = {
   onApplePress?: () => void;
@@ -11,61 +11,48 @@ type Props = {
 };
 
 export const AuthButtons = ({ onApplePress, onSpotifyPress }: Props) => {
-  const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
-  const { t } = useI18n();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { colors, spacing, borderRadius, shadows } = useTheme();
+  
+  const buttonSize = 64;
+  const iconSize = 28;
   
   return (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ 
+      flexDirection: 'row', 
+      gap: spacing.lg,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}>
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.7}
         style={{
-          backgroundColor: colors.social.apple,
-          height: 48,
+          width: buttonSize,
+          height: buttonSize,
           borderRadius: borderRadius.full,
-          flexDirection: 'row',
+          backgroundColor: colors.social.apple,
           alignItems: 'center',
           justifyContent: 'center',
-          gap: spacing.sm,
-          ...shadows.sm,
-          borderWidth: 0.5,
-          borderColor: '#FFFFFF' ,
+          ...shadows.lg,
         }}
         onPress={onApplePress}
       >
-        <Apple size={18} color="#FFFFFF" fill="#FFFFFF" />
-        <Text style={{
-          color: '#FFFFFF',
-          fontSize: typography.size.base,
-          fontWeight: typography.weight.semibold,
-        }}>
-          {t('ContinueWithApple')}
-        </Text>
+        <AppleIcon size={iconSize} color="#FFFFFF" />
       </TouchableOpacity>
 
       <TouchableOpacity 
-        activeOpacity={0.8} 
+        activeOpacity={0.7} 
         style={{
-          backgroundColor: colors.social.spotify,
-          height: 48,
+          width: buttonSize,
+          height: buttonSize,
           borderRadius: borderRadius.full,
-          flexDirection: 'row',
+          backgroundColor: colors.social.spotify,
           alignItems: 'center',
           justifyContent: 'center',
-          gap: spacing.sm,
-          ...shadows.sm,
+          ...shadows.lg,
         }}
         onPress={onSpotifyPress}
       >
-        <Mail size={18} color="#FFFFFF" />
-        <Text style={{
-          color: '#FFFFFF',
-          fontSize: typography.size.base,
-          fontWeight: typography.weight.semibold,
-        }}>
-          {t('ContinueWithSpotify')}
-        </Text>
+        <SpotifyIcon size={iconSize} color="#FFFFFF" />
       </TouchableOpacity>
     </View>
   );

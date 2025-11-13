@@ -87,7 +87,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
   };
 
   return (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ gap: spacing.lg }}>
       <Input
         label="Email Address"
         value={email}
@@ -100,6 +100,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
         enableNativeAutocomplete={true}
         leftIcon={<Mail size={20} color={colors.text.tertiary} />}
         error={error && error.includes('email') ? error : undefined}
+        containerStyle={{ marginBottom: 0 }}
       />
 
       <Input
@@ -122,6 +123,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
         }
         onRightIconPress={() => setShowPassword(v => !v)}
         error={error && !error.includes('email') ? error : undefined}
+        containerStyle={{ marginBottom: 0 }}
       />
 
       <TouchableOpacity
