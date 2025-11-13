@@ -9,12 +9,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Animated,
-  Image,
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker';
+import { Asset } from 'react-native-image-picker';
 import Input from '../../../shared/components/ui/Input';
 import {
   X,
@@ -24,7 +22,6 @@ import {
   Clock,
   MapPin,
   Plus,
-  Image as ImageIcon,
   DollarSign,
   ChevronLeft,
   ChevronRight,
@@ -45,15 +42,20 @@ import {
 } from '../../../shared/utils/formValidation';
 import { ErrorHandler } from '../../../shared/utils/errorHandler';
 import { GestureHandler } from '../../../shared/utils/gestureHandler';
+import { GeolocationService } from '../../../shared/services/geolocationService';
+import { WhenStep } from './components/steps/WhenStep';
+import { LocationStep } from './components/steps/LocationStep';
 
 type Props = { onClose: () => void; onCreate?: () => void };
 
 const STEPS = [
   { id: 0, title: 'Event Basics', subtitle: 'Start creating your event' },
-  { id: 1, title: 'Date & Location', subtitle: 'When and where is your event' },
-  { id: 2, title: 'Access & Capacity', subtitle: 'Set who can attend your event' },
-  { id: 3, title: 'Team & Contributions', subtitle: 'Add collaborators and funding options' },
-  { id: 4, title: 'Review', subtitle: 'Double-check everything looks good' },
+  { id: 1, title: 'Categorize', subtitle: 'Help people find your event' },
+  { id: 2, title: 'When', subtitle: 'Schedule your event' },
+  { id: 3, title: 'Location', subtitle: 'Where is your event' },
+  { id: 4, title: 'Access & Capacity', subtitle: 'Set who can attend your event' },
+  { id: 5, title: 'Team & Contributions', subtitle: 'Add collaborators and funding options' },
+  { id: 6, title: 'Review', subtitle: 'Double-check everything looks good' },
 ];
 
 // ReviewItem component for the review step
@@ -108,13 +110,16 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     'Art',
     'Sports',
     'Tech',
+    'Business',
     'Networking',
+    'Workshop',
   ];
 
   // Form state
   const [isPublic, setPublic] = useState(true);
   const [free, setFree] = useState(true);
   const [tags, setTags] = useState<string[]>([]);
+  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -124,10 +129,21 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [startTime, setStartTime] = useState('');
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [locationName, setLocationName] = useState('');
-  const [address, setAddress] = useState('');
+  const [venue, setVenue] = useState<{
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+    latitude?: number;
+    longitude?: number;
+    googlePlaceId?: string;
+    googlePlaceData?: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<Asset | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
   const { setContext, ask } = useAgent();
   const [chatOpen, setChatOpen] = useState(false);
@@ -163,7 +179,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       startTime,
       endDate,
       endTime,
-      location: locationName,
+      location: venue?.address || '',
       capacity: capacity ? Number(capacity) : undefined,
       price: !free && price ? Number(price) : undefined,
     }),
@@ -174,7 +190,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       startTime,
       endDate,
       endTime,
-      locationName,
+      venue,
       capacity,
       price,
       free,
@@ -192,18 +208,22 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     switch (currentStep) {
       case 0: // Event Basics
         return title.length >= 3 && description.length >= 10;
-      case 1: // Date & Location
-        return startDate && startTime && locationName.length >= 3;
-      case 2: // Access & Capacity
+      case 1: // Categorize
+        return selectedEventType !== null;
+      case 2: // When
+        return startDate && startTime;
+      case 3: // Location
+        return venue !== null && venue.address; // Only require address, city is optional
+      case 4: // Access & Capacity
         return free || (price && Number(price) > 0);
-      case 3: // Team & Contributions
+      case 5: // Team & Contributions
         return true; // All optional
-      case 4: // Review
+      case 6: // Review
         return validationResult.isValid;
       default:
         return false;
     }
-  }, [currentStep, title, description, startDate, startTime, locationName, free, price, validationResult]);
+  }, [currentStep, title, description, selectedEventType, startDate, startTime, venue, free, price, validationResult]);
 
   const canCreate = validationResult.isValid && !isLoading;
 
@@ -241,7 +261,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       const eventData: CreateEventRequest = {
         name: title.trim(),
         description: description.trim(),
-        eventType: EventType.PARTY,
+        eventType: selectedEventType || EventType.PARTY,
         eventStatus: EventStatus.DRAFT,
         startDateTime: startDateTime,
         endDateTime: endDateTime,
@@ -313,8 +333,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     startTime,
     endDate,
     endTime,
-    address,
-    locationName,
+    venue,
     title,
     description,
     capacity,
@@ -339,35 +358,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     }
   };
 
-  const handlePickImage = useCallback(() => {
-    console.log('handlePickImage called');
-    console.log('Launching image library...');
-
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        presentationStyle: 'fullScreen',
-      },
-      (response: ImagePickerResponse) => {
-        console.log('Image picker response:', JSON.stringify(response, null, 2));
-
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorCode) {
-          console.error('Image picker error:', response.errorCode, response.errorMessage);
-          Alert.alert('Error', response.errorMessage || 'Failed to pick image');
-        } else if (response.assets && response.assets.length > 0) {
-          console.log('Image selected:', response.assets[0]);
-          setCoverImage(response.assets[0]);
-        } else {
-          console.log('No assets in response');
-        }
-      }
-    );
-  }, []);
 
   const handleToggleTag = useCallback((tag: string) => {
     setTags(prevTags => {
@@ -386,13 +376,17 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
       case 0:
         return step1Content;
       case 1:
-        return Step2DateTime;
+        return Step2Categorize;
       case 2:
-        return Step3AccessCapacity;
+        return Step3When;
       case 3:
-        return Step4TeamContributions;
+        return Step4Location;
       case 4:
-        return Step5Review;
+        return Step5AccessCapacity;
+      case 5:
+        return Step6TeamContributions;
+      case 6:
+        return Step7Review;
       default:
         return null;
     }
@@ -400,280 +394,286 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
 
   // Step 1: Event Basics - Memoized
   const step1Content = useMemo(() => (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-      <Section title="Cover image">
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={handlePickImage}
-          style={{
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: borderRadius.xl,
-            overflow: 'hidden',
-          }}
-        >
-          {coverImage?.uri ? (
-            <View style={{ position: 'relative' }}>
-              <Image
-                source={{ uri: coverImage.uri }}
-                style={{
-                  height: 160,
-                  width: '100%',
-                }}
-                resizeMode="cover"
-              />
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  setCoverImage(null);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: spacing.sm,
-                  right: spacing.sm,
-                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                  borderRadius: 999,
-                  padding: spacing.xs,
-                }}
-              >
-                <X size={20} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View
-              style={{
-                height: 160,
-                backgroundColor: colors.surface,
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: spacing.xs,
-              }}
-            >
-              <ImageIcon size={24} color={colors.text.tertiary} />
-              <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm }}>
-                Add cover image (optional)
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </Section>
-
-      <Section title="Details">
-        <FieldLabel
-          icon={<Users size={16} color={colors.text.secondary} />}
-          label="Event name"
-        />
-        <Input
-          placeholder="Give your event a name"
-          value={title}
-          onChangeText={text => {
-            setTitle(text);
-            validateField('title', text);
-          }}
-          onBlur={() => setFieldTouched('title')}
-          error={getFieldError('title')}
-        />
-        <View style={{ height: spacing.sm }} />
-        <FieldLabel
-          icon={<Users size={16} color={colors.text.secondary} />}
-          label="Description"
-        />
-        <Input
-          placeholder="Describe your event"
-          multiline
-          numberOfLines={4}
-          style={{ height: 100, paddingTop: spacing.md }}
-          value={description}
-          onChangeText={text => {
-            setDescription(text);
-            validateField('description', text);
-          }}
-          onBlur={() => setFieldTouched('description')}
-          error={getFieldError('description')}
-        />
-      </Section>
-
-      <Section title="Tags (optional)">
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: spacing.sm,
-          }}
-        >
-          {AVAILABLE_TAGS.map(tag => {
-            const isSelected = tags.includes(tag);
-            return (
-              <TouchableOpacity
-                key={tag}
-                onPress={() => handleToggleTag(tag)}
-                activeOpacity={0.7}
-                style={{
-                  borderWidth: 1,
-                  borderColor: isSelected ? brand.secondary : colors.border,
-                  borderRadius: 999,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.xs,
-                  backgroundColor: isSelected ? brand.secondary + '15' : colors.surface,
-                }}
-              >
-                <Text
-                  style={{
-                    color: isSelected ? brand.secondary : colors.text.primary,
-                    fontWeight: isSelected ? typography.weight.semibold : typography.weight.regular,
-                  }}
-                >
-                  {isSelected ? '✓ ' : ''}{tag}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </Section>
-
-      {/* Agent banner at bottom */}
-      <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.xl,  marginBottom: 30 }}>
-        <AgentBanner
-          onOpenChat={() => setChatOpen(true)}
-          onSelect={() => {}}
-        />
-      </View>
-    </ScrollView>
-  ), [title, description, tags, coverImage, errors, colors, spacing, borderRadius, brand, typography, handlePickImage, handleToggleTag, AVAILABLE_TAGS, validateField, setFieldTouched, getFieldError]);
-
-  // Step 2: Date, Time & Location - Memoized
-  const Step2DateTime = useMemo(() => (
-    <ScrollView
-      contentContainerStyle={{ paddingBottom: 120 }}
-      keyboardShouldPersistTaps="handled"
+    <ScrollView 
+      contentContainerStyle={{ 
+        paddingBottom: 120,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.xl,
+      }}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View>
-      <Section title="Date & Time">
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <FieldLabel
-              icon={<CalendarDays size={16} color={colors.text.secondary} />}
-              label="Start Date"
-            />
-            <Input
-              placeholder="yyyy-mm-dd"
-              value={startDate}
-              onChangeText={text => {
-                setStartDate(text);
-                validateField('startDate', text);
-              }}
-              onBlur={() => setFieldTouched('startDate')}
-              error={getFieldError('startDate')}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FieldLabel
-              icon={<Clock size={16} color={colors.text.secondary} />}
-              label="Start Time"
-            />
-            <Input
-              placeholder="HH:MM"
-              value={startTime}
-              onChangeText={text => {
-                setStartTime(text);
-                validateField('startTime', text);
-              }}
-              onBlur={() => setFieldTouched('startTime')}
-              error={getFieldError('startTime')}
-            />
-          </View>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
-          <View style={{ flex: 1 }}>
-            <FieldLabel
-              icon={<CalendarDays size={16} color={colors.text.secondary} />}
-              label="End Date (Optional)"
-            />
-            <Input
-              placeholder="yyyy-mm-dd"
-              value={endDate}
-              onChangeText={setEndDate}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <FieldLabel
-              icon={<Clock size={16} color={colors.text.secondary} />}
-              label="End Time (Optional)"
-            />
-            <Input
-              placeholder="HH:MM"
-              value={endTime}
-              onChangeText={setEndTime}
-            />
-          </View>
-        </View>
-      </Section>
-
-      <Section title="Location">
-        <View
+      <View style={{ marginBottom: spacing.xl }}>
+        <Text
           style={{
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: borderRadius.lg,
-            padding: spacing.md,
-            backgroundColor: colors.surface,
+            color: colors.text.primary,
+            fontWeight: typography.weight.bold,
+            fontSize: typography.size['2xl'],
+            marginBottom: spacing.xs,
           }}
         >
-          <FieldLabel
-            icon={<MapPin size={16} color={colors.text.secondary} />}
-            label="Location name"
-          />
-          <Input
-            placeholder="Enter location name"
-            value={locationName}
-            onChangeText={text => {
-              setLocationName(text);
-              validateField('location', text);
-            }}
-            onBlur={() => setFieldTouched('location')}
-            error={getFieldError('location')}
-          />
-          <View style={{ height: spacing.sm }} />
-          <FieldLabel
-            icon={<MapPin size={16} color={colors.text.secondary} />}
-            label="Full address (optional)"
-          />
-          <Input
-            placeholder="Full address"
-            value={address}
-            onChangeText={setAddress}
-          />
-          <TouchableOpacity
+          Event Basics
+        </Text>
+        <Text
+          style={{
+            color: colors.text.secondary,
+            fontSize: typography.size.sm,
+          }}
+        >
+          Let's start with the essentials
+        </Text>
+      </View>
+
+      <View style={{ gap: spacing.lg }}>
+        <View>
+          <Text
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.xs,
-              marginTop: spacing.md,
+              color: colors.text.primary,
+              fontSize: typography.size.sm,
+              fontWeight: typography.weight.medium,
+              marginBottom: spacing.sm,
             }}
           >
-            <MapPin size={16} color={brand.secondary} />
-            <Text style={{ color: brand.secondary, fontSize: typography.size.sm }}>
-              Detect current location
+            Event Name
+          </Text>
+          <TextInput
+            placeholder="Give your event a name..."
+            placeholderTextColor={colors.text.tertiary}
+            value={title}
+            onChangeText={text => {
+              setTitle(text);
+              validateField('title', text);
+            }}
+            onBlur={() => setFieldTouched('title')}
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: borderRadius.lg,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.md,
+              fontSize: typography.size.base,
+              color: colors.text.primary,
+              minHeight: 48,
+            }}
+          />
+          {getFieldError('title') && (
+            <Text style={{ color: colors.semantic.error, fontSize: typography.size.xs, marginTop: spacing.xs }}>
+              {getFieldError('title')}
             </Text>
-          </TouchableOpacity>
+          )}
         </View>
-      </Section>
 
-      {/* Agent banner at bottom */}
-      <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.xl }}>
-        <AgentBanner
-          onOpenChat={() => setChatOpen(true)}
-          onSelect={() => {}}
-        />
+        <View>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.size.sm,
+              fontWeight: typography.weight.medium,
+              marginBottom: spacing.sm,
+            }}
+          >
+            Description
+          </Text>
+          <TextInput
+            placeholder="Describe your event..."
+            placeholderTextColor={colors.text.tertiary}
+            multiline
+            numberOfLines={6}
+            value={description}
+            onChangeText={text => {
+              setDescription(text);
+              validateField('description', text);
+            }}
+            onBlur={() => setFieldTouched('description')}
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: borderRadius.lg,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.md,
+              fontSize: typography.size.base,
+              color: colors.text.primary,
+              minHeight: 120,
+              textAlignVertical: 'top',
+            }}
+          />
+          {getFieldError('description') && (
+            <Text style={{ color: colors.semantic.error, fontSize: typography.size.xs, marginTop: spacing.xs }}>
+              {getFieldError('description')}
+            </Text>
+          )}
+        </View>
       </View>
-        </View>
-      </TouchableWithoutFeedback>
     </ScrollView>
-  ), [startDate, startTime, endDate, endTime, locationName, address, errors, colors, spacing, borderRadius, brand, typography, validateField, setFieldTouched, getFieldError]);
+  ), [title, description, errors, colors, spacing, borderRadius, brand, typography, validateField, setFieldTouched, getFieldError]);
 
-  // Step 3: Access & Capacity - Memoized
-  const Step3AccessCapacity = useMemo(() => (
+  // Step 2: Categorize - Memoized
+  const Step2Categorize = useMemo(() => {
+    const EVENT_CATEGORIES = [
+      { label: 'Conference', value: EventType.CONFERENCE },
+      { label: 'Party', value: EventType.PARTY },
+      { label: 'Concert', value: EventType.CONCERT },
+      { label: 'Workshop', value: EventType.WORKSHOP },
+      { label: 'Networking', value: EventType.NETWORKING },
+      { label: 'Exhibition', value: EventType.TRADE_SHOW },
+    ];
+
+    return (
+      <ScrollView 
+        contentContainerStyle={{ 
+          paddingBottom: 120,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.xl,
+        }}
+      >
+        <View style={{ marginBottom: spacing.xl }}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontWeight: typography.weight.bold,
+              fontSize: typography.size['2xl'],
+              marginBottom: spacing.xs,
+            }}
+          >
+            Categorize
+          </Text>
+          <Text
+            style={{
+              color: colors.text.secondary,
+              fontSize: typography.size.sm,
+            }}
+          >
+            Help people find your event
+          </Text>
+        </View>
+
+        <View style={{ marginBottom: spacing.xl }}>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.size.base,
+              fontWeight: typography.weight.semibold,
+              marginBottom: spacing.md,
+            }}
+          >
+            Event Category
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+            {EVENT_CATEGORIES.map((category) => {
+              const isSelected = selectedEventType === category.value;
+              return (
+                <TouchableOpacity
+                  key={category.value}
+                  onPress={() => setSelectedEventType(category.value)}
+                  activeOpacity={0.7}
+                  style={{
+                    width: '47%',
+                    height: 56,
+                    borderRadius: borderRadius.lg,
+                    borderWidth: 1,
+                    borderColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
+                    backgroundColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.surface,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: isSelected ? (isDark ? '#000000' : '#FFFFFF') : colors.text.primary,
+                      fontWeight: typography.weight.medium,
+                      fontSize: typography.size.base,
+                    }}
+                  >
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <View>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontSize: typography.size.base,
+              fontWeight: typography.weight.semibold,
+              marginBottom: spacing.md,
+            }}
+          >
+            Tags (Optional)
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+            {AVAILABLE_TAGS.map(tag => {
+              const isSelected = tags.includes(tag);
+              return (
+                <TouchableOpacity
+                  key={tag}
+                  onPress={() => handleToggleTag(tag)}
+                  activeOpacity={0.7}
+                  style={{
+                    borderRadius: borderRadius.full,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
+                    backgroundColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.surface,
+                    borderWidth: 1,
+                    borderColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: isSelected ? (isDark ? '#000000' : '#FFFFFF') : colors.text.primary,
+                      fontWeight: isSelected ? typography.weight.semibold : typography.weight.regular,
+                      fontSize: typography.size.sm,
+                    }}
+                  >
+                    {tag}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </ScrollView>
+    );
+  }, [selectedEventType, tags, colors, spacing, borderRadius, brand, typography, isDark, handleToggleTag, AVAILABLE_TAGS]);
+
+  // Step 3: When - Using WhenStep component
+  const Step3When = (
+    <WhenStep
+      startDate={startDate}
+      startTime={startTime}
+      endDate={endDate}
+      endTime={endTime}
+      onStartDateChange={(text) => {
+        setStartDate(text);
+        validateField('startDate', text);
+      }}
+      onStartTimeChange={(text) => {
+        setStartTime(text);
+        validateField('startTime', text);
+      }}
+      onEndDateChange={setEndDate}
+      onEndTimeChange={setEndTime}
+      onStartDateBlur={() => setFieldTouched('startDate')}
+      onStartTimeBlur={() => setFieldTouched('startTime')}
+      startDateError={getFieldError('startDate')}
+      startTimeError={getFieldError('startTime')}
+    />
+  );
+
+  // Step 4: Location - Using LocationStep component
+  const Step4Location = (
+    <LocationStep
+      venue={venue}
+      locationSearchQuery={locationSearchQuery}
+      isGettingLocation={isGettingLocation}
+      capacity={capacity}
+      onVenueChange={setVenue}
+      onLocationSearchChange={setLocationSearchQuery}
+      onGettingLocationChange={setIsGettingLocation}
+      onCapacityChange={setCapacity}
+    />
+  );
+
+  // Step 5: Access & Capacity - Memoized
+  const Step5AccessCapacity = useMemo(() => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <Section title="Visibility">
         <View
@@ -774,8 +774,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     </ScrollView>
   ), [isPublic, free, price, capacity, errors, colors, spacing, borderRadius, brand, typography, validateField, setFieldTouched, getFieldError]);
 
-  // Step 4: Team & Contributions - Memoized
-  const Step4TeamContributions = useMemo(() => (
+  // Step 6: Team & Contributions - Memoized
+  const Step6TeamContributions = useMemo(() => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <Section title="Contributions (optional)">
         <View
@@ -863,8 +863,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     </ScrollView>
   ), [enableContrib, colors, spacing, borderRadius, brand, typography]);
 
-  // Step 5: Review - Memoized
-  const Step5Review = useMemo(() => (
+  // Step 7: Review - Memoized
+  const Step7Review = useMemo(() => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
       <Section title="Review Your Event">
         <View
@@ -895,10 +895,42 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             spacing={spacing}
             brand={brand}
           />
+          {selectedEventType && (
+            <ReviewItem
+              label="Category"
+              value={(() => {
+                const categoryMap: Record<EventType, string> = {
+                  [EventType.CONFERENCE]: 'Conference',
+                  [EventType.WORKSHOP]: 'Workshop',
+                  [EventType.SEMINAR]: 'Seminar',
+                  [EventType.MEETING]: 'Meeting',
+                  [EventType.PARTY]: 'Party',
+                  [EventType.WEDDING]: 'Wedding',
+                  [EventType.BIRTHDAY]: 'Birthday',
+                  [EventType.CORPORATE_EVENT]: 'Corporate Event',
+                  [EventType.TRADE_SHOW]: 'Exhibition',
+                  [EventType.CONCERT]: 'Concert',
+                  [EventType.FESTIVAL]: 'Festival',
+                  [EventType.SPORTS_EVENT]: 'Sports Event',
+                  [EventType.CHARITY_EVENT]: 'Charity Event',
+                  [EventType.NETWORKING]: 'Networking',
+                  [EventType.TRAINING]: 'Training',
+                  [EventType.RETREAT]: 'Retreat',
+                  [EventType.OTHER]: 'Other',
+                };
+                return categoryMap[selectedEventType] || selectedEventType;
+              })()}
+              onEdit={() => setCurrentStep(1)}
+              colors={colors}
+              typography={typography}
+              spacing={spacing}
+              brand={brand}
+            />
+          )}
           <ReviewItem
             label="Start"
             value={`${startDate} at ${startTime}`}
-            onEdit={() => setCurrentStep(1)}
+            onEdit={() => setCurrentStep(2)}
             colors={colors}
             typography={typography}
             spacing={spacing}
@@ -908,7 +940,18 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             <ReviewItem
               label="End"
               value={`${endDate} at ${endTime}`}
-              onEdit={() => setCurrentStep(1)}
+              onEdit={() => setCurrentStep(2)}
+              colors={colors}
+              typography={typography}
+              spacing={spacing}
+              brand={brand}
+            />
+          )}
+          {venue && (
+            <ReviewItem
+              label="Location"
+              value={venue.address ? `${venue.address}, ${venue.city || ''}${venue.state ? `, ${venue.state}` : ''}` : 'Location not set'}
+              onEdit={() => setCurrentStep(3)}
               colors={colors}
               typography={typography}
               spacing={spacing}
@@ -916,18 +959,9 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             />
           )}
           <ReviewItem
-            label="Location"
-            value={locationName}
-            onEdit={() => setCurrentStep(1)}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            brand={brand}
-          />
-          <ReviewItem
             label="Visibility"
             value={isPublic ? 'Public' : 'Private'}
-            onEdit={() => setCurrentStep(2)}
+            onEdit={() => setCurrentStep(4)}
             colors={colors}
             typography={typography}
             spacing={spacing}
@@ -936,7 +970,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           <ReviewItem
             label="Access"
             value={free ? 'Free' : `$${price}`}
-            onEdit={() => setCurrentStep(2)}
+            onEdit={() => setCurrentStep(4)}
             colors={colors}
             typography={typography}
             spacing={spacing}
@@ -946,7 +980,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             <ReviewItem
               label="Capacity"
               value={`${capacity} attendees`}
-              onEdit={() => setCurrentStep(2)}
+              onEdit={() => setCurrentStep(4)}
               colors={colors}
               typography={typography}
               spacing={spacing}
@@ -964,7 +998,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         />
       </View>
     </ScrollView>
-  ), [title, description, startDate, startTime, endDate, endTime, locationName, isPublic, free, price, capacity, colors, spacing, borderRadius, brand, typography]);
+  ), [title, description, selectedEventType, startDate, startTime, endDate, endTime, venue, isPublic, free, price, capacity, colors, spacing, borderRadius, brand, typography]);
 
   return (
     <SafeAreaWrapper edges={['top']}>
@@ -976,43 +1010,47 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         {/* Header */}
         <View
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
             paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.md,
-            borderBottomWidth: 1,
-            borderColor: colors.border,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.md,
           }}
         >
-          <TouchableOpacity onPress={currentStep === 0 ? onClose : handleBack} style={{ padding: spacing.xs }}>
-            <ChevronLeft size={24} color={colors.text.primary} />
-          </TouchableOpacity>
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontWeight: typography.weight.semibold,
-                fontSize: typography.size.base,
-              }}
-            >
-              {STEPS[currentStep].title}
-            </Text>
-            <Text
-              style={{
-                color: colors.text.tertiary,
-                fontSize: typography.size.xs,
-              }}
-            >
-              Step {currentStep + 1} of {STEPS.length}
-            </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: spacing.md,
+            }}
+          >
+            <TouchableOpacity onPress={currentStep === 0 ? onClose : handleBack} style={{ padding: spacing.xs }}>
+              <ChevronLeft size={24} color={colors.text.primary} />
+            </TouchableOpacity>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size.xl,
+                }}
+              >
+                Create Event
+              </Text>
+              <Text
+                style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.size.sm,
+                  marginTop: spacing.xs / 2,
+                }}
+              >
+                Step {currentStep + 1} of {STEPS.length}
+              </Text>
+            </View>
+            <View style={{ width: 40 }} />
           </View>
-          <View style={{ width: 40 }} />
-        </View>
 
-        {/* Progress indicator */}
-        <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1, borderColor: colors.border }}>
-          <View style={{ flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.sm }}>
+          {/* Progress indicator */}
+          <View style={{ flexDirection: 'row', gap: spacing.xs }}>
             {STEPS.map((step, index) => (
               <View
                 key={step.id}
@@ -1020,18 +1058,11 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
                   flex: 1,
                   height: 4,
                   borderRadius: 2,
-                  backgroundColor: index <= currentStep ? brand.secondary : colors.border,
+                  backgroundColor: index <= currentStep ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
                 }}
               />
             ))}
           </View>
-          <Text style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-            textAlign: 'center',
-          }}>
-            {STEPS[currentStep].subtitle}
-          </Text>
         </View>
 
         {/* Step content */}
@@ -1050,30 +1081,34 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           }}
         >
           {currentStep < STEPS.length - 1 ? (
-            <TouchableOpacity
-              disabled={!canProceedToNextStep}
-              onPress={handleNext}
-              style={{
-                height: 48,
-                borderRadius: 999,
-                backgroundColor: canProceedToNextStep ? brand.secondary : colors.border,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-                gap: spacing.sm,
-              }}
-            >
-              <Text
+            <View style={{ alignItems: 'flex-end' }}>
+              <TouchableOpacity
+                disabled={!canProceedToNextStep}
+                onPress={handleNext}
                 style={{
-                  color: colors.background,
-                  fontWeight: typography.weight.semibold,
-                  fontSize: typography.size.base,
+                  height: 56,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: canProceedToNextStep ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: spacing.sm,
+                  paddingHorizontal: spacing.xl,
+                  minWidth: 120,
                 }}
               >
-                Next
-              </Text>
-              <ChevronRight size={20} color={colors.background} />
-            </TouchableOpacity>
+                <Text
+                  style={{
+                    color: canProceedToNextStep ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary,
+                    fontWeight: typography.weight.semibold,
+                    fontSize: typography.size.lg,
+                  }}
+                >
+                  Next
+                </Text>
+                <ChevronRight size={22} color={canProceedToNextStep ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary} />
+              </TouchableOpacity>
+            </View>
           ) : (
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
               <TouchableOpacity

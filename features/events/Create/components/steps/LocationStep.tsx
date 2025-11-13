@@ -1,0 +1,778 @@
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+  Keyboard,
+  Alert,
+  ActivityIndicator,
+  Image,
+} from 'react-native';
+import { Navigation, MapPinned, Check, Users } from 'lucide-react-native';
+import { GeolocationService } from '../../../../../shared/services/geolocationService';
+import { useTheme } from '../../../../../shared/theme/ThemeProvider';
+import KeyboardOptimizedInput from '../../../../../shared/components/ui/KeyboardOptimizedInput';
+import { Venue } from '../types';
+
+type Props = {
+  venue: Venue | null;
+  locationSearchQuery: string;
+  isGettingLocation: boolean;
+  capacity: string;
+  onVenueChange: (venue: Venue | null) => void;
+  onLocationSearchChange: (query: string) => void;
+  onGettingLocationChange: (isGetting: boolean) => void;
+  onCapacityChange: (capacity: string) => void;
+};
+
+type LocationSuggestion = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  latitude: number;
+  longitude: number;
+  displayName: string;
+  components: {
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+  };
+};
+
+export function LocationStep({
+  venue,
+  locationSearchQuery,
+  isGettingLocation,
+  capacity,
+  onVenueChange,
+  onLocationSearchChange,
+  onGettingLocationChange,
+  onCapacityChange,
+}: Props) {
+  const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
+
+  const elevatedSurfaceColor = (colors as any).surfaceElevated ?? colors.surface;
+  const subtleBorderColor = (colors as any).borderLight ?? colors.border;
+  const cardBackgroundColor = (colors as any).card ?? '#F4F5F6';
+
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mapImageLoaded, setMapImageLoaded] = useState(false);
+  const [mapImageError, setMapImageError] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchAbortControllerRef = useRef<AbortController | null>(null);
+
+  const latitude = venue?.latitude ?? null;
+  const longitude = venue?.longitude ?? null;
+  const hasCoordinates = typeof latitude === 'number' && typeof longitude === 'number';
+
+  const staticMapUrl = useMemo(() => {
+    setMapImageLoaded(false);
+    setMapImageError(false);
+    
+    if (!hasCoordinates || latitude === null || longitude === null) {
+      console.log('No coordinates available for map preview:', { latitude, longitude, hasCoordinates });
+      return null;
+    }
+
+    const zoom = 13;
+    
+    // Using Geoapify's demo API for static maps
+    const url = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=300&center=lonlat:${longitude},${latitude}&zoom=${zoom}&marker=lonlat:${longitude},${latitude};type:material;color:%23F59E0B;size:medium&apiKey=demo`;
+    
+    console.log('Generated static map URL:', url);
+    console.log('Coordinates:', { latitude, longitude, zoom });
+    
+    return url;
+  }, [hasCoordinates, latitude, longitude]);
+
+  const handleCapacityChange = useCallback(
+    (text: string) => {
+      const sanitized = text.replace(/[^0-9]/g, '');
+      onCapacityChange(sanitized);
+    },
+    [onCapacityChange]
+  );
+
+  const handleUseCurrentLocation = useCallback(async () => {
+    onGettingLocationChange(true);
+    try {
+      const hasPermission = await GeolocationService.requestPermissions();
+      if (!hasPermission) {
+        Alert.alert('Permission Required', 'Location permission is needed to use your current location.');
+        onGettingLocationChange(false);
+        return;
+      }
+
+      GeolocationService.getCurrentPosition(
+        (position) => {
+          const locationText = 'Current Location';
+          onVenueChange({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            address: locationText,
+            city: '',
+            state: '',
+            country: '',
+            zipCode: '',
+          });
+          onLocationSearchChange(locationText);
+          setSuggestions([]);
+          setShowSuggestions(false);
+          setIsSearching(false);
+          onGettingLocationChange(false);
+        },
+        (error) => {
+          console.error('Location error:', error);
+          Alert.alert('Error', 'Failed to get your current location. Please try again or enter manually.');
+          onGettingLocationChange(false);
+        }
+      );
+    } catch (error) {
+      console.error('Location permission error:', error);
+      Alert.alert('Error', 'Failed to request location permission.');
+      onGettingLocationChange(false);
+    }
+  }, [onVenueChange, onGettingLocationChange, onLocationSearchChange]);
+
+  const handleSuggestionSelect = useCallback(
+    (suggestion: LocationSuggestion) => {
+      setShowSuggestions(false);
+      setSuggestions([]);
+      setIsSearching(false);
+      Keyboard.dismiss();
+
+      const venueData = {
+        address: suggestion.displayName,
+        city: suggestion.components.city,
+        state: suggestion.components.state,
+        country: suggestion.components.country,
+        zipCode: suggestion.components.zipCode,
+        latitude: suggestion.latitude,
+        longitude: suggestion.longitude,
+      };
+      
+      console.log('Setting venue with coordinates:', {
+        lat: suggestion.latitude,
+        lon: suggestion.longitude,
+        address: suggestion.displayName,
+      });
+      
+      onVenueChange(venueData);
+      onLocationSearchChange(suggestion.displayName);
+    },
+    [onVenueChange, onLocationSearchChange],
+  );
+
+  // Format venue address for display
+  const formatVenueAddress = () => {
+    if (!venue) return '';
+    const parts = [];
+    if (venue.address) parts.push(venue.address);
+    if (venue.city) parts.push(venue.city);
+    if (venue.state) parts.push(venue.state);
+    if (venue.country) parts.push(venue.country);
+    if (venue.zipCode) parts.push(venue.zipCode);
+    return parts.join(', ');
+  };
+
+  const handleLocationSelect = useCallback(
+    (selectedAddress: string) => {
+      const trimmed = selectedAddress.trim();
+      if (!trimmed) {
+        return;
+      }
+
+      setShowSuggestions(false);
+      setSuggestions([]);
+      setIsSearching(false);
+      Keyboard.dismiss();
+
+      onVenueChange({
+        address: trimmed,
+      });
+      onLocationSearchChange(trimmed);
+    },
+    [onVenueChange, onLocationSearchChange],
+  );
+
+  const locationDisplay = formatVenueAddress() || locationSearchQuery || 'Search for a venue to preview it here';
+  const hasSelectedLocation = Boolean(locationSearchQuery || venue?.address);
+
+  useEffect(() => {
+    if (!locationSearchQuery || locationSearchQuery.trim().length < 3) {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = null;
+      }
+      searchAbortControllerRef.current?.abort();
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setIsSearching(false);
+      return;
+    }
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    setIsSearching(true);
+    setShowSuggestions(true);
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        searchAbortControllerRef.current?.abort();
+        const controller = new AbortController();
+        searchAbortControllerRef.current = controller;
+
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(
+            locationSearchQuery,
+          )}`,
+          {
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'capsule-app/1.0',
+              Accept: 'application/json',
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch location suggestions');
+        }
+
+        const results: any[] = await response.json();
+        const mappedSuggestions: LocationSuggestion[] = results.map((item, index) => {
+          const address = item.address || {};
+          const displayName: string = item.display_name || locationSearchQuery;
+          const [title, ...rest] = displayName.split(',');
+          const subtitle = rest.join(', ').trim();
+
+          return {
+            id: item.place_id?.toString() ?? `${item.lat}-${item.lon}-${index}`,
+            title: title?.trim() || displayName,
+            subtitle: subtitle || undefined,
+            latitude: parseFloat(item.lat),
+            longitude: parseFloat(item.lon),
+            displayName,
+            components: {
+              city:
+                address.city ||
+                address.town ||
+                address.village ||
+                address.municipality ||
+                address.county,
+              state: address.state || address.region,
+              country: address.country,
+              zipCode: address.postcode,
+            },
+          };
+        });
+
+        setSuggestions(mappedSuggestions);
+        setShowSuggestions(mappedSuggestions.length > 0);
+      } catch (error: any) {
+        if (error?.name !== 'AbortError') {
+          console.warn('Location suggestions error', error);
+        }
+      } finally {
+        setIsSearching(false);
+      }
+    }, 350);
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+        searchDebounceRef.current = null;
+      }
+    };
+  }, [locationSearchQuery]);
+
+  useEffect(() => {
+    return () => {
+      searchAbortControllerRef.current?.abort();
+    };
+  }, []);
+
+  return (
+    <ScrollView
+      contentContainerStyle={{
+        paddingBottom: 120,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.xl,
+      }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <TouchableWithoutFeedback
+        onPress={() => {
+          setShowSuggestions(false);
+          Keyboard.dismiss();
+        }}
+      >
+        <View>
+          <View style={{ marginBottom: spacing.xl }}>
+            <Text
+              style={{
+                color: colors.text.primary,
+                fontWeight: typography.weight.bold,
+                fontSize: typography.size['2xl'],
+                marginBottom: spacing.xs,
+              }}
+            >
+              Location
+            </Text>
+            <Text
+              style={{
+                color: colors.text.secondary,
+                fontSize: typography.size.sm,
+              }}
+            >
+              Where is your event
+            </Text>
+          </View>
+
+          <View style={{ gap: spacing.xl }}>
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: borderRadius.xl,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: spacing.lg,
+                gap: spacing.md,
+                ...shadows.sm,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flex: 1, paddingRight: spacing.sm }}>
+                  <Text
+                    style={{
+                      color: colors.text.primary,
+                      fontSize: typography.size.sm,
+                      fontWeight: typography.weight.semibold,
+                    }}
+                  >
+                    Search or enter address
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.text.tertiary,
+                      fontSize: typography.size.xs,
+                      marginTop: 2,
+                    }}
+                  >
+                    Find your venue or tap the compass to use your current location.
+                  </Text>
+                </View>
+              </View>
+
+              <KeyboardOptimizedInput
+                inputType="location"
+                placeholder="123 Market Street, San Francisco"
+                value={locationSearchQuery}
+                onChangeText={(text) => {
+                  onLocationSearchChange(text);
+                  if (!text && venue) {
+                    onVenueChange(null);
+                  }
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (suggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onBlur={() => {
+                  setTimeout(() => setShowSuggestions(false), 120);
+                  if (
+                    locationSearchQuery &&
+                    (!venue || (!venue.latitude && !venue.longitude))
+                  ) {
+                    handleLocationSelect(locationSearchQuery);
+                  }
+                }}
+                rightIcon={
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: borderRadius.full,
+                      backgroundColor: brand.secondary + '20',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {isSearching || isGettingLocation ? (
+                      <ActivityIndicator size="small" color={brand.secondary} />
+                    ) : (
+                      <Navigation size={18} color={brand.secondary} />
+                    )}
+                  </View>
+                }
+                onRightIconPress={() => {
+                  if (!isSearching) {
+                    handleUseCurrentLocation();
+                  }
+                }}
+                containerStyle={{ marginTop: 0 }}
+              />
+            </View>
+
+            {showSuggestions && (isSearching || suggestions.length > 0) && (
+              <View
+                style={{
+                  backgroundColor: elevatedSurfaceColor,
+                  borderRadius: borderRadius.xl,
+                  borderWidth: 1,
+                  borderColor: subtleBorderColor,
+                  paddingVertical: spacing.sm,
+                  paddingHorizontal: spacing.lg,
+                  gap: spacing.sm,
+                  ...shadows.sm,
+                }}
+              >
+                {isSearching && suggestions.length === 0 ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <ActivityIndicator size="small" color={brand.secondary} />
+                    <Text
+                      style={{
+                        color: colors.text.secondary,
+                        fontSize: typography.size.sm,
+                      }}
+                    >
+                      Searching locations...
+                    </Text>
+                  </View>
+                ) : (
+                  suggestions.map((suggestion) => (
+                    <TouchableOpacity
+                      key={suggestion.id}
+                      activeOpacity={0.85}
+                      onPress={() => handleSuggestionSelect(suggestion)}
+                      style={{
+                        paddingVertical: spacing.md,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: spacing.sm,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: borderRadius.full,
+                          backgroundColor: brand.secondary + '20',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <MapPinned size={16} color={brand.secondary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            color: colors.text.primary,
+                            fontSize: typography.size.sm,
+                            fontWeight: typography.weight.medium,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {suggestion.title}
+                        </Text>
+                        {suggestion.subtitle && (
+                          <Text
+                            style={{
+                              color: colors.text.tertiary,
+                              fontSize: typography.size.xs,
+                              marginTop: 2,
+                            }}
+                            numberOfLines={1}
+                          >
+                            {suggestion.subtitle}
+                          </Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
+              </View>
+            )}
+
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: borderRadius.xl,
+                borderWidth: 1,
+                borderColor: colors.border,
+                overflow: 'hidden',
+                ...shadows.lg,
+              }}
+            >
+              <View style={{ height: 220, overflow: 'hidden', position: 'relative' }}>
+                {staticMapUrl && !mapImageError ? (
+                  <>
+                    <Image
+                      source={{ uri: staticMapUrl }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                      onLoad={() => setMapImageLoaded(true)}
+                      onError={() => {
+                        console.warn('Map image failed to load:', staticMapUrl);
+                        setMapImageError(true);
+                      }}
+                    />
+                    {!mapImageLoaded && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: isDark ? elevatedSurfaceColor : cardBackgroundColor,
+                        }}
+                      >
+                        <ActivityIndicator size="large" color={brand.secondary} />
+                        <Text
+                          style={{
+                            color: colors.text.secondary,
+                            fontSize: typography.size.xs,
+                            marginTop: spacing.sm,
+                          }}
+                        >
+                          Loading map preview...
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View
+                    style={{
+                      flex: 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isDark ? elevatedSurfaceColor : cardBackgroundColor,
+                      padding: spacing.lg,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 54,
+                        height: 54,
+                        borderRadius: borderRadius.full,
+                        backgroundColor: brand.secondary + '15',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: spacing.md,
+                      }}
+                    >
+                      <MapPinned size={24} color={brand.secondary} />
+                    </View>
+                    <Text
+                      style={{
+                        color: colors.text.primary,
+                        fontSize: typography.size.sm,
+                        fontWeight: typography.weight.medium,
+                      }}
+                    >
+                      Map preview unavailable
+                    </Text>
+                    <Text
+                      style={{
+                        color: colors.text.tertiary,
+                        fontSize: typography.size.xs,
+                        marginTop: spacing.xs,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {hasSelectedLocation
+                        ? 'Add coordinates to show this spot on the map.'
+                        : 'Start searching for a venue to preview it on the map.'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Subtle divider */}
+              {hasSelectedLocation && (
+                <View 
+                  style={{ 
+                    height: 1, 
+                    backgroundColor: colors.border,
+                    opacity: 0.5,
+                  }} 
+                />
+              )}
+
+              {hasSelectedLocation ? (
+                <View 
+                  style={{ 
+                    padding: spacing.lg,
+                    paddingTop: spacing.md,
+                    backgroundColor: isDark ? colors.surface : colors.background,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: borderRadius.xl,
+                        backgroundColor: brand.secondary,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginTop: 2,
+                        ...shadows.sm,
+                      }}
+                    >
+                      <MapPinned size={22} color="#FFFFFF" strokeWidth={2.5} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          color: colors.text.primary,
+                          fontSize: typography.size.lg,
+                          fontWeight: typography.weight.bold,
+                          lineHeight: 24,
+                          marginBottom: 4,
+                        }}
+                      >
+                        {locationDisplay.split(',')[0]}
+                      </Text>
+                      <Text
+                        style={{
+                          color: colors.text.secondary,
+                          fontSize: typography.size.sm,
+                          lineHeight: 19,
+                        }}
+                        numberOfLines={2}
+                      >
+                        {locationDisplay.split(',').slice(1).join(',').trim()}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: borderRadius.full,
+                        backgroundColor: brand.secondary,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginTop: 8,
+                        ...shadows.sm,
+                      }}
+                    >
+                      <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
+                    </View>
+                  </View>
+                </View>
+              ) : (
+                <View 
+                  style={{ 
+                    padding: spacing.xl,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: isDark ? colors.surface : colors.background,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: borderRadius.full,
+                      backgroundColor: colors.border + '40',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: spacing.sm,
+                    }}
+                  >
+                    <MapPinned size={24} color={colors.text.tertiary} strokeWidth={1.5} />
+                  </View>
+                  <Text
+                    style={{
+                      color: colors.text.tertiary,
+                      fontSize: typography.size.sm,
+                      textAlign: 'center',
+                      fontWeight: typography.weight.medium,
+                    }}
+                  >
+                    No location selected
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: borderRadius.xl,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: spacing.lg,
+                gap: spacing.md,
+                ...shadows.sm,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: borderRadius.full,
+                    backgroundColor: brand.primary + '15',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Users size={18} color={brand.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: colors.text.primary,
+                      fontSize: typography.size.sm,
+                      fontWeight: typography.weight.semibold,
+                    }}
+                  >
+                    Capacity (optional)
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.text.tertiary,
+                      fontSize: typography.size.xs,
+                      marginTop: 2,
+                    }}
+                  >
+                    Leave blank for unlimited attendees.
+                  </Text>
+                </View>
+              </View>
+
+              <KeyboardOptimizedInput
+                inputType="capacity"
+                placeholder="e.g. 150"
+                value={capacity}
+                onChangeText={handleCapacityChange}
+                keyboardType="number-pad"
+                containerStyle={{ marginTop: 0 }}
+              />
+            </View>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    </ScrollView>
+  );
+}
+
