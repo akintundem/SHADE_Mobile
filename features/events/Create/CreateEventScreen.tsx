@@ -45,6 +45,7 @@ import { GestureHandler } from '../../../shared/utils/gestureHandler';
 import { GeolocationService } from '../../../shared/services/geolocationService';
 import { WhenStep } from './components/steps/WhenStep';
 import { LocationStep } from './components/steps/LocationStep';
+import { ReviewStep } from './components/steps/ReviewStep';
 
 type Props = { onClose: () => void; onCreate?: () => void };
 
@@ -57,43 +58,6 @@ const STEPS = [
   { id: 5, title: 'Team & Contributions', subtitle: 'Add collaborators and funding options' },
   { id: 6, title: 'Review', subtitle: 'Double-check everything looks good' },
 ];
-
-// ReviewItem component for the review step
-function ReviewItem({ 
-  label, 
-  value, 
-  onEdit,
-  colors,
-  typography,
-  spacing,
-  brand 
-}: { 
-  label: string; 
-  value: string; 
-  onEdit: () => void;
-  colors: any;
-  typography: any;
-  spacing: any;
-  brand: any;
-}) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, marginBottom: 4 }}>
-          {label}
-        </Text>
-        <Text style={{ color: colors.text.primary, fontSize: typography.size.base }}>
-          {value}
-        </Text>
-      </View>
-      <TouchableOpacity onPress={onEdit} style={{ paddingLeft: spacing.md }}>
-        <Text style={{ color: brand.secondary, fontSize: typography.size.sm }}>
-          Edit
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 export default function CreateEventScreen({ onClose, onCreate }: Props) {
   // Current step state
@@ -865,140 +829,22 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
 
   // Step 7: Review - Memoized
   const Step7Review = useMemo(() => (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-      <Section title="Review Your Event">
-        <View
-          style={{
-            borderWidth: 1,
-            borderColor: colors.border,
-            borderRadius: borderRadius.xl,
-            padding: spacing.lg,
-            backgroundColor: colors.surface,
-            gap: spacing.md,
-          }}
-        >
-          <ReviewItem
-            label="Event Name"
-            value={title}
-            onEdit={() => setCurrentStep(0)}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            brand={brand}
-          />
-          <ReviewItem
-            label="Description"
-            value={description}
-            onEdit={() => setCurrentStep(0)}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            brand={brand}
-          />
-          {selectedEventType && (
-            <ReviewItem
-              label="Category"
-              value={(() => {
-                const categoryMap: Record<EventType, string> = {
-                  [EventType.CONFERENCE]: 'Conference',
-                  [EventType.WORKSHOP]: 'Workshop',
-                  [EventType.SEMINAR]: 'Seminar',
-                  [EventType.MEETING]: 'Meeting',
-                  [EventType.PARTY]: 'Party',
-                  [EventType.WEDDING]: 'Wedding',
-                  [EventType.BIRTHDAY]: 'Birthday',
-                  [EventType.CORPORATE_EVENT]: 'Corporate Event',
-                  [EventType.TRADE_SHOW]: 'Exhibition',
-                  [EventType.CONCERT]: 'Concert',
-                  [EventType.FESTIVAL]: 'Festival',
-                  [EventType.SPORTS_EVENT]: 'Sports Event',
-                  [EventType.CHARITY_EVENT]: 'Charity Event',
-                  [EventType.NETWORKING]: 'Networking',
-                  [EventType.TRAINING]: 'Training',
-                  [EventType.RETREAT]: 'Retreat',
-                  [EventType.OTHER]: 'Other',
-                };
-                return categoryMap[selectedEventType] || selectedEventType;
-              })()}
-              onEdit={() => setCurrentStep(1)}
-              colors={colors}
-              typography={typography}
-              spacing={spacing}
-              brand={brand}
-            />
-          )}
-          <ReviewItem
-            label="Start"
-            value={`${startDate} at ${startTime}`}
-            onEdit={() => setCurrentStep(2)}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            brand={brand}
-          />
-          {endDate && endTime && (
-            <ReviewItem
-              label="End"
-              value={`${endDate} at ${endTime}`}
-              onEdit={() => setCurrentStep(2)}
-              colors={colors}
-              typography={typography}
-              spacing={spacing}
-              brand={brand}
-            />
-          )}
-          {venue && (
-            <ReviewItem
-              label="Location"
-              value={venue.address ? `${venue.address}, ${venue.city || ''}${venue.state ? `, ${venue.state}` : ''}` : 'Location not set'}
-              onEdit={() => setCurrentStep(3)}
-              colors={colors}
-              typography={typography}
-              spacing={spacing}
-              brand={brand}
-            />
-          )}
-          <ReviewItem
-            label="Visibility"
-            value={isPublic ? 'Public' : 'Private'}
-            onEdit={() => setCurrentStep(4)}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            brand={brand}
-          />
-          <ReviewItem
-            label="Access"
-            value={free ? 'Free' : `$${price}`}
-            onEdit={() => setCurrentStep(4)}
-            colors={colors}
-            typography={typography}
-            spacing={spacing}
-            brand={brand}
-          />
-          {capacity && (
-            <ReviewItem
-              label="Capacity"
-              value={`${capacity} attendees`}
-              onEdit={() => setCurrentStep(4)}
-              colors={colors}
-              typography={typography}
-              spacing={spacing}
-              brand={brand}
-            />
-          )}
-        </View>
-      </Section>
-
-      {/* Agent banner at bottom */}
-      <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.xl }}>
-        <AgentBanner
-          onOpenChat={() => setChatOpen(true)}
-          onSelect={() => {}}
-        />
-      </View>
-    </ScrollView>
-  ), [title, description, selectedEventType, startDate, startTime, endDate, endTime, venue, isPublic, free, price, capacity, colors, spacing, borderRadius, brand, typography]);
+    <ReviewStep
+      title={title}
+      description={description}
+      selectedEventType={selectedEventType}
+      startDate={startDate}
+      startTime={startTime}
+      endDate={endDate}
+      endTime={endTime}
+      venue={venue}
+      isPublic={isPublic}
+      free={free}
+      price={price}
+      capacity={capacity}
+      onEditStep={setCurrentStep}
+    />
+  ), [title, description, selectedEventType, startDate, startTime, endDate, endTime, venue, isPublic, free, price, capacity]);
 
   return (
     <SafeAreaWrapper edges={['top']}>
