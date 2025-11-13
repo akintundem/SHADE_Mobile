@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, useColorScheme } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Camera, User as UserIcon } from 'lucide-react-native';
-import { styles } from '../styles';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import KeyboardOptimizedInput from '../../../../shared/components/ui/KeyboardOptimizedInput';
+import Button from '../../../../shared/components/ui/Button';
 
 type Props = {
   email?: string;
@@ -10,38 +12,66 @@ type Props = {
 };
 
 export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
-  const isDark = useColorScheme() === 'dark';
+  const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
 
   const canSubmit = useMemo(() => name.trim().length > 0 && username.trim().length > 0, [name, username]);
 
   return (
-    <View style={{ marginTop: 16 }}>
-      <TouchableOpacity onPress={onBack} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <ArrowLeft size={18} color={isDark ? '#E5E7EB' : '#111827'} />
-        <Text style={{ color: isDark ? '#E5E7EB' : '#111827' }}>Back to credentials</Text>
+    <View style={{ gap: spacing.lg }}>
+      <TouchableOpacity 
+        onPress={onBack} 
+        style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          gap: spacing.sm,
+          marginBottom: spacing.xs,
+        }}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft size={18} color={colors.text.secondary} />
+        <Text style={{ 
+          color: colors.text.secondary,
+          fontSize: typography.size.sm,
+          fontWeight: typography.weight.medium,
+        }}>
+          Back to credentials
+        </Text>
       </TouchableOpacity>
 
-      <View style={{ alignItems: 'center', marginBottom: 16 }}>
-        <Text style={{ fontSize: 22, fontWeight: '700', color: isDark ? '#F9FAFB' : '#111827' }}>Complete your profile</Text>
-        <Text style={{ marginTop: 6, color: '#6B7280' }}>Tell us a bit about yourself</Text>
+      <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+        <Text style={{ 
+          fontSize: typography.size['2xl'],
+          fontWeight: typography.weight.bold,
+          color: colors.text.primary,
+          marginBottom: spacing.xs,
+        }}>
+          Complete your profile
+        </Text>
+        <Text style={{ 
+          color: colors.text.secondary,
+          fontSize: typography.size.sm,
+        }}>
+          Tell us a bit about yourself
+        </Text>
       </View>
 
-      <View style={{ alignItems: 'center', marginBottom: 16 }}>
+      <View style={{ alignItems: 'center', marginBottom: spacing.xl }}>
         <View
           style={{
             height: 100,
             width: 100,
-            borderRadius: 50,
-            backgroundColor: isDark ? '#111827' : '#F3F4F6',
+            borderRadius: borderRadius.full,
+            backgroundColor: colors.surface,
             borderWidth: 1,
-            borderColor: isDark ? '#2A2E35' : '#E5E7EB',
+            borderColor: colors.border,
             alignItems: 'center',
             justifyContent: 'center',
+            ...shadows.md,
           }}
         >
-          <UserIcon size={36} color={isDark ? '#9CA3AF' : '#6B7280'} />
+          <UserIcon size={36} color={colors.text.tertiary} />
           <View
             style={{
               position: 'absolute',
@@ -49,58 +79,57 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
               right: -2,
               height: 28,
               width: 28,
-              borderRadius: 14,
-              backgroundColor: '#fff',
+              borderRadius: borderRadius.full,
+              backgroundColor: colors.surface,
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              borderColor: '#E5E7EB',
+              borderColor: colors.border,
+              ...shadows.sm,
             }}
           >
-            <Camera size={16} color="#111827" />
+            <Camera size={16} color={colors.text.primary} />
           </View>
         </View>
-        <Text style={{ marginTop: 8, color: '#9CA3AF' }}>Add a profile picture</Text>
+        <Text style={{ 
+          marginTop: spacing.sm,
+          color: colors.text.tertiary,
+          fontSize: typography.size.sm,
+        }}>
+          Add a profile picture
+        </Text>
       </View>
 
-      <View
-        style={[styles.inputWrap, isDark ? styles.inputWrapDark : styles.inputWrapLight]}
-      >
-        <UserIcon size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
-        <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
-          value={name}
-          onChangeText={setName}
-          placeholder="Full name"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-          returnKeyType="next"
-        />
-      </View>
+      <KeyboardOptimizedInput
+        label="Full name"
+        value={name}
+        onChangeText={setName}
+        placeholder="Enter your full name"
+        inputType="name"
+        enableNativeAutocomplete={true}
+        containerStyle={{ marginBottom: 0 }}
+      />
 
-      <View
-        style={[styles.inputWrap, isDark ? styles.inputWrapDark : styles.inputWrapLight]}
-      >
-        <UserIcon size={18} color={isDark ? '#9CA3AF' : '#6B7280'} style={styles.leadingIconSvg} />
-        <TextInput
-          style={[styles.input, isDark ? styles.inputTextDark : styles.inputTextLight]}
-          value={username}
-          onChangeText={setUsername}
-          placeholder="Username"
-          placeholderTextColor={isDark ? '#9CA3AF' : '#6B7280'}
-          autoCapitalize="none"
-          returnKeyType="done"
-        />
-      </View>
+      <KeyboardOptimizedInput
+        label="Username"
+        value={username}
+        onChangeText={setUsername}
+        placeholder="Choose a username"
+        inputType="name"
+        enableNativeAutocomplete={true}
+        containerStyle={{ marginBottom: 0 }}
+      />
 
-      <TouchableOpacity
-        activeOpacity={canSubmit ? 0.8 : 1}
-        style={[styles.primaryInvertedBtn, !canSubmit && styles.signInBtnDisabled, { marginTop: 12 }]}
-        disabled={!canSubmit}
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
         onPress={() => onComplete?.({ name, username })}
+        disabled={!canSubmit}
+        style={{ marginTop: spacing.md, backgroundColor: brand.primary }}
       >
-        <Text style={styles.primaryInvertedText}>Complete profile</Text>
-      </TouchableOpacity>
+        Complete profile
+      </Button>
     </View>
   );
 };
-

@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { AppleIcon } from './AppleIcon';
-import { SpotifyIcon } from './SpotifyIcon';
+import { AppleIcon } from './icons/AppleIcon';
+import { SpotifyIcon } from './icons/SpotifyIcon';
 
 type Props = {
   onApplePress?: () => void;

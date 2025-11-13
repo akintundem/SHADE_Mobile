@@ -3,24 +3,26 @@ import { View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 
-export const Footer = () => {
+type Props = {
+  isSignUp?: boolean;
+};
+
+export const Footer = ({ isSignUp = false }: Props) => {
   const { colors, typography, spacing } = useTheme();
   const insets = useSafeAreaInsets();
   
   return (
     <View style={{ 
-      paddingHorizontal: spacing['2xl'],
-      paddingBottom: Math.max(insets.bottom, spacing.lg),
-      paddingTop: spacing.md,
-      backgroundColor: colors.background,
-      borderTopWidth: 1,
-      borderTopColor: colors.borderLight,
+      marginTop: isSignUp ? spacing.lg : spacing['3xl'],
+      marginBottom: Math.max(insets.bottom, isSignUp ? spacing.md : spacing.lg),
+      alignItems: 'center',
     }}>
       <Text style={{ 
         color: colors.text.tertiary,
         fontSize: typography.size.xs,
         textAlign: 'center',
         lineHeight: 18,
+        paddingHorizontal: spacing.lg,
       }}>
         By continuing, you agree to our{' '}
         <Text style={{ 

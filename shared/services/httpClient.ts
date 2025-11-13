@@ -57,8 +57,6 @@ http.interceptors.request.use(async config => {
       config.headers = {} as any;
     }
     config.headers.Authorization = `Bearer ${token}`;
-    console.log('🔐 Adding Authorization header to request:', config.url);
-    console.log('🔐 Token being used:', token.substring(0, 30) + '...');
     
     const url = config.url ?? '';
     const method = (config.method ?? 'get').toLowerCase();
@@ -74,14 +72,11 @@ http.interceptors.request.use(async config => {
         const cachedUser = await getUser<{ userId?: string }>();
         if (cachedUser && typeof cachedUser.userId === 'string') {
           config.headers['X-User-Id'] = cachedUser.userId;
-          console.log('🔐 Adding X-User-Id header:', cachedUser.userId);
         }
       } catch (error) {
-        console.log('⚠️  Could not get user ID for X-User-Id header');
+        // Silently handle user ID retrieval failure
       }
     }
-  } else {
-    console.log('⚠️  No token found for authenticated request:', config.url);
   }
   return config;
 });
@@ -121,12 +116,6 @@ const responseErrorHandler = async (error: any) => {
     message = 'Unable to reach the server. Please check your network connection.';
   }
 
-  console.log('❌ HTTP Error:', {
-    status,
-    message,
-    url: error?.config?.url,
-    method: error?.config?.method
-  });
 
   // Don't automatically clear token on 401 - let the calling code handle it
   // This prevents race conditions during token validation
@@ -152,6 +141,5 @@ httpUnauthenticated.interceptors.response.use(response => response, responseErro
 export async function persistTokenFrom(data?: { token?: string | null }) {
   if (data?.token) {
     await setToken(data.token);
-    console.log('🔐 Token saved to storage:', data.token.substring(0, 20) + '...');
   }
 }

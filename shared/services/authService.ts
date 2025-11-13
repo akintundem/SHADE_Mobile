@@ -71,7 +71,6 @@ export const authService = {
   async loginNew(request: LoginRequest) {
     const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/login', request);
     if (res.data) {
-      console.log('🔐 Login successful, saving token...');
       await persistTokenFrom({ token: res.data.accessToken });
       
       // Cache user data including user ID for X-User-Id header
@@ -83,7 +82,6 @@ export const authService = {
         profilePictureUrl: res.data.user.profileImageUrl ?? undefined,
         profileComplete: true
       });
-      console.log('🔐 User data cached:', res.data.user.id ?? res.data.user.email);
       
       return res.data;
     }

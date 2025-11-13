@@ -212,8 +212,8 @@ export default function KeyboardOptimizedInput({
         style={{
           flexDirection: 'row',
           alignItems: inputType === 'description' ? 'flex-start' : 'center',
-          minHeight: inputType === 'description' ? 80 : 52,
-          borderRadius: borderRadius.lg,
+          minHeight: inputType === 'description' ? 80 : 56,
+          borderRadius: borderRadius.xl,
           borderWidth: 1.5,
           borderColor: hasError 
             ? colors.semantic.error 
@@ -248,7 +248,8 @@ export default function KeyboardOptimizedInput({
               flex: 1,
               fontSize: typography.size.base,
               color: colors.text.primary,
-              paddingVertical: 0,
+              paddingVertical: spacing.sm,
+              minHeight: inputType === 'description' ? 48 : 56,
             },
             style,
           ]}

@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { Header } from './components/Header';
-import { AuthButtons } from './components/AuthButtons';
-import { OrDivider } from './components/OrDivider';
-import { SignInForm } from './components/SignInForm';
-import { SignUpForm } from './components/SignUpForm';
-import { CompleteProfile } from './components/CompleteProfile';
-import { Footer } from './components/Footer';
 import { User } from '../../../shared/types';
 import KeyboardAwareContainer from '../../../shared/components/ui/KeyboardAwareContainer';
+import {
+  Header,
+  Footer,
+  OrDivider,
+  AuthButtons,
+  SignInForm,
+  SignUpForm,
+  CompleteProfile,
+} from './components';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import EmailVerificationScreen from './screens/EmailVerificationScreen';
+import { AUTH_MODES, AuthMode, DEV_USER } from './constants';
 
 type Props = {
   onLogin?: (user: User) => void;
@@ -20,29 +23,29 @@ type Props = {
   verifyToken?: string;
 };
 
-export default function Auth({ onLogin, initialScreen = 'signIn', resetToken, verifyToken }: Props) {
+export default function Auth({ onLogin, initialScreen = AUTH_MODES.SIGN_IN, resetToken, verifyToken }: Props) {
   const { colors, spacing } = useTheme();
-  const [mode, setMode] = useState<'signIn' | 'signUp' | 'completeProfile' | 'resetPassword' | 'verifyEmail'>(initialScreen);
+  const [mode, setMode] = useState<AuthMode>(initialScreen as AuthMode);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   // Handle reset password flow
-  if (mode === 'resetPassword' && resetToken) {
+  if (mode === AUTH_MODES.RESET_PASSWORD && resetToken) {
     return (
       <ResetPasswordScreen
         token={resetToken}
-        onSuccess={() => setMode('signIn')}
-        onCancel={() => setMode('signIn')}
+        onSuccess={() => setMode(AUTH_MODES.SIGN_IN)}
+        onCancel={() => setMode(AUTH_MODES.SIGN_IN)}
       />
     );
   }
 
   // Handle email verification flow
-  if (mode === 'verifyEmail') {
+  if (mode === AUTH_MODES.VERIFY_EMAIL) {
     return (
       <EmailVerificationScreen
         verifyToken={verifyToken}
-        onSuccess={() => setMode('signIn')}
-        onCancel={() => setMode('signIn')}
+        onSuccess={() => setMode(AUTH_MODES.SIGN_IN)}
+        onCancel={() => setMode(AUTH_MODES.SIGN_IN)}
       />
     );
   }
@@ -54,40 +57,48 @@ export default function Auth({ onLogin, initialScreen = 'signIn', resetToken, ve
         contentContainerStyle={{
           paddingHorizontal: spacing['2xl'],
           paddingTop: spacing['4xl'],
-          paddingBottom: spacing.lg,
+          paddingBottom: mode === AUTH_MODES.SIGN_UP ? spacing.lg : spacing['3xl'],
+          minHeight: '100%',
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         extraScrollHeight={spacing.lg}
       >
         <Header />
-        {mode === 'signIn' ? (
-          <SignInForm onLogin={onLogin} onSwitchToSignUp={() => setMode('signUp')} />
-        ) : mode === 'signUp' ? (
+        {mode === AUTH_MODES.SIGN_IN ? (
+          <SignInForm 
+            onLogin={onLogin} 
+            onSwitchToSignUp={() => setMode(AUTH_MODES.SIGN_UP)} 
+          />
+        ) : mode === AUTH_MODES.SIGN_UP ? (
           <SignUpForm
             onSignedUp={({ email, requiresProfile, user }) => {
               setPendingEmail(email);
-              if (requiresProfile) setMode('completeProfile');
-              else onLogin?.({ id: user.userId, email: user.email, name: user.username, provider: 'password' });
+              if (requiresProfile) {
+                setMode(AUTH_MODES.COMPLETE_PROFILE);
+              } else {
+                onLogin?.({
+                  id: user.userId,
+                  email: user.email,
+                  name: user.username,
+                  provider: 'password',
+                });
+              }
             }}
-            onSwitchToSignIn={() => setMode('signIn')}
+            onSwitchToSignIn={() => setMode(AUTH_MODES.SIGN_IN)}
           />
         ) : (
-          <CompleteProfile email={pendingEmail || ''} onBack={() => setMode('signUp')} />
+          <CompleteProfile 
+            email={pendingEmail || ''} 
+            onBack={() => setMode(AUTH_MODES.SIGN_UP)} 
+          />
         )}
         <OrDivider />
         <AuthButtons
-          onSpotifyPress={() =>
-            onLogin?.({
-              id: 'spotify-dev',
-              email: 'dev+spotify@auree.app',
-              name: 'Auree Tester',
-              provider: 'spotify',
-            })
-          }
+          onSpotifyPress={() => onLogin?.(DEV_USER)}
         />
+        <Footer isSignUp={mode === AUTH_MODES.SIGN_UP} />
       </KeyboardAwareContainer>
-      <Footer />
     </SafeAreaView>
   );
 }

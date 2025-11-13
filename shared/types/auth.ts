@@ -44,6 +44,10 @@ export type LoginRequest = {
   email: string;
   password: string;
   rememberMe?: boolean;
+  acceptTerms?: boolean;
+  dateOfBirth?: string;
+  phoneNumber?: string;
+  marketingOptIn?: boolean;
   deviceId?: string;
   clientId?: string;
 };
