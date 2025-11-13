@@ -12,7 +12,7 @@ type Props = {
 };
 
 export const HomeHeader = ({ user, onOpenChat }: Props) => {
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography, spacing, brand, borderRadius, shadows } = useTheme();
   const { t } = useI18n();
   const name = user.name || user.email;
   
@@ -43,18 +43,18 @@ export const HomeHeader = ({ user, onOpenChat }: Props) => {
         </View>
         <TouchableOpacity
           onPress={onOpenChat}
+          activeOpacity={0.8}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.surface,
+            width: 44,
+            height: 44,
+            borderRadius: borderRadius.full,
+            backgroundColor: brand.primary,
             alignItems: 'center',
             justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
+            ...shadows.md,
           }}
         >
-          <MessageCircle size={20} color={colors.text.primary} />
+          <MessageCircle size={22} color="#FFFFFF" strokeWidth={2} />
         </TouchableOpacity>
       </View>
     </View>
