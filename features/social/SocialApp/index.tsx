@@ -55,7 +55,7 @@ export default function SocialApp({ user, onLogout }: Props) {
         <HomeScreen
           user={user}
           onTabChange={setTab}
-          onCreatePost={() => setComposeOpen(true)}
+          onCreateEvent={() => setComposeOpen(true)}
           onOpenChat={() => setChatOpen(true)}
         />
       ) : tab === 'discover' ? (
@@ -158,7 +158,28 @@ export default function SocialApp({ user, onLogout }: Props) {
       {isSettingsOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.overlay, zIndex: 130 }}>
           <React.Suspense fallback={null}>
-            <SettingsScreen onClose={() => setSettingsOpen(false)} />
+            <SettingsScreen 
+              onClose={() => setSettingsOpen(false)} 
+              onLogout={async () => {
+                if (loading) return;
+                try {
+                  setLoading(true);
+                  // Close settings modal first
+                  setSettingsOpen(false);
+                  // Perform logout - this clears tokens
+                  await authService.logout();
+                  // Navigate to login screen by calling parent onLogout
+                  // This sets user to null in App.tsx, which triggers Auth screen
+                  onLogout();
+                } catch (err) {
+                  console.error('Logout error:', err);
+                  // Even if logout fails, navigate to login
+                  onLogout();
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            />
           </React.Suspense>
         </View>
       ) : null}
