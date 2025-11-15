@@ -13,11 +13,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X, Save } from 'lucide-react-native';
-import { useTheme } from '../theme/ThemeProvider';
-import { LoadingOverlay } from '../components/LoadingStates';
-import { eventService } from '../services/eventService';
-import { UpdateEventRequest, Event, EventType } from '../types';
-import { ErrorHandler } from '../utils/errorHandler';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { eventService } from '../../../../shared/services/eventService';
+import { UpdateEventRequest, Event, EventType, EventData, isFullEventResponse } from '../../../../shared/types';
+import { ErrorHandler } from '../../../../shared/utils/errorHandler';
 
 type EditEventScreenParams = {
   eventId: string;
@@ -27,19 +27,19 @@ const EVENT_TYPES = [
   { value: EventType.CONFERENCE, label: 'Conference' },
   { value: EventType.WORKSHOP, label: 'Workshop' },
   { value: EventType.SEMINAR, label: 'Seminar' },
-  { value: EventType.NETWORKING, label: 'Networking' },
+  { value: EventType.MEETING, label: 'Meeting' },
   { value: EventType.PARTY, label: 'Party' },
+  { value: EventType.WEDDING, label: 'Wedding' },
+  { value: EventType.BIRTHDAY, label: 'Birthday' },
+  { value: EventType.CORPORATE_EVENT, label: 'Corporate Event' },
+  { value: EventType.TRADE_SHOW, label: 'Trade Show' },
   { value: EventType.CONCERT, label: 'Concert' },
-  { value: EventType.EXHIBITION, label: 'Exhibition' },
-  { value: EventType.SPORTS, label: 'Sports' },
-  { value: EventType.CHARITY, label: 'Charity' },
-  { value: EventType.MEETUP, label: 'Meetup' },
-  { value: EventType.WEBINAR, label: 'Webinar' },
   { value: EventType.FESTIVAL, label: 'Festival' },
+  { value: EventType.SPORTS_EVENT, label: 'Sports Event' },
+  { value: EventType.CHARITY_EVENT, label: 'Charity Event' },
+  { value: EventType.NETWORKING, label: 'Networking' },
   { value: EventType.TRAINING, label: 'Training' },
-  { value: EventType.COMPETITION, label: 'Competition' },
-  { value: EventType.FUNDRAISER, label: 'Fundraiser' },
-  { value: EventType.HACKATHON, label: 'Hackathon' },
+  { value: EventType.RETREAT, label: 'Retreat' },
   { value: EventType.OTHER, label: 'Other' },
 ];
 
@@ -74,21 +74,33 @@ export default function EditEventScreen() {
   const loadEventData = async () => {
     try {
       const eventData = await eventService.getEvent(eventId);
-      setEvent(eventData);
+      
+      // Extract Event from EventData (which can be EventResponseWithScope or EventFeedResponse)
+      let event: Event | null = null;
+      if (isFullEventResponse(eventData)) {
+        // EventResponseWithScope extends EventResponse, so it IS the Event
+        event = eventData;
+        setEvent(event);
+      } else {
+        // EventFeedResponse doesn't have all Event fields, so we can't edit it
+        Alert.alert('Error', 'Cannot edit event with limited access. Full event details required.');
+        navigation.goBack();
+        return;
+      }
 
       // Populate form fields
-      setName(eventData.name);
-      setDescription(eventData.description || '');
-      setEventType(eventData.eventType);
-      setStartDateTime(eventData.startDateTime || '');
-      setEndDateTime(eventData.endDateTime || '');
-      setCapacity(eventData.capacity?.toString() || '');
-      setIsPublic(eventData.isPublic ?? true);
-      setRequiresApproval(eventData.requiresApproval ?? false);
-      setEventWebsiteUrl(eventData.eventWebsiteUrl || '');
-      setHashtag(eventData.hashtag || '');
-      setTargetAudience(eventData.targetAudience || '');
-      setObjectives(eventData.objectives || '');
+      setName(event.name);
+      setDescription(event.description || '');
+      setEventType(event.eventType);
+      setStartDateTime(event.startDateTime || '');
+      setEndDateTime(event.endDateTime || '');
+      setCapacity(event.capacity?.toString() || '');
+      setIsPublic(event.isPublic ?? true);
+      setRequiresApproval(event.requiresApproval ?? false);
+      setEventWebsiteUrl(event.eventWebsiteUrl || '');
+      setHashtag(event.hashtag || '');
+      setTargetAudience(event.targetAudience || '');
+      setObjectives(event.objectives || '');
     } catch (err) {
       ErrorHandler.handle(err, 'loadEventForEdit');
       Alert.alert('Error', 'Failed to load event details.');
@@ -209,7 +221,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
               }}
             />
           </View>
@@ -233,7 +245,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
                 minHeight: 100,
                 textAlignVertical: 'top',
               }}
@@ -292,7 +304,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
               }}
             />
             <TextInput
@@ -307,7 +319,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
               }}
             />
           </View>
@@ -329,7 +341,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
               }}
             />
           </View>
@@ -352,7 +364,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
               }}
             />
           </View>
@@ -374,7 +386,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
               }}
             />
           </View>
@@ -397,7 +409,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
                 minHeight: 80,
                 textAlignVertical: 'top',
               }}
@@ -422,7 +434,7 @@ export default function EditEventScreen() {
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 color: colors.text.primary,
-                fontSize: typography.size.md,
+                fontSize: typography.size.base,
                 minHeight: 80,
                 textAlignVertical: 'top',
               }}

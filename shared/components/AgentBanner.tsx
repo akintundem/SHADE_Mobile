@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { Bot, Sparkles, AlertTriangle, Lightbulb } from 'lucide-react-native';
-import { useAgent } from '../../features/agent/Agent/AgentProvider';
+import { useAgent } from '../../features/agent/providers/AgentProvider';
 
 export const AgentBanner = ({
   onOpenChat,

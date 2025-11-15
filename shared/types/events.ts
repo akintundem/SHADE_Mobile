@@ -408,3 +408,86 @@ export type Location = {
   latitude: number;
   longitude: number;
 };
+
+// Event Scope Types
+export type EventScope = 'FULL' | 'FEED';
+
+// Venue DTO (referenced in EventResponse)
+export type VenueDTO = {
+  id: string;
+  name: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+  latitude?: number;
+  longitude?: number;
+  capacity?: number;
+  amenities?: string[];
+  contactInfo?: Record<string, unknown>;
+};
+
+// Feed Post Types
+export type FeedPostType = 'VIDEO' | 'IMAGE' | 'TEXT';
+
+export type FeedPost = {
+  id: string; // UUID
+  type: FeedPostType;
+  content?: string;
+  mediaUrl?: string;
+  thumbnailUrl?: string;
+  authorName?: string;
+  authorAvatarUrl?: string;
+  postedAt: string; // ISO datetime
+  likes?: number;
+  comments?: number;
+};
+
+// Event Feed Request (for pagination)
+export type EventFeedRequest = {
+  page?: number; // Default: 0 (0-indexed)
+  size?: number; // Default: 20, Max: 50
+  postType?: FeedPostType | 'ALL'; // Filter by post type
+};
+
+// Event Feed Response (for guests)
+export type EventFeedResponse = {
+  eventId: string; // UUID
+  eventName: string;
+  description?: string;
+  coverImageUrl?: string;
+  startDateTime: string; // ISO datetime
+  endDateTime?: string; // ISO datetime
+  hashtag?: string;
+  eventWebsiteUrl?: string;
+  posts: FeedPost[];
+  // Pagination metadata
+  currentPage: number;
+  pageSize: number;
+  totalPosts: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  scope: 'FEED'; // Always FEED for this response type
+};
+
+// Updated EventResponse with scope field
+export type EventResponseWithScope = EventResponse & {
+  scope: 'FULL';
+  venue?: VenueDTO;
+};
+
+// Union type for Event Data
+export type EventData = EventResponseWithScope | EventFeedResponse;
+
+// Type guard functions
+export function isFullEventResponse(
+  data: EventData,
+): data is EventResponseWithScope {
+  return 'scope' in data && data.scope === 'FULL';
+}
+
+export function isFeedResponse(data: EventData): data is EventFeedResponse {
+  return 'scope' in data && data.scope === 'FEED';
+}

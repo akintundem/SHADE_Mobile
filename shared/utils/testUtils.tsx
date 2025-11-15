@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react-native';
 import { ThemeProvider } from '../theme/ThemeProvider';
-import { AgentProvider } from '../../features/agent/Agent/AgentProvider';
+import { AgentProvider } from '../../features/agent/providers/AgentProvider';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
 // Custom render function that includes providers

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import { useAgent } from '../../features/agent/Agent/AgentProvider';
+import { useAgent } from '../../features/agent/providers/AgentProvider';
 
 export const AgentSuggestionChips = ({ onSelect }: { onSelect: (suggestionText: string) => void }) => {
   const { colors, spacing, borderRadius, typography } = useTheme();

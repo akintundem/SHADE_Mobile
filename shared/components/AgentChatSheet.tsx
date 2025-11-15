@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import { useAgent } from '../../features/agent/Agent/AgentProvider';
+import { useAgent } from '../../features/agent/providers/AgentProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export const AgentChatSheet = ({ visible, onClose }: { visible: boolean; onClose: () => void }) => {

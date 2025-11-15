@@ -35,6 +35,10 @@ import {
   EventSharingOptionsResponse,
   EventShareRequest,
   EventShareResponse,
+  EventData,
+  EventFeedResponse,
+  EventFeedRequest,
+  EventResponseWithScope,
 } from '../types';
 import { ErrorHandler } from '../utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
@@ -137,15 +141,62 @@ const fetchEventList = async (
 };
 
 export const eventService = {
-  async getEvent(eventId: string): Promise<Event> {
+  /**
+   * Get event with scope-based response (FULL or FEED)
+   * Returns EventResponseWithScope for owners/high-responsibility users
+   * Returns EventFeedResponse for guests/low-responsibility users
+   */
+  async getEvent(
+    eventId: string,
+    params?: EventFeedRequest,
+  ): Promise<EventData> {
     if (USE_MOCK_DATA) {
       const mockEvent = getMockEvent(eventId);
       if (mockEvent) {
-        return mockEvent;
+        // Mock data returns full event response
+        return {
+          ...mockEvent,
+          scope: 'FULL' as const,
+        } as EventResponseWithScope;
       }
       throw new Error(`Event with id ${eventId} not found`);
     }
-    const res = await http.get<Event>(`/api/v1/events/${eventId}`);
+    const queryString = buildQueryString(params);
+    const res = await http.get<EventData>(
+      `/api/v1/events/${eventId}${queryString}`,
+    );
+    return res.data;
+  },
+
+  /**
+   * Get event feed (always returns FEED scope)
+   * Use this endpoint when you specifically want the feed view
+   */
+  async getEventFeed(
+    eventId: string,
+    params?: EventFeedRequest,
+  ): Promise<EventFeedResponse> {
+    if (USE_MOCK_DATA) {
+      // Return mock feed response
+      return {
+        eventId,
+        eventName: 'Mock Event',
+        description: 'Mock event description',
+        startDateTime: new Date().toISOString(),
+        posts: [],
+        currentPage: params?.page || 0,
+        pageSize: params?.size || 20,
+        totalPosts: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrevious: false,
+        scope: 'FEED' as const,
+      };
+    }
+    const queryString = buildQueryString(params);
+    const res = await http.get<EventFeedResponse>(
+      `/api/v1/events/${eventId}/feed${queryString}`,
+    );
     return res.data;
   },
 

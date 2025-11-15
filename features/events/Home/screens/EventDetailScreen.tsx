@@ -25,7 +25,7 @@ import {
   Settings,
 } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { Event, EventResponse, EventStatus } from '../../../../shared/types';
+import { Event, EventResponse, EventStatus, EventData, isFullEventResponse } from '../../../../shared/types';
 import { eventService } from '../../../../shared/services/eventService';
 import { ErrorHandler } from '../../../../shared/utils/errorHandler';
 import { dateUtils } from '../../../../shared/utils/helpers';
@@ -55,7 +55,49 @@ export default function EventDetailScreen() {
     try {
       setError(null);
       const eventData = await eventService.getEvent(eventId);
-      setEvent(eventData);
+      // Extract Event from EventData (which can be EventResponseWithScope or EventFeedResponse)
+      if (isFullEventResponse(eventData)) {
+        // EventResponseWithScope extends EventResponse, so it IS the Event
+        setEvent(eventData);
+      } else {
+        // For EventFeedResponse, we need to convert it to Event format
+        // Since EventFeedResponse doesn't have all Event fields, we'll create a minimal Event
+        setEvent({
+          id: eventData.eventId,
+          name: eventData.eventName,
+          description: eventData.description || null,
+          eventType: 'OTHER' as any, // EventFeedResponse doesn't include eventType
+          eventStatus: 'DRAFT' as any, // EventFeedResponse doesn't include eventStatus
+          startDateTime: eventData.startDateTime || null,
+          endDateTime: null,
+          registrationDeadline: null,
+          capacity: null,
+          currentAttendeeCount: null,
+          isPublic: null,
+          requiresApproval: null,
+          qrCodeEnabled: null,
+          qrCode: null,
+          coverImageUrl: null,
+          eventWebsiteUrl: null,
+          hashtag: null,
+          theme: null,
+          objectives: null,
+          targetAudience: null,
+          successMetrics: null,
+          brandingGuidelines: null,
+          venueRequirements: null,
+          technicalRequirements: null,
+          accessibilityFeatures: null,
+          emergencyPlan: null,
+          backupPlan: null,
+          postEventTasks: null,
+          metadata: null,
+          ownerId: '',
+          venueId: null,
+          createdAt: '',
+          updatedAt: '',
+        });
+      }
     } catch (err) {
       const message =
         (err as { message?: string })?.message ||
