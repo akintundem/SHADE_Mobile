@@ -20,13 +20,6 @@ const FALLBACK_BASE_URL =
     default: 'http://localhost:8080',
   }) ?? 'http://localhost:8080';
 
-if (__DEV__ && !sanitizeBaseUrl(devConfig?.apiBaseUrl)) {
-  console.warn(
-    '⚠️  dev-config.json does not define apiBaseUrl. Falling back to platform default:',
-    FALLBACK_BASE_URL
-  );
-}
-
 const BASE_URL = sanitizeBaseUrl(devConfig?.apiBaseUrl) || FALLBACK_BASE_URL;
 
 // Base HTTP client for unauthenticated requests (registration, login, health checks)
@@ -35,7 +28,6 @@ export const httpUnauthenticated = axios.create({
   timeout: 15000,
   headers: { 
     'Content-Type': 'application/json',
-    'X-Client-ID': 'web-app' // Use web-app to match working API docs
   },
 });
 
@@ -45,7 +37,6 @@ export const http = axios.create({
   timeout: 15000,
   headers: { 
     'Content-Type': 'application/json',
-    'X-Client-ID': 'web-app' // Use web-app to match working API docs
   },
 });
 
@@ -68,35 +59,111 @@ http.interceptors.request.use(async config => {
     } catch (error) {
       // Silently handle device ID retrieval failure
     }
-    
-    const url = config.url ?? '';
-    const method = (config.method ?? 'get').toLowerCase();
-    const needsUserHeader =
-      url.includes('/assistant/chat') ||
-      url.includes('/api/v1/events/my-events') ||
-      url.includes('/api/v1/events/user/') ||
-      (url.includes('/api/v1/events') && (method === 'post' || method === 'put' || method === 'patch'));
-
-    if (needsUserHeader) {
-      try {
-        const { getUser } = await import('../storage/authStorage');
-        const cachedUser = await getUser<{ userId?: string }>();
-        if (cachedUser && typeof cachedUser.userId === 'string') {
-          config.headers['X-User-Id'] = cachedUser.userId;
-        }
-      } catch (error) {
-        // Silently handle user ID retrieval failure
-      }
-    }
   }
   return config;
 });
+
+// Token refresh state to prevent infinite loops
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(promise => {
+    if (error) {
+      promise.reject(error);
+    } else {
+      promise.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Unified response/error handling for both clients
 const responseErrorHandler = async (error: any) => {
   const status = error?.response?.status;
   const responseData = error?.response?.data;
   const validationErrors = responseData?.validationErrors;
+  const originalRequest = error?.config;
+
+  // Handle 401 Unauthorized - try to refresh token
+  if (status === 401 && originalRequest && !originalRequest._retry) {
+    // Skip refresh for auth endpoints to prevent infinite loops
+    const url = originalRequest.url || '';
+    const isAuthEndpoint = 
+      url.includes('/api/v1/auth/login') ||
+      url.includes('/api/v1/auth/register') ||
+      url.includes('/api/v1/auth/refresh-token') ||
+      url.includes('/api/v1/auth/logout') ||
+      url.includes('/api/v1/auth/validate-token');
+
+    if (isAuthEndpoint) {
+      // For auth endpoints, don't try to refresh - just return the error
+    } else {
+      // Mark request as retried to prevent infinite loops
+      originalRequest._retry = true;
+
+      // If already refreshing, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            // Update token and retry original request
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return http(originalRequest);
+          })
+          .catch(err => {
+            return Promise.reject(err);
+          });
+      }
+
+      // Start refresh process
+      isRefreshing = true;
+
+      try {
+        const { authService } = await import('./authService');
+        const refreshResponse = await authService.refreshToken();
+        
+        // Update token in memory
+        if (refreshResponse?.accessToken) {
+          await setToken(refreshResponse.accessToken);
+        }
+
+        // Process queued requests
+        processQueue(null, refreshResponse?.accessToken);
+
+        // Retry original request with new token
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${refreshResponse.accessToken}`;
+        }
+        
+        isRefreshing = false;
+        return http(originalRequest);
+      } catch (refreshError) {
+        // Refresh failed - clear all auth data and reject all queued requests
+        isRefreshing = false;
+        const { clearAllAuth } = await import('../storage/authStorage');
+        await clearAllAuth();
+        processQueue(refreshError);
+        
+        // Return original error
+        const enhancedError: any =
+          error && typeof error === 'object' ? error : new Error('Session expired. Please log in again.');
+        enhancedError.message = 'Session expired. Please log in again.';
+        enhancedError.status = 401;
+        enhancedError.data = responseData;
+        if (!enhancedError.originalError) {
+          enhancedError.originalError = error;
+        }
+        return Promise.reject(enhancedError);
+      }
+    }
+  }
 
   let message =
     responseData?.message ||
@@ -127,9 +194,6 @@ const responseErrorHandler = async (error: any) => {
     message = 'Unable to reach the server. Please check your network connection.';
   }
 
-
-  // Don't automatically clear token on 401 - let the calling code handle it
-  // This prevents race conditions during token validation
   const enhancedError: any =
     error && typeof error === 'object' ? error : new Error(message);
 
