@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'auth:token';
 const USER_KEY = 'auth:user';
+const DEVICE_ID_KEY = 'auth:deviceId';
 
 let memoryToken: string | null = null;
 
@@ -43,5 +44,17 @@ export async function getUser<T = unknown>(): Promise<T | null> {
 
 export async function clearUser() {
   await AsyncStorage.removeItem(USER_KEY);
+}
+
+export async function setDeviceId(deviceId: string) {
+  await AsyncStorage.setItem(DEVICE_ID_KEY, deviceId);
+}
+
+export async function getDeviceId(): Promise<string | null> {
+  return await AsyncStorage.getItem(DEVICE_ID_KEY);
+}
+
+export async function clearDeviceId() {
+  await AsyncStorage.removeItem(DEVICE_ID_KEY);
 }
 

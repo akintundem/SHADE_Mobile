@@ -207,9 +207,7 @@ export default function SettingsScreen({
       const response = await authService.changePassword(
         trimmedCurrent,
         trimmedNew,
-        trimmedConfirm,
-        'mobile-app',
-        'capsule-app',
+        trimmedConfirm
       );
 
       setBanner({

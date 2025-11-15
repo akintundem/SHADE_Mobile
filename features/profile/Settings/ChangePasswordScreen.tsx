@@ -55,9 +55,7 @@ export default function ChangePasswordScreen({ onClose, onSuccess }: Props) {
       const response = await authService.changePassword(
         currentPassword,
         newPassword,
-        confirmPassword,
-        'mobile-app',
-        'capsule-app'
+        confirmPassword
       );
 
       if (response.success) {

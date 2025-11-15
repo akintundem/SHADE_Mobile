@@ -56,6 +56,7 @@ const Input = forwardRef<TextInput, Props>(({
           keyboardType: 'default' as const,
           autoCapitalize: 'none' as const,
           autoCorrect: false,
+          secureTextEntry: true,
           textContentType: 'password' as const,
           autoComplete: Platform.OS === 'android' ? 'password' as const : undefined,
         };

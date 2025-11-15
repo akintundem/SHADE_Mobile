@@ -58,6 +58,17 @@ http.interceptors.request.use(async config => {
     }
     config.headers.Authorization = `Bearer ${token}`;
     
+    // Add X-Device-Id header if available (recommended for authenticated requests)
+    try {
+      const { getDeviceId } = await import('../storage/authStorage');
+      const deviceId = await getDeviceId();
+      if (deviceId) {
+        config.headers['X-Device-Id'] = deviceId;
+      }
+    } catch (error) {
+      // Silently handle device ID retrieval failure
+    }
+    
     const url = config.url ?? '';
     const method = (config.method ?? 'get').toLowerCase();
     const needsUserHeader =
