@@ -12,11 +12,11 @@ import {
   SignInForm,
   SignUpForm,
   CompleteProfile,
-} from './components';
-import ResetPasswordScreen from './screens/ResetPasswordScreen';
-import EmailVerificationScreen from './screens/EmailVerificationScreen';
-import RegistrationSuccessScreen from './screens/RegistrationSuccessScreen';
-import { AUTH_MODES, AuthMode, DEV_USER } from './constants';
+} from '../components';
+import ResetPasswordScreen from './ResetPasswordScreen';
+import EmailVerificationScreen from './EmailVerificationScreen';
+import RegistrationSuccessScreen from './RegistrationSuccessScreen';
+import { AUTH_MODES, AuthMode, DEV_USER } from '../constants';
 
 type Props = {
   onLogin?: (user: User) => void;

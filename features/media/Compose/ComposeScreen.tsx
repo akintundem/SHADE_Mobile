@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
 import { X, Camera, ImagePlus, Search, Hash, Users, Globe, Lock, Save } from 'lucide-react-native';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { recentExamples } from '../../events/Discover/examples';
+import { recentExamples } from '../../events/discover/examples';
 
 type Props = {
   onClose: () => void;

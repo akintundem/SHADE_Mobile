@@ -3,17 +3,17 @@ import { View } from 'react-native';
 import { User } from '../../../shared/types';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { authService } from '../../../shared/services/authService';
-import HomeScreen from '../../events/Home/HomeScreen';
-import DiscoverScreen from '../../events/Discover/DiscoverScreen';
-const ProfileScreen = React.lazy(() => import('../../profile/Profile/ProfileScreen'));
-const ComposeScreen = React.lazy(() => import('../../media/Compose/ComposeScreen'));
-const CameraScreen = React.lazy(() => import('../../media/Camera/CameraScreen'));
-const VideoEditorScreen = React.lazy(() => import('../../media/Editor/VideoEditorScreen'));
-const CreateEventScreen = React.lazy(() => import('../../events/Create/CreateEventScreen'));
-const SettingsScreen = React.lazy(() => import('../../profile/Settings/SettingsScreen'));
-const ChatScreen = React.lazy(() => import('../../chat/Chat/ChatScreen'));
-import { EventThreadScreen } from '../../events/Home/components/EventThreadScreen';
-import type { ThreadPost } from '../../events/Home/components/EventThreadModal';
+import HomeScreen from '../../events/home/screens/HomeScreen';
+import DiscoverScreen from '../../events/discover/screens/DiscoverScreen';
+const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
+const ComposeScreen = React.lazy(() => import('../../media/compose/screens/ComposeScreen'));
+const CameraScreen = React.lazy(() => import('../../media/camera/screens/CameraScreen'));
+const VideoEditorScreen = React.lazy(() => import('../../media/editor/screens/VideoEditorScreen'));
+const CreateEventScreen = React.lazy(() => import('../../events/create/screens/CreateEventScreen'));
+const SettingsScreen = React.lazy(() => import('../../settings/screens/SettingsScreen'));
+const ChatScreen = React.lazy(() => import('../../chat/screens/ChatScreen'));
+import { EventThreadScreen } from '../../events/home/components/EventThreadScreen';
+import type { ThreadPost } from '../../events/home/components/EventThreadModal';
 
 type Props = {
   user: User;

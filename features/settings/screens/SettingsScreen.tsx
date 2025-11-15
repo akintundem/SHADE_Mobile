@@ -6,7 +6,7 @@ import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { authService } from '../../../shared/services/authService';
 import { useCurrentUser } from '../../../shared/hooks/useCurrentUser';
 import ChangePasswordScreen from './ChangePasswordScreen';
-import EmailVerificationScreen from '../../auth/Auth/screens/EmailVerificationScreen';
+import EmailVerificationScreen from '../../auth/screens/EmailVerificationScreen';
 
 export default function SettingsScreen({ onClose, onLogout }: { onClose: () => void; onLogout?: () => void }) {
   const { isDark, setDark, colors, typography, spacing, borderRadius } = useTheme();
