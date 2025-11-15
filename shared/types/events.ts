@@ -123,10 +123,59 @@ export type UpdateEventRequest = {
 };
 
 export type DuplicateEventRequest = {
-  newEventName: string;
+  newEventName?: string;
   copyAttendees?: boolean;
   copyMedia?: boolean;
   copySettings?: boolean;
+};
+
+export type EventCapacityUpdateRequest = {
+  capacity: number;
+};
+
+export type EventRegistrationDeadlineRequest = {
+  deadline: string;
+};
+
+export type EventVisibilityUpdateRequest = {
+  isPublic: boolean;
+  requiresApproval?: boolean;
+};
+
+export type EventSharingOptionsResponse = {
+  eventId: string;
+  availableChannels: string[];
+  shareLink: string | null;
+  qrCodeAvailable: boolean;
+  isPublic: boolean | null;
+  socialMediaOptions?: string[] | null;
+  emailOptions?: string[] | null;
+  defaultMessage?: string | null;
+};
+
+export type EventShareRequest = {
+  channel: 'EMAIL' | 'LINK' | 'SOCIAL';
+  recipients?: string[];
+  message?: string | null;
+  includeEventDetails?: boolean;
+  includeQRCode?: boolean;
+  expirationDate?: string | null;
+};
+
+export type EventShareResponse = {
+  shareId: string;
+  eventId: string;
+  channel: string;
+  recipientCount: number;
+  successfulRecipients: string[];
+  failedRecipients: string[];
+  status: string;
+  shareLink: string | null;
+  message: string | null;
+  includeEventDetails: boolean | null;
+  includeQRCode: boolean | null;
+  createdAt: string;
+  expirationDate: string | null;
 };
 
 export type UserEventRelationshipResponse = {
@@ -171,6 +220,7 @@ export type EventQRCodeResponse = {
   qrCode: string | null;
   qrCodeEnabled: boolean | null;
   qrCodeImageUrl: string | null;
+  qrCodeImageBase64?: string | null;
   generatedAt: string | null;
 };
 
@@ -229,6 +279,16 @@ export type EventCollaboratorResponse = {
   updatedAt: string;
 };
 
+export type EventCollaboratorRequest = {
+  userId?: string;
+  email: string;
+  role: EventUserType;
+  permissions?: string[];
+  notes?: string;
+  sendInvitation?: boolean;
+  invitationMessage?: string;
+};
+
 export type EventMediaResponse = {
   id: string;
   eventId: string;
@@ -242,6 +302,17 @@ export type EventMediaResponse = {
   metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type EventMediaUploadRequest = {
+  fileName: string;
+  contentType: string;
+  fileSize?: number;
+  category?: string;
+  description?: string;
+  isPublic?: boolean;
+  tags?: string | string[];
+  metadata?: Record<string, string>;
 };
 
 export type EventPresignedUploadResponse = {
@@ -261,6 +332,8 @@ export type EventNotificationSettingsResponse = {
   updatedAt: string | null;
 };
 
+export type EventNotificationSettingsRequest = Partial<EventNotificationSettingsResponse>;
+
 export type EventNotificationResponse = {
   notificationId: string;
   eventId: string;
@@ -273,6 +346,19 @@ export type EventNotificationResponse = {
   sentAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type EventNotificationRequest = {
+  channel: EventNotificationChannel;
+  subject: string;
+  content: string;
+  recipientUserIds?: string[];
+  recipientEmails?: string[];
+  scheduledAt?: string;
+  includeEventDetails?: boolean;
+  includeQRCode?: boolean;
+  priority?: EventNotificationPriority;
+  templateId?: string;
 };
 
 export type EventReminderResponse = {
@@ -291,6 +377,21 @@ export type EventReminderResponse = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type EventReminderRequest = {
+  title: string;
+  description?: string;
+  reminderTime: string;
+  channel: string;
+  recipientUserIds?: string[];
+  recipientEmails?: string[];
+  reminderType?: string;
+  isActive?: boolean;
+  customMessage?: string;
+  includeEventDetails?: boolean;
+};
+
+export type EventReminderUpdateRequest = Partial<EventReminderRequest>;
 
 export type EventCoverImageResponse = {
   eventId: string;

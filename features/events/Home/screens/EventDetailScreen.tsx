@@ -23,14 +23,15 @@ import {
   CheckCircle2,
   XCircle,
   PlayCircle,
+  Settings,
 } from 'lucide-react-native';
-import { useTheme } from '../theme/ThemeProvider';
-import { Event, EventResponse, EventStatus } from '../types';
-import { eventService } from '../services/eventService';
-import { ErrorHandler } from '../utils/errorHandler';
-import { dateUtils } from '../utils/helpers';
-import { DATE_FORMATS } from '../utils/constants';
-import { LoadingOverlay } from '../components/LoadingStates';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { Event, EventResponse, EventStatus } from '../../../../shared/types';
+import { eventService } from '../../../../shared/services/eventService';
+import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { dateUtils } from '../../../../shared/utils/helpers';
+import { DATE_FORMATS } from '../../../../shared/utils/constants';
+import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
 
 type EventDetailScreenParams = {
   eventId: string;
@@ -230,17 +231,6 @@ export default function EventDetailScreen() {
             resizeMode="cover"
           />
           {/* Gradient overlay for better readability */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 120,
-              backgroundColor: 'rgba(0,0,0,0.25)',
-            }}
-          />
-          
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={{
@@ -411,6 +401,34 @@ export default function EventDetailScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            <TouchableOpacity
+              onPress={() => event?.id && navigation.navigate('EventAdmin', { eventId: event.id })}
+              style={{
+                marginTop: spacing.sm,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.xs,
+                paddingVertical: spacing.md,
+                borderRadius: borderRadius.lg,
+                borderWidth: 1.5,
+                borderColor: colors.text.primary,
+                backgroundColor: colors.background,
+              }}
+            >
+              <Settings size={18} color={colors.text.primary} />
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontWeight: typography.weight.semibold,
+                  fontSize: typography.size.sm,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Manage Event
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* Description */}

@@ -468,7 +468,7 @@ export const EventProfileRoute = () => {
                 <View style={{ gap: spacing.sm }}>
                   {/* Event Details */}
                   <TouchableOpacity
-                    onPress={() => {}}
+                    onPress={() => eventId && navigation.navigate('EventAdmin', { eventId })}
                     activeOpacity={0.7}
                     style={{
                       flexDirection: 'row',

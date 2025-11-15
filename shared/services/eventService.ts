@@ -10,22 +10,31 @@ import {
   UserEventRelationshipResponse,
   EventSummaryResponse,
   EventCapacityResponse,
+  EventCapacityUpdateRequest,
+  EventRegistrationDeadlineRequest,
   EventQRCodeResponse,
   EventVisibilityResponse,
+  EventVisibilityUpdateRequest,
   EventAnalyticsResponse,
   EventValidationResponse,
   EventHealthCheckResponse,
   EventCollaboratorResponse,
+  EventCollaboratorRequest,
   EventMediaResponse,
+  EventMediaUploadRequest,
   EventPresignedUploadResponse,
   EventNotificationSettingsResponse,
+  EventNotificationSettingsRequest,
   EventNotificationResponse,
+  EventNotificationRequest,
   EventReminderResponse,
+  EventReminderRequest,
+  EventReminderUpdateRequest,
   EventCoverImageResponse,
   EventStatus,
-  EventUserType,
-  EventNotificationChannel,
-  EventNotificationPriority,
+  EventSharingOptionsResponse,
+  EventShareRequest,
+  EventShareResponse,
 } from '../types';
 import { ErrorHandler } from '../utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
@@ -52,61 +61,6 @@ type SearchEventsParams = PaginationParams & {
   dateFrom?: string;
   dateTo?: string;
 };
-
-type VisibilityRequest = {
-  isPublic: boolean;
-  requiresApproval?: boolean;
-};
-
-type CollaboratorRequest = {
-  userId?: string;
-  email: string;
-  role: EventUserType;
-  permissions?: string[];
-  notes?: string;
-  sendInvitation?: boolean;
-  invitationMessage?: string;
-};
-
-type MediaUploadRequest = {
-  fileName: string;
-  contentType: string;
-  category?: string;
-  isPublic?: boolean;
-  tags?: string;
-  description?: string;
-  metadata?: Record<string, string>;
-};
-
-type NotificationSettingsRequest = Partial<EventNotificationSettingsResponse>;
-
-type SendNotificationRequest = {
-  channel: EventNotificationChannel;
-  subject: string;
-  content: string;
-  recipientUserIds?: string[];
-  recipientEmails?: string[];
-  scheduledAt?: string;
-  includeEventDetails?: boolean;
-  includeQRCode?: boolean;
-  priority?: EventNotificationPriority;
-  templateId?: string;
-};
-
-type CreateReminderRequest = {
-  title: string;
-  description?: string;
-  reminderTime: string;
-  channel: string;
-  recipientUserIds?: string[];
-  recipientEmails?: string[];
-  reminderType?: string;
-  isActive?: boolean;
-  customMessage?: string;
-  includeEventDetails?: boolean;
-};
-
-type UpdateReminderRequest = Partial<CreateReminderRequest>;
 
 const buildQueryString = (params?: Record<string, unknown>) => {
   if (!params) {
@@ -233,6 +187,31 @@ export const eventService = {
       return res.data;
     } catch (error) {
       ErrorHandler.handle(error, 'updateEvent');
+      throw error;
+    }
+  },
+
+  async archiveEvent(eventId: string, reason?: string): Promise<Event> {
+    try {
+      const query = reason
+        ? `?reason=${encodeURIComponent(reason)}`
+        : '';
+      const res = await http.post<Event>(
+        `/api/v1/events/${eventId}/archive${query}`,
+      );
+      return res.data;
+    } catch (error) {
+      ErrorHandler.handle(error, 'archiveEvent');
+      throw error;
+    }
+  },
+
+  async restoreEvent(eventId: string): Promise<Event> {
+    try {
+      const res = await http.post<Event>(`/api/v1/events/${eventId}/restore`);
+      return res.data;
+    } catch (error) {
+      ErrorHandler.handle(error, 'restoreEvent');
       throw error;
     }
   },
@@ -450,10 +429,14 @@ export const eventService = {
     return res.data;
   },
 
-  async updateEventCapacity(eventId: string, capacity: number): Promise<Event> {
-    const res = await http.put<Event>(`/api/v1/events/${eventId}/capacity`, {
-      capacity,
-    });
+  async updateEventCapacity(
+    eventId: string,
+    payload: EventCapacityUpdateRequest,
+  ): Promise<Event> {
+    const res = await http.put<Event>(
+      `/api/v1/events/${eventId}/capacity`,
+      payload,
+    );
     return res.data;
   },
 
@@ -466,11 +449,11 @@ export const eventService = {
 
   async updateRegistrationDeadline(
     eventId: string,
-    deadline: string,
+    payload: EventRegistrationDeadlineRequest,
   ): Promise<Event> {
     const res = await http.put<Event>(
       `/api/v1/events/${eventId}/registration-deadline`,
-      { deadline },
+      payload,
     );
     return res.data;
   },
@@ -510,7 +493,7 @@ export const eventService = {
 
   async updateEventVisibility(
     eventId: string,
-    payload: VisibilityRequest,
+    payload: EventVisibilityUpdateRequest,
   ): Promise<Event> {
     const res = await http.put<Event>(
       `/api/v1/events/${eventId}/visibility`,
@@ -527,6 +510,26 @@ export const eventService = {
   async makeEventPrivate(eventId: string): Promise<Event> {
     const res = await http.post<Event>(
       `/api/v1/events/${eventId}/make-private`,
+    );
+    return res.data;
+  },
+
+  async getSharingOptions(
+    eventId: string,
+  ): Promise<EventSharingOptionsResponse> {
+    const res = await http.get<EventSharingOptionsResponse>(
+      `/api/v1/events/${eventId}/share`,
+    );
+    return res.data;
+  },
+
+  async shareEvent(
+    eventId: string,
+    payload: EventShareRequest,
+  ): Promise<EventShareResponse> {
+    const res = await http.post<EventShareResponse>(
+      `/api/v1/events/${eventId}/share`,
+      payload,
     );
     return res.data;
   },
@@ -575,7 +578,7 @@ export const eventService = {
 
   async addCollaborator(
     eventId: string,
-    payload: CollaboratorRequest,
+    payload: EventCollaboratorRequest,
   ): Promise<EventCollaboratorResponse> {
     const res = await http.post<EventCollaboratorResponse>(
       `/api/v1/events/${eventId}/collaborators`,
@@ -587,7 +590,7 @@ export const eventService = {
   async updateCollaborator(
     eventId: string,
     collaboratorId: string,
-    payload: CollaboratorRequest,
+    payload: EventCollaboratorRequest,
   ): Promise<EventCollaboratorResponse> {
     const res = await http.put<EventCollaboratorResponse>(
       `/api/v1/events/${eventId}/collaborators/${collaboratorId}`,
@@ -618,7 +621,7 @@ export const eventService = {
 
   async uploadEventMedia(
     eventId: string,
-    payload: MediaUploadRequest,
+    payload: EventMediaUploadRequest,
   ): Promise<EventPresignedUploadResponse> {
     const res = await http.post<EventPresignedUploadResponse>(
       `/api/v1/events/${eventId}/media`,
@@ -640,7 +643,7 @@ export const eventService = {
   async updateEventMedia(
     eventId: string,
     mediaId: string,
-    payload: Partial<MediaUploadRequest>,
+    payload: Partial<EventMediaUploadRequest>,
   ): Promise<EventMediaResponse> {
     const res = await http.put<EventMediaResponse>(
       `/api/v1/events/${eventId}/media/${mediaId}`,
@@ -663,7 +666,7 @@ export const eventService = {
 
   async uploadEventAsset(
     eventId: string,
-    payload: MediaUploadRequest,
+    payload: EventMediaUploadRequest,
   ): Promise<EventPresignedUploadResponse> {
     const res = await http.post<EventPresignedUploadResponse>(
       `/api/v1/events/${eventId}/assets`,
@@ -674,7 +677,7 @@ export const eventService = {
 
   async updateEventCoverImage(
     eventId: string,
-    payload: MediaUploadRequest,
+    payload: EventMediaUploadRequest,
   ): Promise<EventPresignedUploadResponse> {
     const res = await http.put<EventPresignedUploadResponse>(
       `/api/v1/events/${eventId}/cover-image`,
@@ -685,7 +688,7 @@ export const eventService = {
 
   async uploadCoverImage(
     eventId: string,
-    uploadRequest: MediaUploadRequest,
+    uploadRequest: EventMediaUploadRequest,
     imageAsset: any,
   ): Promise<boolean> {
     try {
@@ -769,7 +772,7 @@ export const eventService = {
 
   async updateNotificationSettings(
     eventId: string,
-    payload: NotificationSettingsRequest,
+    payload: EventNotificationSettingsRequest,
   ): Promise<EventNotificationSettingsResponse> {
     const res = await http.put<EventNotificationSettingsResponse>(
       `/api/v1/events/${eventId}/notifications`,
@@ -780,7 +783,7 @@ export const eventService = {
 
   async sendEventNotification(
     eventId: string,
-    payload: SendNotificationRequest,
+    payload: EventNotificationRequest,
   ): Promise<EventNotificationResponse> {
     const res = await http.post<EventNotificationResponse>(
       `/api/v1/events/${eventId}/notifications/send`,
@@ -801,7 +804,7 @@ export const eventService = {
 
   async createEventReminder(
     eventId: string,
-    payload: CreateReminderRequest,
+    payload: EventReminderRequest,
   ): Promise<EventReminderResponse> {
     const res = await http.post<EventReminderResponse>(
       `/api/v1/events/${eventId}/reminders`,
@@ -813,7 +816,7 @@ export const eventService = {
   async updateEventReminder(
     eventId: string,
     reminderId: string,
-    payload: UpdateReminderRequest,
+    payload: EventReminderUpdateRequest,
   ): Promise<EventReminderResponse> {
     const res = await http.put<EventReminderResponse>(
       `/api/v1/events/${eventId}/reminders/${reminderId}`,

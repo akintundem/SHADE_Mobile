@@ -14,6 +14,18 @@ import { getToken, getUser as getCachedUser } from './shared/storage/authStorage
 import { UserDTO } from './shared/services/authService';
 import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
 import EventManageScreen from './features/events/Home/screens/EventManageScreen';
+import EventAdminScreen from './features/events/Home/screens/EventAdminScreen';
+import ManageShareScreen from './features/events/Home/screens/manage/ManageShareScreen';
+import ManageQRCodeScreen from './features/events/Home/screens/manage/ManageQRCodeScreen';
+import ManageCapacityScreen from './features/events/Home/screens/manage/ManageCapacityScreen';
+import ManageVisibilityScreen from './features/events/Home/screens/manage/ManageVisibilityScreen';
+import ManageAnalyticsScreen from './features/events/Home/screens/manage/ManageAnalyticsScreen';
+import ManageNotificationsScreen from './features/events/Home/screens/manage/ManageNotificationsScreen';
+import ManageRemindersScreen from './features/events/Home/screens/manage/ManageRemindersScreen';
+import ManageCollaboratorsScreen from './features/events/Home/screens/manage/ManageCollaboratorsScreen';
+import ManageMediaScreen from './features/events/Home/screens/manage/ManageMediaScreen';
+import ManageIntegrityScreen from './features/events/Home/screens/manage/ManageIntegrityScreen';
+import ManageLifecycleScreen from './features/events/Home/screens/manage/ManageLifecycleScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -183,6 +195,71 @@ function App() {
                     <EventManageScreen {...(props as any)} />
                   )}
                 </Stack.Screen>
+                <Stack.Screen
+                  name="EventAdmin"
+                  component={EventAdminScreen}
+                  options={{
+                    headerShown: false,
+                    gestureEnabled: true,
+                    fullScreenGestureEnabled: true,
+                    animation: 'slide_from_right',
+                  }}
+                />
+                <Stack.Screen
+                  name="EventManageShare"
+                  component={ManageShareScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageQRCode"
+                  component={ManageQRCodeScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageCapacity"
+                  component={ManageCapacityScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageVisibility"
+                  component={ManageVisibilityScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageAnalytics"
+                  component={ManageAnalyticsScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageNotifications"
+                  component={ManageNotificationsScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageReminders"
+                  component={ManageRemindersScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageCollaborators"
+                  component={ManageCollaboratorsScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageMedia"
+                  component={ManageMediaScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageIntegrity"
+                  component={ManageIntegrityScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
+                <Stack.Screen
+                  name="EventManageLifecycle"
+                  component={ManageLifecycleScreen}
+                  options={{ headerShown: false, animation: 'slide_from_right' }}
+                />
               </Stack.Navigator>
             )}
             </NavigationContainer>
