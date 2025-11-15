@@ -8,7 +8,7 @@ import { useCurrentUser } from '../../../shared/hooks/useCurrentUser';
 import ChangePasswordScreen from './ChangePasswordScreen';
 import EmailVerificationScreen from '../../auth/Auth/screens/EmailVerificationScreen';
 
-export default function SettingsScreen({ onClose }: { onClose: () => void }) {
+export default function SettingsScreen({ onClose, onLogout }: { onClose: () => void; onLogout?: () => void }) {
   const { isDark, setDark, colors, typography, spacing, borderRadius } = useTheme();
   const { user, loading: userLoading, isEmailVerified, refetch } = useCurrentUser();
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -18,10 +18,15 @@ export default function SettingsScreen({ onClose }: { onClose: () => void }) {
   const handleLogout = async () => {
     try {
       setLoggingOut(true);
+      // Wait for successful logout response from backend
       await authService.logout();
-      // Navigation will be handled by auth state change
+      // Only navigate to login screen after successful logout
+      if (onLogout) {
+        onLogout();
+      }
     } catch (err) {
       console.error('Logout error:', err);
+      // Don't navigate if logout fails
       setLoggingOut(false);
     }
   };

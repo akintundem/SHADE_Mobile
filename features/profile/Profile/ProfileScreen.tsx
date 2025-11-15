@@ -11,7 +11,7 @@ import { useTheme } from '../../../shared/theme/ThemeProvider';
 
 type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void; onOpenCompose?: () => void };
 
-export default function ProfileScreen({ user, onTabChange, onLogout, onOpenCompose }: Props) {
+export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
   const { colors, brand, typography, spacing, borderRadius } = useTheme();
   const [view, setView] = useState<'profile' | 'settings' | 'edit'>('profile');
   const [section, setSection] = useState<'posts' | 'events'>('events');

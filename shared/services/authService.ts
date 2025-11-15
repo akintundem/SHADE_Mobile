@@ -158,7 +158,7 @@ export const authService = {
   async logout() {
     try {
       // deviceId is automatically added by httpClient interceptor from storage
-      const res = await http.post<ApiMessageResponse>('/api/v1/auth/logout');
+      const res = await http.post<ApiMessageResponse>('/api/v1/auth/logout', { confirm: true });
       // Only clear after successful logout
       const { clearAllAuth } = await import('../storage/authStorage');
       await clearAllAuth();

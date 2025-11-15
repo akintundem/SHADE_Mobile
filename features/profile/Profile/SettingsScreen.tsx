@@ -232,37 +232,6 @@ export default function SettingsScreen({
     }
   };
 
-  const handleResendVerification = async () => {
-    if (!user.email) {
-      setBanner({
-        text: 'Email address is required to resend verification',
-        tone: 'error',
-      });
-      return;
-    }
-
-    try {
-      setIsResendingVerification(true);
-      const response = await authService.resendEmailVerification(user.email);
-      setBanner({
-        text:
-          response.message || 'Verification email sent if the account exists',
-        tone: response.success ? 'success' : 'error',
-      });
-    } catch (error: unknown) {
-      const message =
-        typeof error === 'object' &&
-        error &&
-        'message' in error &&
-        typeof (error as any).message === 'string'
-          ? (error as any).message
-          : 'Unable to send verification email';
-      setBanner({ text: message, tone: 'error' });
-    } finally {
-      setIsResendingVerification(false);
-    }
-  };
-
   const headerSubtitle = useMemo(() => {
     if (!user?.email) return '@capsule-user';
     const prefix = user.email.split('@')[0];
@@ -366,9 +335,6 @@ export default function SettingsScreen({
           icon={MailCheck}
           title="Resend Verification Email"
           subtitle={`Send to ${user.email ?? 'your email'}`}
-          onPress={
-            isResendingVerification ? undefined : handleResendVerification
-          }
           end={
             <Text
               style={{

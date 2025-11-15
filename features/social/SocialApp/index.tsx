@@ -68,10 +68,18 @@ export default function SocialApp({ user, onLogout }: Props) {
         <React.Suspense fallback={null}>
           <ProfileScreen user={user} onTabChange={setTab} onOpenCompose={() => setComposeOpen(true)} onLogout={async () => {
             if (loading) return;
-            setLoading(true);
-            await authService.logout();
-            setLoading(false);
-            onLogout();
+            try {
+              setLoading(true);
+              // Wait for successful logout response from backend
+              await authService.logout();
+              // Only navigate to login screen after successful logout
+              onLogout();
+            } catch (err) {
+              console.error('Logout error:', err);
+              // Don't navigate if logout fails
+            } finally {
+              setLoading(false);
+            }
           }} />
         </React.Suspense>
       )}
@@ -166,15 +174,14 @@ export default function SocialApp({ user, onLogout }: Props) {
                   setLoading(true);
                   // Close settings modal first
                   setSettingsOpen(false);
-                  // Perform logout - this clears tokens
+                  // Perform logout - wait for successful response from backend
                   await authService.logout();
-                  // Navigate to login screen by calling parent onLogout
+                  // Only navigate to login screen after successful logout
                   // This sets user to null in App.tsx, which triggers Auth screen
                   onLogout();
                 } catch (err) {
                   console.error('Logout error:', err);
-                  // Even if logout fails, navigate to login
-                  onLogout();
+                  // Don't navigate if logout fails - user stays logged in
                 } finally {
                   setLoading(false);
                 }
