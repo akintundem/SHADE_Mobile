@@ -6,12 +6,8 @@ import {
   ArrowLeft,
   BarChart3,
   Bell,
-  CalendarClock,
-  ClipboardList,
   ImageIcon,
   Layers,
-  QrCode,
-  Share2,
   ShieldCheck,
   UserPlus,
   Users,
@@ -31,16 +27,12 @@ type ManageFeature = {
 };
 
 const FEATURES: ManageFeature[] = [
-  { key: 'share', title: 'Sharing', description: 'Invitations, links, social posts', icon: Share2, screen: 'EventManageShare' },
-  { key: 'qr', title: 'QR Code', description: 'Check-in codes & access', icon: QrCode, screen: 'EventManageQRCode' },
   { key: 'capacity', title: 'Capacity', description: 'Seats, limits, registration window', icon: Users, screen: 'EventManageCapacity' },
   { key: 'visibility', title: 'Visibility & Status', description: 'Public/private & lifecycle actions', icon: ShieldCheck, screen: 'EventManageVisibility' },
   { key: 'analytics', title: 'Analytics', description: 'Performance & engagement metrics', icon: BarChart3, screen: 'EventManageAnalytics' },
-  { key: 'notifications', title: 'Notifications', description: 'Broadcasts & attendee updates', icon: Bell, screen: 'EventManageNotifications' },
-  { key: 'reminders', title: 'Reminders', description: 'Schedules & follow-ups', icon: CalendarClock, screen: 'EventManageReminders' },
+  { key: 'notifications', title: 'Notifications & Reminders', description: 'Broadcasts, updates & scheduled reminders', icon: Bell, screen: 'EventManageNotifications' },
   { key: 'collaborators', title: 'Collaborators', description: 'Team roles & permissions', icon: UserPlus, screen: 'EventManageCollaborators' },
   { key: 'media', title: 'Media & Assets', description: 'Photos, files, cover image', icon: ImageIcon, screen: 'EventManageMedia' },
-  { key: 'integrity', title: 'Validation & Health', description: 'Scorecards, diagnostics, issues', icon: ClipboardList, screen: 'EventManageIntegrity' },
   { key: 'lifecycle', title: 'Duplicate & Archive', description: 'Copies, archive, restore', icon: Layers, screen: 'EventManageLifecycle' },
 ];
 

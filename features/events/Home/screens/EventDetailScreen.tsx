@@ -17,7 +17,6 @@ import {
   Users,
   Edit,
   Share2,
-  QrCode,
   BarChart3,
   Clock,
   CheckCircle2,
@@ -95,10 +94,6 @@ export default function EventDetailScreen() {
 
   const handleEdit = () => {
     navigation.navigate('EditEvent', { eventId: event?.id });
-  };
-
-  const handleViewQRCode = () => {
-    Alert.alert('QR Code', 'QR Code functionality coming soon!');
   };
 
   const handleViewAnalytics = () => {
@@ -348,31 +343,6 @@ export default function EventDetailScreen() {
                   fontSize: typography.size.sm,
                 }}>
                   Share
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleViewQRCode}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: spacing.xs,
-                  paddingVertical: spacing.md,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  borderRadius: borderRadius.lg,
-                }}
-              >
-                <QrCode size={18} color={colors.text.primary} />
-                <Text style={{ 
-                  color: colors.text.primary, 
-                  fontWeight: typography.weight.medium,
-                  fontSize: typography.size.sm,
-                }}>
-                  QR Code
                 </Text>
               </TouchableOpacity>
 

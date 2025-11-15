@@ -263,6 +263,21 @@ export const authService = {
     }
   },
 
+  // Search Users
+  async searchUsers(query: string, params?: { page?: number; size?: number }) {
+    const queryParams = new URLSearchParams({ q: query });
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.size) queryParams.append('size', params.size.toString());
+
+    const url = `/api/v1/users/search?${queryParams.toString()}`;
+    const res = await http.get<ApiResponse<{ users: UserResponse[]; total: number; page: number; size: number }>>(url);
+    const body = res.data;
+    if (body.status === 200 && body.data) {
+      return body.data;
+    }
+    throw new Error(body.message || 'Failed to search users');
+  },
+
   // Legacy methods for backward compatibility
   async register(email: string, password: string) {
     const res = await http.post<ApiResponse<RegisterResponse>>('/auth/register', {
