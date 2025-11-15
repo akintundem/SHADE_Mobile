@@ -11,7 +11,6 @@ import LoadingState from './shared/components/LoadingState';
 import SocialApp from './features/social/SocialApp';
 import { User } from './shared/types';
 import { getToken, getUser as getCachedUser } from './shared/storage/authStorage';
-import { UserDTO } from './shared/services/authService';
 import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
 import EventManageScreen from './features/events/Home/screens/EventManageScreen';
 import EventAdminScreen from './features/events/Home/screens/EventAdminScreen';
@@ -42,47 +41,44 @@ function App() {
         // Attempt to restore session from storage
         const token = await getToken();
         if (token) {
-          console.log('🔐 Found stored token, validating...');
-          const cached = await getCachedUser<UserDTO>();
+          const cached = await getCachedUser<{ userId?: string; email?: string; username?: string; profilePictureUrl?: string; profileComplete?: boolean }>();
           if (cached) {
-            // Validate token with backend
+            // Validate token on app startup
             try {
               const { authService } = await import('./shared/services/authService');
-              await authService.getCurrentUser();
-              console.log('✅ Token is valid');
-              // Token is valid, set user
-              setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+              const validationResult = await authService.validateToken({ token });
+              
+              if (validationResult.valid && validationResult.user) {
+                // Token is valid, set user from validation response
+                const validatedUser = validationResult.user;
+                setUser({ 
+                  id: validatedUser.id || cached.userId || 'me', 
+                  email: validatedUser.email || cached.email || '', 
+                  name: validatedUser.name || cached.username, 
+                  provider: 'password' 
+                });
+              } else {
+                // Token validation returned invalid
+                const { clearAllAuth } = await import('./shared/storage/authStorage');
+                await clearAllAuth();
+              }
             } catch (error: unknown) {
               const err = error as { status?: number; message?: string } | Error;
-              const message = 'message' in err && typeof err.message === 'string' ? err.message : 'Unknown error';
               const status = 'status' in err && typeof err.status === 'number' ? err.status : undefined;
-
-              console.log('❌ Token validation failed:', message);
-              if (status === 401 || message.includes('Full authentication is required')) {
-                console.log('🔐 401 Unauthorized - clearing invalid token');
-                const { clearToken, clearUser } = await import('./shared/storage/authStorage');
-                await clearToken();
-                await clearUser();
-                console.log('✅ Invalid token cleared - please log in again');
-              } else {
-                console.log('⚠️  Other error during token validation:', message);
+              const hasResponse = error && typeof error === 'object' && 'response' in error;
+              if ((status === 401 && hasResponse) || (status === 403 && hasResponse)) {
+                const { clearAllAuth } = await import('./shared/storage/authStorage');
+                await clearAllAuth();
               }
             }
           } else {
-            // Token exists but no cached user - clear token
-            console.log('⚠️  Token exists but no cached user, clearing token');
             const { clearToken } = await import('./shared/storage/authStorage');
             await clearToken();
           }
-        } else {
-          console.log('ℹ️  No stored token found');
         }
       } catch (error: unknown) {
-        console.log('❌ Error during token validation:', error);
-        // Clear any partial state
-        const { clearToken, clearUser } = await import('./shared/storage/authStorage');
-        await clearToken();
-        await clearUser();
+        const { clearAllAuth } = await import('./shared/storage/authStorage');
+        await clearAllAuth();
       } finally {
         setIsLoading(false);
       }
@@ -99,8 +95,6 @@ function App() {
   }, []);
 
   const handleDeepLink = (url: string) => {
-    console.log('🔗 Deep link received:', url);
-
     try {
       // Parse URL manually for reset password
       if (url.includes('reset-password')) {
@@ -109,7 +103,6 @@ function App() {
         const token = tokenMatch ? tokenMatch[1] : null;
 
         if (token) {
-          console.log('🔑 Reset password token received');
           setResetToken(token);
           setAuthScreen('resetPassword');
           setUser(null);
@@ -122,7 +115,6 @@ function App() {
         const token = tokenMatch ? tokenMatch[1] : null;
 
         if (token) {
-          console.log('✉️ Email verification token received');
           setVerifyToken(token);
           setAuthScreen('verifyEmail');
           setUser(null);
