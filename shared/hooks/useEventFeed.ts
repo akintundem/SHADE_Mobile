@@ -1,7 +1,26 @@
-import { useState, useCallback } from 'react';
-import { EventFeedResponse, FeedPost, EventFeedRequest } from '../types';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import {
+  EventFeedResponse,
+  FeedPost,
+  EventFeedRequest,
+  FeedPostType,
+} from '../types';
 import { eventService } from '../services/eventService';
 import { ErrorHandler } from '../utils/errorHandler';
+
+type FeedFilter = FeedPostType | 'ALL';
+
+type EventFeedMeta = Pick<
+  EventFeedResponse,
+  | 'eventId'
+  | 'eventName'
+  | 'description'
+  | 'coverImageUrl'
+  | 'startDateTime'
+  | 'endDateTime'
+  | 'hashtag'
+  | 'eventWebsiteUrl'
+>;
 
 export interface UseEventFeedReturn {
   posts: FeedPost[];
@@ -14,7 +33,10 @@ export interface UseEventFeedReturn {
   error: Error | null;
   loadMore: () => Promise<void>;
   refresh: () => Promise<void>;
-  loadFeed: (page: number, postType?: string) => Promise<void>;
+  loadFeed: (page: number, postType?: FeedFilter) => Promise<void>;
+  filterByType: (postType: FeedFilter) => Promise<void>;
+  feedInfo: EventFeedMeta | null;
+  activeFilter: FeedFilter;
 }
 
 /**
@@ -33,25 +55,47 @@ export const useEventFeed = (
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [feedInfo, setFeedInfo] = useState<EventFeedMeta | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FeedFilter>('ALL');
+  const hasInitialLoad = useRef(false);
+  const loadingRef = useRef(false);
+  const lastPostType = useRef<FeedFilter>('ALL');
+  const requestIdRef = useRef(0);
 
   const loadFeed = useCallback(
-    async (page: number, postType?: string) => {
+    async (
+      page: number,
+      postType?: FeedFilter,
+      append: boolean = false,
+    ) => {
       if (!eventId) {
-        setError(new Error('Event ID is required'));
         return;
       }
+
+      if (loadingRef.current && append) {
+        return;
+      }
+
+      loadingRef.current = true;
 
       try {
         setLoading(true);
         setError(null);
+
+        const nextPostType = postType ?? lastPostType.current;
+        lastPostType.current = nextPostType;
+        setActiveFilter(nextPostType);
+
+        const requestId = requestIdRef.current + 1;
+        requestIdRef.current = requestId;
 
         const params: EventFeedRequest = {
           page,
           size: 20,
         };
 
-        if (postType && postType !== 'ALL') {
-          params.postType = postType as any;
+        if (nextPostType && nextPostType !== 'ALL') {
+          params.postType = nextPostType;
         }
 
         const feedData: EventFeedResponse = await eventService.getEventFeed(
@@ -59,8 +103,12 @@ export const useEventFeed = (
           params,
         );
 
-        if (page === 0) {
-          // First page - replace posts
+        if (requestIdRef.current !== requestId) {
+          return;
+        }
+
+        if (page === 0 || !append) {
+          // First page or refresh - replace posts
           setPosts(feedData.posts);
         } else {
           // Subsequent pages - append posts (avoid duplicates)
@@ -69,7 +117,7 @@ export const useEventFeed = (
             const newPosts = feedData.posts.filter(
               p => !existingIds.has(p.id),
             );
-            return [...prev, ...newPosts];
+            return newPosts.length > 0 ? [...prev, ...newPosts] : prev;
           });
         }
 
@@ -78,6 +126,16 @@ export const useEventFeed = (
         setHasPrevious(feedData.hasPrevious);
         setTotalPosts(feedData.totalPosts);
         setTotalPages(feedData.totalPages);
+        setFeedInfo({
+          eventId: feedData.eventId,
+          eventName: feedData.eventName,
+          description: feedData.description,
+          coverImageUrl: feedData.coverImageUrl,
+          startDateTime: feedData.startDateTime,
+          endDateTime: feedData.endDateTime,
+          hashtag: feedData.hashtag,
+          eventWebsiteUrl: feedData.eventWebsiteUrl,
+        });
       } catch (err) {
         const errorObj =
           err instanceof Error ? err : new Error(String(err));
@@ -85,19 +143,39 @@ export const useEventFeed = (
         ErrorHandler.handle(err, 'useEventFeed');
       } finally {
         setLoading(false);
+        loadingRef.current = false;
       }
     },
     [eventId],
   );
 
+  // Initial load on mount
+  useEffect(() => {
+    if (!hasInitialLoad.current && eventId) {
+      hasInitialLoad.current = true;
+      loadFeed(initialPage);
+    }
+  }, [eventId, initialPage, loadFeed]);
+
   const loadMore = useCallback(async () => {
-    if (hasNext && !loading) {
-      await loadFeed(currentPage + 1);
+    if (hasNext && !loading && currentPage !== undefined) {
+      await loadFeed(currentPage + 1, lastPostType.current, true);
     }
   }, [hasNext, loading, currentPage, loadFeed]);
 
   const refresh = useCallback(async () => {
-    await loadFeed(0);
+    hasInitialLoad.current = false;
+    setPosts([]);
+    setCurrentPage(initialPage);
+    await loadFeed(initialPage, lastPostType.current);
+  }, [initialPage, loadFeed]);
+
+  const filterByType = useCallback(async (postType: FeedFilter) => {
+    hasInitialLoad.current = false;
+    setPosts([]);
+    setCurrentPage(0);
+    lastPostType.current = postType;
+    await loadFeed(0, postType);
   }, [loadFeed]);
 
   return {
@@ -112,6 +190,9 @@ export const useEventFeed = (
     loadMore,
     refresh,
     loadFeed,
+    filterByType,
+    feedInfo,
+    activeFilter,
   };
 };
 

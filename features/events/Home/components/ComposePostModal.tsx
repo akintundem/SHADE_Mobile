@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,14 @@ import {
   TextInput,
   ScrollView,
   Image,
-  Alert,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   X,
-  Camera,
   Image as ImageIcon,
   Video as VideoIcon,
-  Send,
-  Type,
 } from 'lucide-react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { ThreadPost } from './EventThreadModal';
 
@@ -29,32 +25,79 @@ type Props = {
   onPost: (post: ThreadPost) => void;
 };
 
+type SelectedPhoto = {
+  uri: string;
+  fileName?: string;
+  fileSize?: number;
+};
+
+type SelectedVideo = {
+  uri: string;
+  fileName?: string;
+  fileSize?: number;
+};
+
+const CHARACTER_LIMIT = 280;
+const AVATAR_PLACEHOLDER = 'https://i.pravatar.cc/150?img=5';
+
+const formatFileSize = (size?: number) => {
+  if (!size) return '';
+  if (size < 1024 * 1024) {
+    return `${Math.round(size / 1024)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props) => {
   const { spacing, typography, borderRadius } = useTheme();
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [video, setVideo] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
+  const [video, setVideo] = useState<SelectedVideo | null>(null);
   const [isPosting, setIsPosting] = useState(false);
-  const textInputRef = useRef<TextInput>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
+  const textInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (validationError) {
+      if (text.trim().length > 0 || photos.length > 0 || video) {
+        setValidationError(null);
+      }
+    }
+  }, [validationError, text, photos, video]);
+
+  const buildSelectedAsset = (asset: Asset): SelectedPhoto | SelectedVideo | null => {
+    if (!asset.uri) return null;
+    return {
+      uri: asset.uri,
+      fileName: asset.fileName ?? undefined,
+      fileSize: asset.fileSize ?? undefined,
+    };
+  };
 
   const pickImage = async () => {
     launchImageLibrary(
       {
         mediaType: 'photo',
         selectionLimit: 4 - photos.length,
-        quality: 0.8,
+        quality: 0.85,
       },
-      (response) => {
+      response => {
         if (response.didCancel || response.errorMessage) {
           return;
         }
         if (response.assets) {
           const newPhotos = response.assets
-            .map(asset => asset.uri)
-            .filter((uri): uri is string => uri !== undefined);
-          setPhotos(prev => [...prev, ...newPhotos].slice(0, 4));
+            .map(buildSelectedAsset)
+            .filter((item): item is SelectedPhoto => item !== null)
+            .slice(0, 4 - photos.length);
+
+          if (newPhotos.length > 0) {
+            setPhotos(prev => [...prev, ...newPhotos].slice(0, 4));
+            setVideo(null);
+            setValidationError(null);
+          }
         }
       },
     );
@@ -64,15 +107,19 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
     launchImageLibrary(
       {
         mediaType: 'video',
-        quality: 0.8,
+        quality: 0.85,
       },
-      (response) => {
+      response => {
         if (response.didCancel || response.errorMessage) {
           return;
         }
         if (response.assets && response.assets[0]?.uri) {
-          setVideo(response.assets[0].uri);
-          setPhotos([]); // Remove photos if video is selected
+          const asset = buildSelectedAsset(response.assets[0]);
+          if (asset) {
+            setVideo(asset);
+            setPhotos([]);
+            setValidationError(null);
+          }
         }
       },
     );
@@ -87,27 +134,27 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
   };
 
   const handlePost = async () => {
-    if (!text.trim() && photos.length === 0 && !video) {
-      Alert.alert('Empty post', 'Please add some text, photos, or video to your post.');
+    if (text.trim().length === 0 && photos.length === 0 && !video) {
+      setValidationError('Start with words, a photo set, or a clip before you post.');
+      textInputRef.current?.focus();
       return;
     }
 
     setIsPosting(true);
 
-    // Simulate API call
     setTimeout(() => {
       const newPost: ThreadPost = {
         id: Date.now().toString(),
         user: {
           name: 'You',
           handle: 'you',
-          avatar: 'https://i.pravatar.cc/150?img=5',
+          avatar: AVATAR_PLACEHOLDER,
           verified: false,
         },
         timestamp: 'now',
         text: text.trim() || undefined,
-        photos: photos.length > 0 ? photos : undefined,
-        video: video || undefined,
+        photos: photos.length > 0 ? photos.map(photo => photo.uri) : undefined,
+        video: video?.uri || undefined,
         comments: 0,
         reposts: 0,
         likes: 0,
@@ -118,18 +165,16 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
       setText('');
       setPhotos([]);
       setVideo(null);
-    }, 500);
+      setValidationError(null);
+    }, 400);
   };
 
-  const canPost = text.trim().length > 0 || photos.length > 0 || video !== null;
+  const charCount = text.length;
+  const charCountColor = charCount > CHARACTER_LIMIT - 20 ? '#F97316' : '#6B7280';
+  const canPost = (text.trim().length > 0 || photos.length > 0 || video !== null) && !isPosting;
 
   return (
-    <Modal
-      visible={true}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
+    <Modal visible animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#FFFFFF', paddingTop: insets.top }}>
         {/* Header */}
         <View
@@ -139,148 +184,187 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
             justifyContent: 'space-between',
             paddingHorizontal: spacing.xl,
             paddingTop: spacing.lg,
-            paddingBottom: spacing.lg,
+            paddingBottom: spacing.sm,
             borderBottomWidth: 1,
             borderBottomColor: '#E5E7EB',
-            minHeight: 44 + spacing.lg * 2, // Ensure minimum touchable height
-            backgroundColor: '#FFFFFF',
-            zIndex: 100,
           }}
         >
-          <TouchableOpacity 
-            onPress={() => {
-              console.log('Close button pressed');
-              onClose();
-            }}
-            activeOpacity={0.6}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Close composer"
             style={{
-              width: 48,
-              height: 48,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
               alignItems: 'center',
               justifyContent: 'center',
-              marginLeft: -spacing.md,
-              zIndex: 1000,
-              backgroundColor: 'transparent',
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <X size={22} color="#000000" strokeWidth={2.5} />
-            </View>
+            <X size={22} color="#111827" />
           </TouchableOpacity>
-          <View style={{ flex: 1, alignItems: 'center' }}>
-            <Text
-              style={{
-                color: '#000000',
-                fontWeight: typography.weight.bold,
-                fontSize: typography.size.base,
-              }}
-            >
-              Create Post
-            </Text>
-            <Text
-              style={{
-                color: '#6B7280',
-                fontSize: typography.size.xs,
-                marginTop: 2,
-              }}
-            >
-              {eventName}
-            </Text>
-          </View>
+
+          <Text
+            style={{
+              color: '#111827',
+              fontWeight: typography.weight.semibold,
+              fontSize: typography.size.base,
+            }}
+            numberOfLines={1}
+          >
+            New post
+          </Text>
+
           <TouchableOpacity
             onPress={handlePost}
-            disabled={!canPost || isPosting}
-            activeOpacity={0.7}
+            disabled={!canPost}
+            activeOpacity={0.8}
             style={{
-              minWidth: 44,
-              minHeight: 44,
-              backgroundColor: canPost ? '#000000' : '#E5E7EB',
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.sm,
+              minWidth: 64,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.xs,
               borderRadius: borderRadius.full,
+              backgroundColor: canPost ? '#000000' : '#E5E7EB',
               alignItems: 'center',
               justifyContent: 'center',
-              marginRight: -spacing.md,
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Post"
+            accessibilityState={{ disabled: !canPost }}
           >
-            <Send
-              size={20}
-              color={canPost ? '#FFFFFF' : '#9CA3AF'}
-            />
+            <Text
+              style={{
+                color: canPost ? '#FFFFFF' : '#9CA3AF',
+                fontSize: typography.size.sm,
+                fontWeight: typography.weight.semibold,
+              }}
+            >
+              {isPosting ? 'Posting…' : 'Post'}
+            </Text>
           </TouchableOpacity>
         </View>
 
+        {/* Body */}
         <ScrollView
           ref={scrollViewRef}
           style={{ flex: 1 }}
           contentContainerStyle={{
-            padding: spacing.xl,
-            paddingBottom: spacing.xl,
+            paddingHorizontal: spacing.xl,
+            paddingBottom: spacing['3xl'],
           }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Text Input */}
-          <TextInput
-            ref={textInputRef}
-            placeholder="What's happening at this event?"
-            placeholderTextColor="#9CA3AF"
-            value={text}
-            onChangeText={setText}
-            multiline
+          <View
             style={{
-              color: '#000000',
-              fontSize: typography.size.base,
-              lineHeight: 24,
-              minHeight: 120,
-              textAlignVertical: 'top',
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: spacing.md,
+              paddingTop: spacing.lg,
             }}
-          />
+          >
+            <Image
+              source={{ uri: AVATAR_PLACEHOLDER }}
+              style={{ width: 44, height: 44, borderRadius: 22 }}
+            />
 
-          {/* Media Preview */}
+            <View style={{ flex: 1 }}>
+              <TextInput
+                ref={textInputRef}
+                placeholder={`What's happening at ${eventName}?`}
+                placeholderTextColor="#9CA3AF"
+                value={text}
+                onChangeText={value => {
+                  setText(value);
+                }}
+                multiline
+                maxLength={CHARACTER_LIMIT}
+                style={{
+                  color: '#111827',
+                  fontSize: typography.size.base,
+                  lineHeight: 24,
+                  minHeight: 120,
+                  textAlignVertical: 'top',
+                  padding: 0,
+                }}
+                accessibilityLabel="Post text"
+              />
+
+              {validationError && (
+                <Text
+                  style={{
+                    color: '#EF4444',
+                    fontSize: typography.size.xs,
+                    marginTop: spacing.xs,
+                  }}
+                >
+                  {validationError}
+                </Text>
+              )}
+            </View>
+          </View>
+
           {photos.length > 0 && (
             <View
               style={{
-                marginTop: spacing.lg,
                 flexDirection: 'row',
                 flexWrap: 'wrap',
                 gap: spacing.sm,
+                marginTop: spacing.lg,
               }}
             >
-              {photos.map((uri, index) => (
+              {photos.map((photo, index) => (
                 <View
-                  key={index}
+                  key={photo.uri}
                   style={{
                     width: '48%',
-                    height: 150,
+                    height: 160,
                     borderRadius: borderRadius.lg,
                     overflow: 'hidden',
-                    position: 'relative',
+                    backgroundColor: '#F3F4F6',
                   }}
                 >
                   <Image
-                    source={{ uri }}
+                    source={{ uri: photo.uri }}
                     style={{ width: '100%', height: '100%' }}
                     resizeMode="cover"
                   />
+
+                  {(photo.fileName || photo.fileSize) && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        left: spacing.xs,
+                        bottom: spacing.xs,
+                        paddingHorizontal: spacing.xs,
+                        paddingVertical: 2,
+                        borderRadius: borderRadius.full,
+                        backgroundColor: 'rgba(0,0,0,0.55)',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#FFFFFF',
+                          fontSize: typography.size.xs,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {photo.fileName || formatFileSize(photo.fileSize)}
+                      </Text>
+                    </View>
+                  )}
+
                   <TouchableOpacity
                     onPress={() => removePhoto(index)}
                     style={{
                       position: 'absolute',
                       top: spacing.xs,
                       right: spacing.xs,
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
-                      backgroundColor: '#000000',
+                      width: 26,
+                      height: 26,
+                      borderRadius: 13,
+                      backgroundColor: 'rgba(17,24,39,0.8)',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -298,24 +382,49 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
                 marginTop: spacing.lg,
                 borderRadius: borderRadius.lg,
                 overflow: 'hidden',
-                position: 'relative',
+                backgroundColor: '#F3F4F6',
               }}
             >
               <Image
-                source={{ uri: video }}
+                source={{ uri: video.uri }}
                 style={{ width: '100%', height: 200 }}
                 resizeMode="cover"
               />
+
+              {(video.fileName || video.fileSize) && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: spacing.xs,
+                    bottom: spacing.xs,
+                    paddingHorizontal: spacing.xs,
+                    paddingVertical: 2,
+                    borderRadius: borderRadius.full,
+                    backgroundColor: 'rgba(0,0,0,0.55)',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontSize: typography.size.xs,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {video.fileName || formatFileSize(video.fileSize)}
+                  </Text>
+                </View>
+              )}
+
               <TouchableOpacity
                 onPress={removeVideo}
                 style={{
                   position: 'absolute',
                   top: spacing.xs,
                   right: spacing.xs,
-                  width: 28,
-                  height: 28,
-                  borderRadius: 14,
-                  backgroundColor: '#000000',
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
+                  backgroundColor: 'rgba(17,24,39,0.8)',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -326,260 +435,69 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
           )}
         </ScrollView>
 
-        {/* Media Actions - Fixed Bottom with Safe Area */}
+        {/* Footer */}
         <View
           style={{
             paddingHorizontal: spacing.xl,
-            paddingTop: spacing.lg,
             paddingBottom: Math.max(insets.bottom, spacing.md),
-            backgroundColor: '#FFFFFF',
-            borderTopWidth: 2,
-            borderTopColor: '#000000',
+            paddingTop: spacing.sm,
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-            <Text
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <TouchableOpacity
+              onPress={pickImage}
+              disabled={photos.length >= 4}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Add photos"
+              accessibilityState={{ disabled: photos.length >= 4 }}
               style={{
-                color: '#000000',
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.bold,
-                marginBottom: spacing.md,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: photos.length >= 4 ? '#F3F4F6' : 'transparent',
               }}
             >
-              Share Your Perspective
-            </Text>
-            
-            <View
+              <ImageIcon size={22} color={photos.length >= 4 ? '#9CA3AF' : '#0F172A'} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={pickVideo}
+              disabled={video !== null}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Add video"
+              accessibilityState={{ disabled: video !== null }}
               style={{
-                flexDirection: 'row',
-                gap: spacing.md,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: video ? '#F3F4F6' : 'transparent',
               }}
             >
-              {/* Photo Card */}
-              <TouchableOpacity
-                onPress={pickImage}
-                disabled={photos.length >= 4 || video !== null}
-                activeOpacity={0.8}
-                style={{
-                  flex: 1,
-                  minHeight: 120,
-                  borderRadius: borderRadius.xl,
-                  backgroundColor: photos.length >= 4 || video ? '#F3F4F6' : '#000000',
-                  borderWidth: 3,
-                  borderColor: photos.length >= 4 || video ? '#E5E7EB' : '#000000',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: spacing.lg,
-                  paddingHorizontal: spacing.md,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: photos.length >= 4 || video ? 0 : 0.15,
-                  shadowRadius: 8,
-                  elevation: photos.length >= 4 || video ? 0 : 4,
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: photos.length >= 4 || video ? '#E5E7EB' : '#FFFFFF',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: spacing.sm,
-                  }}
-                >
-                  <ImageIcon
-                    size={28}
-                    color={photos.length >= 4 || video ? '#9CA3AF' : '#000000'}
-                    strokeWidth={2.5}
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: photos.length >= 4 || video ? '#9CA3AF' : '#FFFFFF',
-                    fontSize: typography.size.sm,
-                    fontWeight: typography.weight.bold,
-                    textAlign: 'center',
-                  }}
-                >
-                  Photo
-                </Text>
-                {photos.length > 0 && (
-                  <View
-                    style={{
-                      marginTop: spacing.xs,
-                      backgroundColor: '#FFFFFF',
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 2,
-                      borderRadius: borderRadius.full,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: '#000000',
-                        fontSize: typography.size.xs,
-                        fontWeight: typography.weight.bold,
-                      }}
-                    >
-                      {photos.length}/4
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* Video Card */}
-              <TouchableOpacity
-                onPress={pickVideo}
-                disabled={video !== null || photos.length > 0}
-                activeOpacity={0.8}
-                style={{
-                  flex: 1,
-                  minHeight: 120,
-                  borderRadius: borderRadius.xl,
-                  backgroundColor: video || photos.length > 0 ? '#F3F4F6' : '#000000',
-                  borderWidth: 3,
-                  borderColor: video || photos.length > 0 ? '#E5E7EB' : '#000000',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: spacing.lg,
-                  paddingHorizontal: spacing.md,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: video || photos.length > 0 ? 0 : 0.15,
-                  shadowRadius: 8,
-                  elevation: video || photos.length > 0 ? 0 : 4,
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: video || photos.length > 0 ? '#E5E7EB' : '#FFFFFF',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: spacing.sm,
-                  }}
-                >
-                  <VideoIcon
-                    size={28}
-                    color={video || photos.length > 0 ? '#9CA3AF' : '#000000'}
-                    strokeWidth={2.5}
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: video || photos.length > 0 ? '#9CA3AF' : '#FFFFFF',
-                    fontSize: typography.size.sm,
-                    fontWeight: typography.weight.bold,
-                    textAlign: 'center',
-                  }}
-                >
-                  Video
-                </Text>
-                {video && (
-                  <View
-                    style={{
-                      marginTop: spacing.xs,
-                      backgroundColor: '#FFFFFF',
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 2,
-                      borderRadius: borderRadius.full,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: '#000000',
-                        fontSize: typography.size.xs,
-                        fontWeight: typography.weight.bold,
-                      }}
-                    >
-                      ✓
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* Text/Tweet Card */}
-              <TouchableOpacity
-                onPress={() => {
-                  textInputRef.current?.focus();
-                  setTimeout(() => {
-                    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-                  }, 100);
-                }}
-                activeOpacity={0.8}
-                style={{
-                  flex: 1,
-                  minHeight: 120,
-                  borderRadius: borderRadius.xl,
-                  backgroundColor: text.trim().length > 0 ? '#000000' : '#F9FAFB',
-                  borderWidth: 3,
-                  borderColor: text.trim().length > 0 ? '#000000' : '#E5E7EB',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingVertical: spacing.lg,
-                  paddingHorizontal: spacing.md,
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: text.trim().length > 0 ? 0.15 : 0,
-                  shadowRadius: 8,
-                  elevation: text.trim().length > 0 ? 4 : 0,
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: text.trim().length > 0 ? '#FFFFFF' : '#E5E7EB',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: spacing.sm,
-                  }}
-                >
-                  <Type
-                    size={28}
-                    color={text.trim().length > 0 ? '#000000' : '#9CA3AF'}
-                    strokeWidth={2.5}
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: text.trim().length > 0 ? '#FFFFFF' : '#9CA3AF',
-                    fontSize: typography.size.sm,
-                    fontWeight: typography.weight.bold,
-                    textAlign: 'center',
-                  }}
-                >
-                  Tweet
-                </Text>
-                {text.trim().length > 0 && (
-                  <View
-                    style={{
-                      marginTop: spacing.xs,
-                      backgroundColor: '#FFFFFF',
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 2,
-                      borderRadius: borderRadius.full,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: '#000000',
-                        fontSize: typography.size.xs,
-                        fontWeight: typography.weight.bold,
-                      }}
-                    >
-                      {text.trim().length}
-                    </Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            </View>
+              <VideoIcon size={22} color={video ? '#9CA3AF' : '#0F172A'} />
+            </TouchableOpacity>
           </View>
+
+          <Text
+            style={{
+              color: charCountColor,
+              fontSize: typography.size.xs,
+              fontWeight: typography.weight.medium,
+            }}
+          >
+            {charCount}/{CHARACTER_LIMIT}
+          </Text>
+        </View>
       </View>
     </Modal>
   );

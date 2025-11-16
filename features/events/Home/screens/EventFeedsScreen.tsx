@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   Image,
   RefreshControl,
   Dimensions,
+  ActivityIndicator,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -18,109 +20,351 @@ import {
   MoreHorizontal,
   CheckCircle2,
   Plus,
-  X,
 } from 'lucide-react-native';
 import Video from 'react-native-video';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { ThreadPost } from '../components/EventThreadModal';
 import { ComposePostModal } from '../components/ComposePostModal';
+import { useEventFeed } from '../../../../shared/hooks/useEventFeed';
+import { FeedPost } from '../../../../shared/types';
+import { dateUtils } from '../../../../shared/utils/helpers';
 
 type Props = {
   eventId: string;
   eventName: string;
   onBack: () => void;
+  coverImageUrl?: string | null;
 };
 
-// Mock posts data - replace with actual API call
-const MOCK_POSTS: ThreadPost[] = [
-  {
-    id: '1',
+// Helper function to convert FeedPost to ThreadPost
+const convertFeedPostToThreadPost = (feedPost: FeedPost): ThreadPost => {
+  // Format timestamp (e.g., "2h", "3d", etc.)
+  const formatTimestamp = (dateString: string): string => {
+    const postedDate = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - postedDate.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return dateUtils.formatDate(dateString, 'MMM d');
+  };
+
+  // Extract handle from author name or generate one
+  const getHandle = (name?: string): string => {
+    if (!name) return 'anonymous';
+    return name.toLowerCase().replace(/\s+/g, '').substring(0, 15);
+  };
+
+  return {
+    id: feedPost.id,
     user: {
-      name: 'Sarah Johnson',
-      handle: 'sarahj',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-      verified: true,
+      name: feedPost.authorName || 'Anonymous',
+      handle: getHandle(feedPost.authorName),
+      avatar: feedPost.authorAvatarUrl || 'https://i.pravatar.cc/150?img=1',
+      verified: false, // API doesn't provide verification status
     },
-    timestamp: '2h',
-    text: 'Amazing event! The energy here is incredible! 🎉',
-    photos: ['https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800'],
-    comments: 12,
-    reposts: 5,
-    likes: 89,
-  },
-  {
-    id: '2',
-    user: {
-      name: 'Mike Chen',
-      handle: 'mikechen',
-      avatar: 'https://i.pravatar.cc/150?img=2',
-      verified: false,
-    },
-    timestamp: '4h',
-    text: 'Just uploaded some photos from the event!',
-    photos: [
-      'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400',
-      'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400',
-    ],
-    comments: 8,
-    reposts: 3,
-    likes: 45,
-  },
-  {
-    id: '3',
-    user: {
-      name: 'Emma Wilson',
-      handle: 'emmaw',
-      avatar: 'https://i.pravatar.cc/150?img=3',
-      verified: true,
-    },
-    timestamp: '6h',
-    text: 'Check out this video from the opening ceremony!',
-    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    comments: 23,
-    reposts: 15,
-    likes: 156,
-  },
-  {
-    id: '4',
-    user: {
-      name: 'David Lee',
-      handle: 'davidl',
-      avatar: 'https://i.pravatar.cc/150?img=4',
-      verified: false,
-    },
-    timestamp: '8h',
-    text: 'Great networking session! Met so many interesting people.',
-    photos: [
-      'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=400',
-      'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=400',
-      'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400',
-    ],
-    comments: 5,
-    reposts: 2,
-    likes: 32,
-  },
+    timestamp: formatTimestamp(feedPost.postedAt),
+    text: feedPost.content,
+    photos: feedPost.type === 'IMAGE' && feedPost.mediaUrl ? [feedPost.mediaUrl] : undefined,
+    video: feedPost.type === 'VIDEO' && feedPost.mediaUrl ? feedPost.mediaUrl : undefined,
+    comments: feedPost.comments || 0,
+    reposts: 0, // API doesn't provide reposts count
+    likes: feedPost.likes || 0,
+  };
+};
+
+type FilterOption = 'ALL' | 'IMAGE' | 'VIDEO' | 'TEXT';
+
+const FILTERS: Array<{ label: string; value: FilterOption }> = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Photos', value: 'IMAGE' },
+  { label: 'Videos', value: 'VIDEO' },
+  { label: 'Text', value: 'TEXT' },
 ];
 
-export const EventFeedsScreen = ({ eventId, eventName, onBack }: Props) => {
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop';
+
+export const EventFeedsScreen = ({ eventId, eventName, onBack, coverImageUrl }: Props) => {
   const { spacing, typography, borderRadius } = useTheme();
   const insets = useSafeAreaInsets();
-  const [refreshing, setRefreshing] = useState(false);
-  const [posts, setPosts] = useState<ThreadPost[]>(MOCK_POSTS);
   const [showCompose, setShowCompose] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const {
+    posts: feedPosts,
+    loading,
+    error,
+    hasNext,
+    loadMore,
+    refresh,
+    filterByType,
+    totalPosts,
+    feedInfo,
+    activeFilter,
+  } = useEventFeed(eventId, 0);
+
+  // Convert FeedPost[] to ThreadPost[]
+  const posts = useMemo(() => {
+    return feedPosts.map(convertFeedPostToThreadPost);
+  }, [feedPosts]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // TODO: Fetch posts from API
-    setTimeout(() => {
+    try {
+      await refresh();
+    } finally {
       setRefreshing(false);
-    }, 1000);
-  }, []);
+    }
+  }, [refresh]);
 
-  const handlePostCreated = useCallback((newPost: ThreadPost) => {
-    setPosts(prev => [newPost, ...prev]);
+  const handleFilterChange = useCallback(async (filter: FilterOption) => {
+    if (filter === activeFilter) {
+      return;
+    }
+    await filterByType(filter);
+  }, [activeFilter, filterByType]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNext && !loading) {
+      loadMore();
+    }
+  }, [hasNext, loading, loadMore]);
+
+  const renderListHeader = useCallback(() => {
+    const heroImage = feedInfo?.coverImageUrl || coverImageUrl || FALLBACK_IMAGE;
+    const displayName = feedInfo?.eventName ?? eventName;
+    const description = feedInfo?.description;
+    const hashtag = feedInfo?.hashtag;
+    const website = feedInfo?.eventWebsiteUrl;
+    const startDate = feedInfo?.startDateTime
+      ? dateUtils.formatDate(feedInfo.startDateTime, 'EEE, MMM d • h:mm a')
+      : undefined;
+    const endDate = feedInfo?.endDateTime
+      ? dateUtils.formatDate(feedInfo.endDateTime, 'EEE, MMM d • h:mm a')
+      : undefined;
+
+    return (
+      <View style={{ backgroundColor: '#FFFFFF' }}>
+        <View style={{ height: 220, backgroundColor: '#000000' }}>
+          <ImageBackground
+            source={{ uri: heroImage }}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          >
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0,0,0,0.28)',
+                paddingHorizontal: spacing.xl,
+                paddingBottom: spacing['2xl'],
+                justifyContent: 'flex-end',
+                paddingTop: spacing['3xl'],
+              }}
+            >
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size['3xl'],
+                }}
+                numberOfLines={1}
+              >
+                {displayName}
+              </Text>
+
+              {description ? (
+                <Text
+                  style={{
+                    color: '#F9FAFB',
+                    fontSize: typography.size.sm,
+                    marginTop: spacing.sm,
+                    lineHeight: 20,
+                  }}
+                  numberOfLines={2}
+                >
+                  {description}
+                </Text>
+              ) : null}
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  marginTop: spacing.md,
+                  gap: spacing.sm,
+                }}
+              >
+                {hashtag ? (
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 4,
+                      borderRadius: 999,
+                      backgroundColor: 'rgba(255,255,255,0.18)',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: '#FFFFFF',
+                        fontSize: typography.size.xs,
+                        fontWeight: typography.weight.medium,
+                      }}
+                    >
+                      {hashtag}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {website ? (
+                  <Text
+                    style={{
+                      color: '#E5E7EB',
+                      fontSize: typography.size.xs,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {website.replace(/^https?:\/\//, '')}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          </ImageBackground>
+        </View>
+
+        <View
+          style={{
+            paddingHorizontal: spacing.xl,
+            paddingVertical: spacing.lg,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5E7EB',
+            backgroundColor: '#FFFFFF',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <StatBlock label="Posts" value={totalPosts} emphasis />
+          <StatBlock label="Starts" value={startDate} />
+          <StatBlock label="Ends" value={endDate} />
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            backgroundColor: '#FFFFFF',
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5E7EB',
+          }}
+        >
+          {FILTERS.map(filter => {
+            const isActive = activeFilter === filter.value;
+            return (
+              <TouchableOpacity
+                key={filter.value}
+                onPress={() => handleFilterChange(filter.value)}
+                activeOpacity={0.8}
+                style={{
+                  flex: 1,
+                  alignItems: 'center',
+                  paddingVertical: spacing.md,
+                }}
+              >
+                <Text
+                  style={{
+                    color: isActive ? '#000000' : '#6B7280',
+                    fontSize: typography.size.sm,
+                    fontWeight: isActive
+                      ? typography.weight.semibold
+                      : typography.weight.medium,
+                    textTransform: 'none',
+                  }}
+                >
+                  {filter.label}
+                </Text>
+                <View
+                  style={{
+                    marginTop: spacing.xs / 2,
+                    height: 2,
+                    width: '50%',
+                    borderRadius: 999,
+                    backgroundColor: isActive ? '#000000' : 'transparent',
+                  }}
+                />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {error && !loading ? (
+          <View
+            style={{
+              paddingHorizontal: spacing.xl,
+              paddingVertical: spacing.md,
+              backgroundColor: '#FEF2F2',
+              borderBottomWidth: 1,
+              borderBottomColor: '#FECACA',
+            }}
+          >
+            <Text
+              style={{
+                color: '#991B1B',
+                fontSize: typography.size.sm,
+                lineHeight: 20,
+              }}
+            >
+              Error loading feed: {error.message}
+            </Text>
+            <TouchableOpacity
+              onPress={onRefresh}
+              activeOpacity={0.8}
+              style={{
+                marginTop: spacing.sm,
+                alignSelf: 'flex-start',
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.xs,
+                borderRadius: borderRadius.md,
+                backgroundColor: '#000000',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: typography.size.xs,
+                  fontWeight: typography.weight.medium,
+                }}
+              >
+                Retry
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </View>
+    );
+  }, [
+    activeFilter,
+    borderRadius,
+    error,
+    eventName,
+    feedInfo,
+    coverImageUrl,
+    handleFilterChange,
+    loading,
+    onRefresh,
+    spacing,
+    typography,
+    totalPosts,
+  ]);
+
+  const handlePostCreated = useCallback(async (_newPost: ThreadPost) => {
+    // After creating a post, refresh the feed to show the new post
     setShowCompose(false);
-  }, []);
+    await refresh();
+  }, [refresh]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'bottom']}>
@@ -179,6 +423,7 @@ export const EventFeedsScreen = ({ eventId, eventName, onBack }: Props) => {
         keyExtractor={item => item.id}
         contentContainerStyle={{ paddingBottom: spacing['4xl'] + 80 }}
         renderItem={({ item }) => <PostCard post={item} />}
+        ListHeaderComponent={renderListHeader}
         ItemSeparatorComponent={() => (
           <View style={{ height: 1, backgroundColor: '#F3F4F6' }} />
         )}
@@ -190,17 +435,41 @@ export const EventFeedsScreen = ({ eventId, eventName, onBack }: Props) => {
             colors={['#000000']}
           />
         }
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
         ListEmptyComponent={
-          <View style={{ padding: spacing['3xl'], alignItems: 'center' }}>
-            <Text
-              style={{
-                color: '#6B7280',
-                fontSize: typography.size.base,
-              }}
-            >
-              No posts yet. Be the first to share!
-            </Text>
-          </View>
+          loading ? (
+            <View style={{ padding: spacing['3xl'], alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#000000" />
+              <Text
+                style={{
+                  color: '#6B7280',
+                  fontSize: typography.size.base,
+                  marginTop: spacing.md,
+                }}
+              >
+                Loading posts...
+              </Text>
+            </View>
+          ) : (
+            <View style={{ padding: spacing['3xl'], alignItems: 'center' }}>
+              <Text
+                style={{
+                  color: '#6B7280',
+                  fontSize: typography.size.base,
+                }}
+              >
+                No posts yet. Be the first to share!
+              </Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          loading && posts.length > 0 ? (
+            <View style={{ padding: spacing.lg, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color="#000000" />
+            </View>
+          ) : null
         }
       />
 
@@ -241,6 +510,56 @@ export const EventFeedsScreen = ({ eventId, eventName, onBack }: Props) => {
   );
 };
 
+const StatBlock = ({
+  label,
+  value,
+  emphasis = false,
+}: {
+  label: string;
+  value?: string | number | null;
+  emphasis?: boolean;
+}) => {
+  const { typography } = useTheme();
+
+  const hasValue =
+    value !== undefined && value !== null && value !== '';
+
+  if (!hasValue) {
+    return <View style={{ flex: 1 }} />;
+  }
+
+  const displayValue =
+    typeof value === 'number' ? value.toLocaleString() : value;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Text
+        style={{
+          color: '#6B7280',
+          fontSize: typography.size.xs,
+          fontWeight: typography.weight.medium,
+          textTransform: 'uppercase',
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          color: '#000000',
+          fontSize: emphasis ? typography.size.lg : typography.size.sm,
+          fontWeight: emphasis
+            ? typography.weight.semibold
+            : typography.weight.medium,
+          marginTop: 4,
+        }}
+        numberOfLines={1}
+      >
+        {displayValue}
+      </Text>
+    </View>
+  );
+};
+
 const PostCard = ({ post }: { post: ThreadPost }) => {
   const { spacing, typography, borderRadius } = useTheme();
   const [isLiked, setIsLiked] = useState(false);
@@ -255,7 +574,8 @@ const PostCard = ({ post }: { post: ThreadPost }) => {
     <View
       style={{
         backgroundColor: '#FFFFFF',
-        padding: spacing.xl,
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.lg,
       }}
     >
       {/* User Header */}
@@ -263,17 +583,16 @@ const PostCard = ({ post }: { post: ThreadPost }) => {
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: spacing.md,
+          gap: spacing.md,
         }}
       >
         <Image
           source={{ uri: post.user.avatar }}
           style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            marginRight: spacing.md,
-            borderWidth: 1.5,
+            width: 46,
+            height: 46,
+            borderRadius: 23,
+            borderWidth: 1,
             borderColor: '#E5E7EB',
           }}
         />
@@ -303,7 +622,7 @@ const PostCard = ({ post }: { post: ThreadPost }) => {
           </Text>
         </View>
         <TouchableOpacity activeOpacity={0.7}>
-          <MoreHorizontal size={20} color="#6B7280" />
+          <MoreHorizontal size={18} color="#6B7280" />
         </TouchableOpacity>
       </View>
 
@@ -314,7 +633,7 @@ const PostCard = ({ post }: { post: ThreadPost }) => {
             color: '#111827',
             fontSize: typography.size.base,
             lineHeight: 22,
-            marginBottom: spacing.md,
+            marginTop: spacing.sm,
           }}
         >
           {post.text}
@@ -350,8 +669,8 @@ const PostCard = ({ post }: { post: ThreadPost }) => {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginTop: spacing.lg,
-          paddingTop: spacing.md,
+          marginTop: spacing.md,
+          paddingTop: spacing.sm,
         }}
       >
         <ActionButton
@@ -400,7 +719,7 @@ const ActionButton = ({
       }}
     >
       <Icon
-        size={20}
+        size={18}
         color={active ? '#EF4444' : '#6B7280'}
         fill={active ? '#EF4444' : 'none'}
       />

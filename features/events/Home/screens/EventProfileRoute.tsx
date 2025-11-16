@@ -300,6 +300,7 @@ export const EventProfileRoute = () => {
       <EventFeedsScreen
         eventId={eventId}
         eventName={feedEventName || 'Event'}
+        coverImageUrl={event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE}
         onBack={() => navigation.goBack()}
       />
     );
@@ -322,7 +323,14 @@ export const EventProfileRoute = () => {
     return <RSVPScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
   }
   if (activeScreen === 'feeds' && eventId) {
-    return <EventFeedsScreen eventId={eventId} eventName={event?.name ?? params.title ?? 'Event'} onBack={() => setActiveScreen(null)} />;
+    return (
+      <EventFeedsScreen
+        eventId={eventId}
+        eventName={event?.name ?? params.title ?? 'Event'}
+        coverImageUrl={event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE}
+        onBack={() => setActiveScreen(null)}
+      />
+    );
   }
   if (activeScreen === 'collaboration' && eventId) {
     return <CollaborationScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
