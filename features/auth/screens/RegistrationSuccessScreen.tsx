@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckCircle, Mail } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import Button from '../../../../shared/components/ui/Button';
+import { useTheme } from '../../../shared/theme/ThemeProvider';
+import Button from '../../../shared/components/ui/Button';
 
 type Props = {
   email: string;

@@ -5,16 +5,14 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Send, Mail, MessageSquare, Smartphone, RefreshCcw, Clock, Bell, CalendarClock, PlusCircle, Trash2, X, List } from 'lucide-react-native';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { eventService } from '../../../../../shared/services/eventService';
-import {
-  EventNotificationRequest,
+import { EventNotificationRequest,
   EventNotificationChannel,
   EventReminderRequest,
   EventReminderResponse,
-  EventReminderUpdateRequest,
-} from '../../../../../shared/types';
-import { DateTimePickerModal } from '../../../Create/components/DateTimePickerModal';
+  EventReminderUpdateRequest, } from '../../../../../shared/types';
+import { DateTimePickerModal } from '../../../create/components/DateTimePickerModal';
 import { dateUtils } from '../../../../../shared/utils/helpers';
-import { DATE_FORMATS } from '../../../../../shared/utils/constants';
+import { DATE_FORMAT } from '../../../../../shared/utils/constants';
 
 type RouteParams = { eventId: string };
 

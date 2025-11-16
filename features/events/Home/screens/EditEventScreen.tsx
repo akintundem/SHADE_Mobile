@@ -17,7 +17,7 @@ import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
 import { eventService } from '../../../../shared/services/eventService';
 import { UpdateEventRequest, Event, EventType, EventData, isFullEventResponse } from '../../../../shared/types';
-import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { ErrorHandle } from '../../../../shared/utils/errorHandler';
 
 type EditEventScreenParams = {
   eventId: string;

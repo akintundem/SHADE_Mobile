@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
-import { ProfileHeader } from './components/ProfileHeader';
-import { EventMiniCard } from './components/EventMiniCard';
+import { ProfileHeader } from '../components/ProfileHeader';
+import { EventMiniCard } from '../components/EventMiniCard';
 import { TabBar } from '../../events/home/components/TabBar';
 import SettingsScreen from './SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';

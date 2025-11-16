@@ -3,17 +3,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity, RefreshControl, Alert, Share } from 'react-native';
 import { Calendar } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { ManageEventCard } from './components/ManageEventCard';
-import { TopBar } from './components/TopBar';
-import { TabBar } from '../Home/components/TabBar';
-import { User, UserEventRelationshipResponse, EventStatus } from '../../../shared/types';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../shared/i18n/I18nProvider';
-import { eventService } from '../../../shared/services/eventService';
-import { ErrorHandler } from '../../../shared/utils/errorHandler';
-import { dateUtils } from '../../../shared/utils/helpers';
-import { DATE_FORMATS } from '../../../shared/utils/constants';
-import { EmptyState, LoadingOverlay } from '../../../shared/components/LoadingStates';
+import { ManageEventCard } from '../components/ManageEventCard';
+import { TopBar } from '../components/TopBar';
+import { TabBar } from '../../home/components/TabBar';
+import { User, UserEventRelationshipResponse, EventStatus } from '../../../../shared/types';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { eventService } from '../../../../shared/services/eventService';
+import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { dateUtils } from '../../../../shared/utils/helpers';
+import { DATE_FORMATS } from '../../../../shared/utils/constants';
+import { EmptyState, LoadingOverlay } from '../../../../shared/components/LoadingStates';
 
 type ManageItem = {
   id: string;

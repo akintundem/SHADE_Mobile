@@ -18,13 +18,13 @@ import {
   ChevronDown,
   SlidersHorizontal,
 } from 'lucide-react-native';
-import { useTheme } from '../theme/ThemeProvider';
-import { SafeAreaWrapper } from '../components/SafeAreaWrapper';
-import { EventCard, EventItem } from '../Home/components/EventCard';
-import { EmptyState } from '../components/LoadingStates';
-import { eventService } from '../services/eventService';
-import { EventResponse, EventType, EventStatus } from '../types';
-import { ErrorHandler } from '../utils/errorHandler';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
+import { EventCard, EventItem } from '../../home/components/EventCard';
+import { EmptyState } from '../../../../shared/components/LoadingStates';
+import { eventService } from '../../../../shared/services/eventService';
+import { EventResponse, EventType, EventStatu } from '../../../../shared/types';
+import { ErrorHandl } from '../../../../shared/utils/errorHandler';
 
 type Props = {
   onClose: () => void;

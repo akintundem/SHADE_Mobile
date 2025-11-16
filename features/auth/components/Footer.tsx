@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../shared/theme/ThemeProvider';
 
 type Props = {
   isSignUp?: boolean;

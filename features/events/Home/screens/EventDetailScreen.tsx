@@ -28,9 +28,9 @@ import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { Event, EventResponse, EventStatus, EventData, isFullEventResponse } from '../../../../shared/types';
 import { eventService } from '../../../../shared/services/eventService';
 import { ErrorHandler } from '../../../../shared/utils/errorHandler';
-import { dateUtils } from '../../../../shared/utils/helpers';
-import { DATE_FORMATS } from '../../../../shared/utils/constants';
-import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { dateUtil } from '../../../../shared/utils/helpers';
+import { DATE_FORMA } from '../../../../shared/utils/constants';
+import { LoadingOver } from '../../../../shared/components/LoadingStates';
 
 type EventDetailScreenParams = {
   eventId: string;

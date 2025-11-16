@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Settings, Edit3 } from 'lucide-react-native';
-import { User } from '../../../../shared/types';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { User } from '../../../shared/types';
+import { useTheme } from '../../../shared/theme/ThemeProvider';
 
 type Props = {
   user: User;

@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
-import { User, LoginRequest } from '../../../../shared/types';
-import { authService } from '../../../../shared/services/authService';
-import { setUser } from '../../../../shared/storage/authStorage';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import Input from '../../../../shared/components/ui/Input';
-import Button from '../../../../shared/components/ui/Button';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { User, LoginRequest } from '../../../shared/types';
+import { authService } from '../../../shared/services/authService';
+import { setUser } from '../../../shared/storage/authStorage';
+import { useTheme } from '../../../shared/theme/ThemeProvider';
+import Input from '../../../shared/components/ui/Input';
+import Button from '../../../shared/components/ui/Button';
+import { useI18n } from '../../../shared/i18n/I18nProvider';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 type Props = {

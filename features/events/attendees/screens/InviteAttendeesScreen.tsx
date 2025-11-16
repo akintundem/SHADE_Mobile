@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
 import { ArrowLeft, Mail, UserPlus, Plus, X, Upload } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { useFormValidation } from '../../../shared/utils/formValidation';
-import { invitationValidator } from '../../../shared/utils/validationSchemas';
-import { InvitationDTO } from '../../../shared/types';
-import { useErrorHandler } from '../../../shared/hooks/useErrorHandler';
-import ErrorModal from '../../../shared/components/common/ErrorModal';
-import { Section, FieldLabel, Input } from '../../../shared/components/common/FormComponents';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useFormValidation } from '../../../../shared/utils/formValidation';
+import { invitationValidator } from '../../../../shared/utils/validationSchemas';
+import { InvitationDTO } from '../../../../shared/types';
+import { useErrorHandle } from '../../../../shared/hooks/useErrorHandler';
+import ErrorM from '../../../../shared/components/common/ErrorModal';
+import { Section, FieldLabel, In } from '../../../../shared/components/common/FormComponents';
 
 type Props = { 
   eventId: string;

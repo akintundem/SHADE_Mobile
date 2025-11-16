@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
+import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { Mail, Send } from 'lucide-react-native';
 
 interface EmailReviewModalProps {

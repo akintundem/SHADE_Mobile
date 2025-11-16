@@ -2,16 +2,16 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { Asset } from 'react-native-image-picker';
 import { MessageSquare } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { useAgent } from '../../../features/agent/Agent/AgentProvider';
-import { AgentChatSheet } from '../../../shared/components/AgentChatSheet';
-import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
-import { LoadingOverlay } from '../../../shared/components/LoadingStates';
-import { eventService } from '../../../shared/services/eventService';
-import { CreateEventRequest, EventType, EventStatus } from '../../../shared/types';
-import { ErrorHandler } from '../../../shared/utils/errorHandler';
-import { STEPS } from './constants';
-import { useCreateEventForm } from './hooks/useCreateEventForm';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useAgent } from '../../../../features/agent/providers/AgentProvider';
+import { AgentChatSheet } from '../../../../shared/components/AgentChatSheet';
+import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
+import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { eventService } from '../../../../shared/services/eventService';
+import { CreateEventRequest, EventType, EventStatus } from '../../../../shared/types';
+import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { STEPS } from '../constants';
+import { useCreateEventForm } from '../hooks/useCreateEventForm';
 import {
   EventBasicsStep,
   CategorizeStep,
@@ -20,9 +20,9 @@ import {
   AccessStep,
   TeamContributionsStep,
   ReviewStep,
-} from './components/steps';
-import { StepHeader } from './components/StepHeader';
-import { StepFooter } from './components/StepFooter';
+} from '../components/steps';
+import { StepHeader } from '../components/StepHeader';
+import { StepFooter } from '../components/StepFooter';
 
 type Props = { onClose: () => void; onCreate?: () => void };
 

@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { X, Users, CalendarDays, Clock, Globe, Hash, Target, BarChart3, Palette, Building, Wifi, Accessibility, Shield, FileText, Settings } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { useFormValidation } from '../../../shared/utils/formValidation';
-import { CreateEventRequest, EventType, EventStatus } from '../../../shared/types';
-import { eventService } from '../../../shared/services';
-import { useErrorHandler } from '../../../shared/hooks/useErrorHandler';
-import ErrorModal from '../../../shared/components/common/ErrorModal';
-import { Section, FieldLabel, Input, SelectInput, ToggleRow } from '../../../shared/components/common/FormComponents';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useFormValidation } from '../../../../shared/utils/formValidation';
+import { CreateEventRequest, EventType, EventStatus } from '../../../../shared/types';
+import { eventService } from '../../../../shared/services';
+import { useErrorHandle } from '../../../../shared/hooks/useErrorHandler';
+import ErrorM from '../../../../shared/components/common/ErrorModal';
+import { Section, FieldLabel, Input, SelectInput, Toggle } from '../../../../shared/components/common/FormComponents';
 
 type Props = { 
   onClose: () => void; 

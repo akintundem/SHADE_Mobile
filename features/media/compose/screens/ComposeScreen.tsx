@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Image } from 'react-native';
 import { X, Camera, ImagePlus, Search, Hash, Users, Globe, Lock, Save } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { recentExamples } from '../../events/discover/examples';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { recentExamples } from '../../../events/discover/examples';
 
 type Props = {
   onClose: () => void;
@@ -27,7 +27,7 @@ export default function ComposeScreen({ onClose, onPost, onOpenCamera, hasDraft,
 
   useEffect(() => {
     (async () => {
-      const { getCaptureClips } = await import('../../../shared/storage/captureSession');
+      const { getCaptureClips } = await import('../../../../shared/storage/captureSession');
       const clips = getCaptureClips();
       if (clips.length > 0) {
         setMediaPaths(clips.map(c => c.path));

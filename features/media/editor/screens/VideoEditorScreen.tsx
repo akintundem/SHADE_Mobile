@@ -1,14 +1,14 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, PanResponder } from 'react-native';
-import SwipeToDismiss from '../../../shared/gestures/SwipeToDismiss';
+import SwipeToDismiss from '../../../../shared/gestures/SwipeToDismiss';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
 import { X, Scissors, ArrowUp, ArrowDown, Trash2, Music, Volume2, Sparkles, SlidersHorizontal, Layers, Type as TypeIcon, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { getCaptureClips, addCaptureClip, clearCaptureClips, updateClip as updateSessionClip, removeClipById } from '../../../shared/storage/captureSession';
-import { saveDraftClips, clearDraftClips } from '../../../shared/storage/drafts';
-import type { CaptureClip } from '../../../shared/storage/captureSession';
+import { getCaptureClips, addCaptureClip, clearCaptureClips, updateClip as updateSessionClip, removeClipById } from '../../../../shared/storage/captureSession';
+import { saveDraftClips, clearDraftClips } from '../../../../shared/storage/drafts';
+import type { CaptureClip } from '../../../../shared/storage/captureSession';
 
 type Props = {
   onClose: () => void;

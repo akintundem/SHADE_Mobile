@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { ScrollView, View, RefreshControl } from 'react-native';
-import { HomeHeader } from './components/HomeHeader';
-import { EventSegmentedControl, SegmentType } from './components/EventSegmentedControl';
-import { EventsList } from './components/EventsList';
-import { TabBar } from './components/TabBar';
-import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { User } from '../../../shared/types';
-import { EventItem } from './components/EventCard';
-import { useEvents } from './hooks/useEvents';
-import { useEventFilters } from './hooks/useEventFilters';
-import { convertEventsToItems } from './utils/eventUtils';
+import { HomeHeader } from '../components/HomeHeader';
+import { EventSegmentedControl, SegmentType } from '../components/EventSegmentedControl';
+import { EventsList } from '../components/EventsList';
+import { TabBar } from '../components/TabBar';
+import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { User } from '../../../../shared/types';
+import { EventItem } from '../components/EventCard';
+import { useEvents } from '../hooks/useEvents';
+import { useEventFilters } from '../hooks/useEventFilters';
+import { convertEventsToItems } from '../utils/eventUtils';
 
 type Props = {
   user: User;

@@ -16,7 +16,7 @@ import {
 import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { ArrowLeft, Moon, Mic, Send, Star, MapPin, Users, Heart, Mail } from 'lucide-react-native';
-import VenueDetailModal from './components/VenueDetailModal';
+import VenueDetailModal from '../components/VenueDetailModal';
 import { ChatRequest, AssistantChatResponse, VenueCardDTO } from '../../../shared/types';
 import { assistantService } from '../../../shared/services/assistantService';
 

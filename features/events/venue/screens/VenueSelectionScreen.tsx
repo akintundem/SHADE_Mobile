@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput } from 'react-native';
 import { ArrowLeft, Search, MapPin, Users, DollarSign, Star, Plus } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { VenueCardDTO } from '../../../shared/types';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { VenueCardDTO } from '../../../../shared/types';
 
 type Props = { 
   onBack: () => void; 
