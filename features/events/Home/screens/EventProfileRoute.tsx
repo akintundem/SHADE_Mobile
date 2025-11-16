@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, Heart, ChevronUp, ChevronRight, MessageSquare } from 'lucide-react-native';
@@ -18,6 +18,8 @@ import RSVPScreen from '../components/RSVPScreen';
 import { EventFeedsScreen } from './EventFeedsScreen';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop';
 
 const STATUS_COLORS: Record<EventStatus, string> = {
   [EventStatus.DRAFT]: '#6B7280',
@@ -90,8 +92,66 @@ export const EventProfileRoute = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | null>(null);
+  const [isFeedScope, setIsFeedScope] = useState(false);
+  const [feedEventName, setFeedEventName] = useState<string>('');
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [mapImageError, setMapImageError] = useState(false);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const carouselTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const eventId = params.eventId;
+  
+  // Generate static map URL if venue coordinates exist
+  const staticMapUrl = useMemo(() => {
+    // Check if event has venue data (from EventResponseWithScope)
+    if (eventData && isFullEventResponse(eventData) && eventData.venue) {
+      const venue = eventData.venue;
+      const latitude = venue?.latitude;
+      const longitude = venue?.longitude;
+      
+      if (latitude && longitude && typeof latitude === 'number' && typeof longitude === 'number') {
+        const zoom = 13;
+        const width = Math.round(Dimensions.get('window').width);
+        const height = 320;
+        
+        // Using Geoapify's demo API for static maps (same as LocationStep.tsx)
+        const url = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=${width}&height=${height}&center=lonlat:${longitude},${latitude}&zoom=${zoom}&marker=lonlat:${longitude},${latitude};type:material;color:%23F59E0B;size:medium&apiKey=demo`;
+        
+        console.log('Generated static map URL:', url, 'for venue:', { latitude, longitude, zoom });
+        return url;
+      }
+    }
+    console.log('No map URL generated. eventData:', eventData, 'has venue:', eventData && isFullEventResponse(eventData) ? !!eventData.venue : false);
+    return null;
+  }, [eventData]);
+
+  // Auto-rotate carousel every 5 seconds
+  useEffect(() => {
+    // Only auto-rotate if we have both image and map
+    const hasImage = !!(event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE);
+    const hasMap = !!staticMapUrl;
+    
+    if (hasImage && hasMap) {
+      carouselTimerRef.current = setInterval(() => {
+        setCarouselIndex(prev => (prev === 0 ? 1 : 0));
+      }, 5000);
+    }
+
+    return () => {
+      if (carouselTimerRef.current) {
+        clearInterval(carouselTimerRef.current);
+      }
+    };
+  }, [event?.coverImageUrl, params.imageUrl, staticMapUrl]);
+
+  // Animate carousel transition
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: carouselIndex,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  }, [carouselIndex, slideAnim]);
 
   const fetchEvent = useCallback(async () => {
     if (!eventId) {
@@ -102,8 +162,20 @@ export const EventProfileRoute = () => {
 
     try {
       setError(null);
+      setIsFeedScope(false); // Reset when fetching new event
+      setCarouselIndex(0); // Reset carousel to first slide
+      setMapImageError(false); // Reset map image error
       const data = await eventService.getEvent(eventId);
       setEventData(data);
+      
+      // Check scope and set flag
+      if (isFeedResponse(data)) {
+        setIsFeedScope(true);
+        setFeedEventName(data.eventName);
+      } else {
+        setIsFeedScope(false);
+        setFeedEventName('');
+      }
       
       // Extract Event from EventData (which can be EventResponseWithScope or EventFeedResponse)
       if (isFullEventResponse(data)) {
@@ -210,11 +282,11 @@ export const EventProfileRoute = () => {
   }
 
   // If event is FEED scope (GUEST), show feeds screen ONLY - no dashboard access
-  if (eventData && isFeedResponse(eventData)) {
+  if (!isLoading && isFeedScope) {
     return (
       <EventFeedsScreen
         eventId={eventId}
-        eventName={eventData.eventName}
+        eventName={feedEventName || 'Event'}
         onBack={() => navigation.goBack()}
       />
     );
@@ -262,12 +334,70 @@ export const EventProfileRoute = () => {
           }
         >
           <View style={{ paddingBottom: spacing['4xl'] }}>
-            {/* Header with Image */}
-            <View style={{ position: 'relative' }}>
-              {event?.coverImageUrl ?? params.imageUrl ? (
+            {/* Header with Carousel (Image + Map) */}
+            <View style={{ position: 'relative', height: 320, overflow: 'hidden' }}>
+              {staticMapUrl ? (
+                <Animated.View
+                  style={{
+                    flexDirection: 'row',
+                    width: '200%',
+                    height: '100%',
+                    transform: [{
+                      translateX: slideAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, -Dimensions.get('window').width],
+                      }),
+                    }],
+                  }}
+                >
+                  {/* Event Image Slide */}
+                  <View style={{ width: Dimensions.get('window').width, height: '100%' }}>
+                    <ImageBackground
+                      source={{ uri: event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    >
+                      {/* Dark overlay for text readability */}
+                      <View style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 120,
+                        backgroundColor: 'rgba(0,0,0,0.4)',
+                      }} />
+                    </ImageBackground>
+                  </View>
+
+                  {/* Map Slide */}
+                  <View style={{ width: Dimensions.get('window').width, height: '100%', backgroundColor: '#1F2937' }}>
+                    <ImageBackground
+                      source={{ uri: staticMapUrl }}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                      onError={(error) => {
+                        console.error('Map image failed to load:', staticMapUrl, error);
+                      }}
+                      onLoad={() => {
+                        console.log('Map image loaded successfully:', staticMapUrl);
+                      }}
+                    >
+                      {/* Dark overlay for text readability */}
+                      <View style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 120,
+                        backgroundColor: 'rgba(0,0,0,0.4)',
+                      }} />
+                    </ImageBackground>
+                  </View>
+                </Animated.View>
+              ) : (
                 <ImageBackground
-                  source={{ uri: event?.coverImageUrl ?? params.imageUrl! }}
-                  style={{ width: '100%', height: 320 }}
+                  source={{ uri: event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE }}
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 >
                   {/* Dark overlay for text readability */}
@@ -279,102 +409,77 @@ export const EventProfileRoute = () => {
                     height: 120,
                     backgroundColor: 'rgba(0,0,0,0.4)',
                   }} />
-                  
-                  {/* Back button */}
-                  <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-                    <TouchableOpacity 
-                      onPress={() => navigation.goBack()} 
-                      style={{ 
-                        position: 'absolute',
-                        top: spacing.lg,
-                        left: spacing.lg,
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                        backgroundColor: 'rgba(0,0,0,0.3)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <ChevronLeft size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </SafeAreaView>
-
-                  {/* Event Name */}
-                  <View style={{
-                    position: 'absolute',
-                    bottom: spacing.xl,
-                    left: spacing.xl,
-                    right: spacing.xl,
-                  }}>
-                    <Text
-                      style={{
-                        color: '#FFFFFF',
-                        fontWeight: typography.weight.bold,
-                        fontSize: typography.size['3xl'],
-                        marginBottom: spacing.xs,
-                      }}
-                    >
-                      {event?.name ?? params.title ?? 'Event Name'}
-                    </Text>
-                    
-                    {/* Swipe up indicator */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
-                      <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, opacity: 0.8 }}>
-                        Swipe up
-                      </Text>
-                      <ChevronUp size={14} color="#FFFFFF" style={{ opacity: 0.8 }} />
-                    </View>
-                  </View>
                 </ImageBackground>
-              ) : (
-                <View
-                  style={{
-                    height: 320,
-                    width: '100%',
-                    backgroundColor: '#000000',
+              )}
+
+              {/* Back button */}
+              <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
+                <TouchableOpacity 
+                  onPress={() => navigation.goBack()} 
+                  style={{ 
+                    position: 'absolute',
+                    top: spacing.lg,
+                    left: spacing.lg,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: 'rgba(0,0,0,0.3)',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    position: 'relative',
                   }}
                 >
-                  <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-                    <TouchableOpacity 
-                      onPress={() => navigation.goBack()} 
-                      style={{ 
-                        position: 'absolute',
-                        top: spacing.lg,
-                        left: spacing.lg,
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <ChevronLeft size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  </SafeAreaView>
-                  
-                  <Text
-                    style={{
-                      color: '#FFFFFF',
-                      fontWeight: typography.weight.bold,
-                      fontSize: typography.size['3xl'],
-                      textAlign: 'center',
-                      paddingHorizontal: spacing.xl,
-                    }}
-                  >
-                    {event?.name ?? params.title ?? 'Event Name'}
+                  <ChevronLeft size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </SafeAreaView>
+
+              {/* Event Name */}
+              <View style={{
+                position: 'absolute',
+                bottom: spacing.xl,
+                left: spacing.xl,
+                right: spacing.xl,
+              }}>
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontWeight: typography.weight.bold,
+                    fontSize: typography.size['3xl'],
+                    marginBottom: spacing.xs,
+                  }}
+                >
+                  {event?.name ?? params.title ?? 'Event Name'}
+                </Text>
+                
+                {/* Swipe up indicator */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
+                  <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, opacity: 0.8 }}>
+                    Swipe up
                   </Text>
-                  
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, opacity: 0.8 }}>
-                      Swipe up
-                    </Text>
-                    <ChevronUp size={14} color="#FFFFFF" style={{ opacity: 0.8 }} />
-                  </View>
+                  <ChevronUp size={14} color="#FFFFFF" style={{ opacity: 0.8 }} />
+                </View>
+              </View>
+
+              {/* Carousel Indicators */}
+              {staticMapUrl && (
+                <View style={{
+                  position: 'absolute',
+                  bottom: spacing.md,
+                  right: spacing.xl,
+                  flexDirection: 'row',
+                  gap: spacing.xs,
+                }}>
+                  <View style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: carouselIndex === 0 ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
+                  }} />
+                  <View style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: carouselIndex === 1 ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
+                  }} />
                 </View>
               )}
             </View>

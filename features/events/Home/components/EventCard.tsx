@@ -5,6 +5,8 @@ import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { EventStatus } from '../../../../shared/types';
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop';
+
 export type EventItem = {
   id: string;
   title: string;
@@ -35,7 +37,7 @@ export const EventCard = ({ item, width }: Props) => {
   const cardWidth = width ?? screenWidth - spacing.lg * 2;
   const cardHeight = Math.max(320, cardWidth * 1.05);
 
-  const overlayColor = item.imageUrl ? 'rgba(0,0,0,0.65)' : '#000000';
+  const overlayColor = 'rgba(0,0,0,0.65)';
   const primaryText = '#FFFFFF';
   const mutedText = 'rgba(255,255,255,0.72)';
   const subtleText = 'rgba(255,255,255,0.55)';
@@ -254,24 +256,12 @@ export const EventCard = ({ item, width }: Props) => {
         elevation: 8,
       }}
     >
-      {item.imageUrl ? (
-        <ImageBackground
-          source={{ uri: item.imageUrl }}
-          resizeMode="cover"
-          style={{ flex: 1 }}
-          imageStyle={{ borderRadius: borderRadius['3xl'] }}
-        >
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: overlayColor,
-              padding: spacing['2xl'],
-            }}
-          >
-            {content}
-          </View>
-        </ImageBackground>
-      ) : (
+      <ImageBackground
+        source={{ uri: item.imageUrl ?? FALLBACK_IMAGE }}
+        resizeMode="cover"
+        style={{ flex: 1 }}
+        imageStyle={{ borderRadius: borderRadius['3xl'] }}
+      >
         <View
           style={{
             flex: 1,
@@ -281,7 +271,7 @@ export const EventCard = ({ item, width }: Props) => {
         >
           {content}
         </View>
-      )}
+      </ImageBackground>
     </TouchableOpacity>
   );
 };

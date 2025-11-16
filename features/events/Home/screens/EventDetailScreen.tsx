@@ -228,7 +228,8 @@ export default function EventDetailScreen() {
   }
 
   // If event is FEED scope (GUEST), show feeds screen ONLY - no dashboard access
-  if (eventData && isFeedResponse(eventData)) {
+  // Check this immediately after loading completes to prevent dashboard flash
+  if (!loading && eventData && isFeedResponse(eventData)) {
     return (
       <EventFeedsScreen
         eventId={eventId}
