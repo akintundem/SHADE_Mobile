@@ -16,6 +16,7 @@ import GuestListScreen from '../components/GuestListScreen';
 import VendorsScreen from '../components/VendorsScreen';
 import RSVPScreen from '../components/RSVPScreen';
 import { EventFeedsScreen } from './EventFeedsScreen';
+import { shareEvent } from '../../../../shared/utils/shareUtils';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
 
@@ -98,6 +99,17 @@ export const EventProfileRoute = () => {
   const [mapImageError, setMapImageError] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const carouselTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleShare = useCallback(async () => {
+    if (!event) return;
+    
+    try {
+      const shareLink = event.eventWebsiteUrl || undefined;
+      await shareEvent(event, 'native', shareLink);
+    } catch (error) {
+      ErrorHandler.handle(error, 'shareEvent');
+    }
+  }, [event]);
 
   const eventId = params.eventId;
   
@@ -433,7 +445,7 @@ export const EventProfileRoute = () => {
                 
                 {/* Share Button */}
                 <TouchableOpacity
-                  onPress={() => {}}
+                  onPress={handleShare}
                   activeOpacity={0.7}
                   style={{
                     position: 'absolute',
