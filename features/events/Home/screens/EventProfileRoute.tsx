@@ -6,7 +6,7 @@ import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, Us
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../shared/components/LoadingStates';
-import { Event, EventStatus } from '../../../../shared/types';
+import { Event, EventStatus, EventData, isFullEventResponse, isFeedResponse } from '../../../../shared/types';
 import { eventService } from '../../../../shared/services/eventService';
 import { dateUtils, stringUtils } from '../../../../shared/utils/helpers';
 import { DATE_FORMATS } from '../../../../shared/utils/constants';
@@ -85,6 +85,7 @@ export const EventProfileRoute = () => {
   const { t } = useI18n();
 
   const [event, setEvent] = useState<Event | null>(null);
+  const [eventData, setEventData] = useState<EventData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +103,51 @@ export const EventProfileRoute = () => {
     try {
       setError(null);
       const data = await eventService.getEvent(eventId);
-      setEvent(data);
+      setEventData(data);
+      
+      // Extract Event from EventData (which can be EventResponseWithScope or EventFeedResponse)
+      if (isFullEventResponse(data)) {
+        // EventResponseWithScope extends EventResponse, so it IS the Event
+        setEvent(data);
+      } else {
+        // For EventFeedResponse, we need to convert it to Event format
+        // Since EventFeedResponse doesn't have all Event fields, we'll create a minimal Event
+        setEvent({
+          id: data.eventId,
+          name: data.eventName,
+          description: data.description || null,
+          eventType: 'OTHER' as any, // EventFeedResponse doesn't include eventType
+          eventStatus: 'DRAFT' as any, // EventFeedResponse doesn't include eventStatus
+          startDateTime: data.startDateTime || null,
+          endDateTime: data.endDateTime || null,
+          registrationDeadline: null,
+          capacity: null,
+          currentAttendeeCount: null,
+          isPublic: null,
+          requiresApproval: null,
+          qrCodeEnabled: null,
+          qrCode: null,
+          coverImageUrl: data.coverImageUrl || null,
+          eventWebsiteUrl: data.eventWebsiteUrl || null,
+          hashtag: data.hashtag || null,
+          theme: null,
+          objectives: null,
+          targetAudience: null,
+          successMetrics: null,
+          brandingGuidelines: null,
+          venueRequirements: null,
+          technicalRequirements: null,
+          accessibilityFeatures: null,
+          emergencyPlan: null,
+          backupPlan: null,
+          postEventTasks: null,
+          metadata: null,
+          ownerId: '',
+          venueId: null,
+          createdAt: '',
+          updatedAt: '',
+        });
+      }
     } catch (err) {
       const message =
         (err as { message?: string })?.message || 'We could not load this event right now.';
@@ -159,7 +204,24 @@ export const EventProfileRoute = () => {
     );
   }
 
-  const showEmpty = !isLoading && error;
+  // Show loading state
+  if (isLoading) {
+    return <LoadingOverlay visible={true} message="Loading event..." />;
+  }
+
+  // If event is FEED scope (GUEST), show feeds screen ONLY - no dashboard access
+  if (eventData && isFeedResponse(eventData)) {
+    return (
+      <EventFeedsScreen
+        eventId={eventId}
+        eventName={eventData.eventName}
+        onBack={() => navigation.goBack()}
+      />
+    );
+  }
+
+  // If error and no event data, show error state
+  const showEmpty = error && !event;
 
   // Render active screen if one is selected
   if (activeScreen === 'budget' && eventId) {

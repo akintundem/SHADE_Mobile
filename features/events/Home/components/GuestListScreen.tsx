@@ -27,9 +27,9 @@ import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { AttendeeDTO } from '../../../../shared/types/attendees';
 import { attendeeService } from '../../../../shared/services/attendeeService';
 import { authService } from '../../../../shared/services/authService';
-import { useDebounc } from '../../../../shared/hooks/useDebounce';
-import { ErrorHandl } from '../../../../shared/utils/errorHandler';
-import { LoadingOver } from '../../../../shared/components/LoadingStates';
+import { useDebounce } from '../../../../shared/hooks/useDebounce';
+import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
 
 type Props = {
   eventId: string;

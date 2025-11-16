@@ -42,15 +42,6 @@ import {
 } from '../types';
 import { ErrorHandler } from '../utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../utils/offlineStorage';
-import { getMockEvents, getMockEvent } from '../utils/mockEvents';
-
-// Enable mock mode in development when backend is not connected
-// Set to true to use mock data, false to use real API
-const USE_MOCK_DATA = __DEV__ && true; // Change to false when backend is ready
-
-if (USE_MOCK_DATA) {
-  console.log('📦 Using mock event data for development');
-}
 
 type PaginationParams = {
   page?: number;
@@ -150,17 +141,6 @@ export const eventService = {
     eventId: string,
     params?: EventFeedRequest,
   ): Promise<EventData> {
-    if (USE_MOCK_DATA) {
-      const mockEvent = getMockEvent(eventId);
-      if (mockEvent) {
-        // Mock data returns full event response
-        return {
-          ...mockEvent,
-          scope: 'FULL' as const,
-        } as EventResponseWithScope;
-      }
-      throw new Error(`Event with id ${eventId} not found`);
-    }
     const queryString = buildQueryString(params);
     const res = await http.get<EventData>(
       `/api/v1/events/${eventId}${queryString}`,
@@ -176,23 +156,6 @@ export const eventService = {
     eventId: string,
     params?: EventFeedRequest,
   ): Promise<EventFeedResponse> {
-    if (USE_MOCK_DATA) {
-      // Return mock feed response
-      return {
-        eventId,
-        eventName: 'Mock Event',
-        description: 'Mock event description',
-        startDateTime: new Date().toISOString(),
-        posts: [],
-        currentPage: params?.page || 0,
-        pageSize: params?.size || 20,
-        totalPosts: 0,
-        totalPages: 0,
-        hasNext: false,
-        hasPrevious: false,
-        scope: 'FEED' as const,
-      };
-    }
     const queryString = buildQueryString(params);
     const res = await http.get<EventFeedResponse>(
       `/api/v1/events/${eventId}/feed${queryString}`,
@@ -280,15 +243,6 @@ export const eventService = {
   async getEvents(
     params?: PaginationParams & { type?: string; status?: string; q?: string },
   ) {
-    if (USE_MOCK_DATA) {
-      return getMockEvents({
-        page: params?.page,
-        size: params?.size,
-        status: params?.status,
-        type: params?.type,
-        q: params?.q,
-      });
-    }
     const { q, type, status, ...rest } = params || {};
     if (q || type || status) {
       return eventService.searchEvents({
@@ -304,12 +258,6 @@ export const eventService = {
   },
 
   async getPublicEvents(params?: PaginationParams) {
-    if (USE_MOCK_DATA) {
-      return getMockEvents({
-        page: params?.page,
-        size: params?.size,
-      });
-    }
     return fetchEventList('/api/v1/events/public', params, 'events_public');
   },
 
@@ -342,15 +290,6 @@ export const eventService = {
   },
 
   async searchEvents(params: SearchEventsParams = {}) {
-    if (USE_MOCK_DATA) {
-      return getMockEvents({
-        page: params.page,
-        size: params.size,
-        status: params.status,
-        type: params.type,
-        q: params.q,
-      });
-    }
     const { q, type, status, dateFrom, dateTo, ...pagination } = params;
     const query: Record<string, unknown> = { ...pagination };
     if (q) query.q = q;

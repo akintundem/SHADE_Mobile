@@ -25,12 +25,13 @@ import {
   Settings,
 } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { Event, EventResponse, EventStatus, EventData, isFullEventResponse } from '../../../../shared/types';
+import { Event, EventResponse, EventStatus, EventData, isFullEventResponse, isFeedResponse, EventFeedResponse } from '../../../../shared/types';
 import { eventService } from '../../../../shared/services/eventService';
 import { ErrorHandler } from '../../../../shared/utils/errorHandler';
-import { dateUtil } from '../../../../shared/utils/helpers';
-import { DATE_FORMA } from '../../../../shared/utils/constants';
-import { LoadingOver } from '../../../../shared/components/LoadingStates';
+import { dateUtils } from '../../../../shared/utils/helpers';
+import { DATE_FORMATS } from '../../../../shared/utils/constants';
+import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { EventFeedsScreen } from './EventFeedsScreen';
 
 type EventDetailScreenParams = {
   eventId: string;
@@ -48,27 +49,30 @@ export default function EventDetailScreen() {
   const { eventId } = route.params;
 
   const [event, setEvent] = useState<Event | null>(null);
+  const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadEventDetails = useCallback(async () => {
     try {
       setError(null);
-      const eventData = await eventService.getEvent(eventId);
+      const data = await eventService.getEvent(eventId);
+      setEventData(data);
+      
       // Extract Event from EventData (which can be EventResponseWithScope or EventFeedResponse)
-      if (isFullEventResponse(eventData)) {
+      if (isFullEventResponse(data)) {
         // EventResponseWithScope extends EventResponse, so it IS the Event
-        setEvent(eventData);
+        setEvent(data);
       } else {
         // For EventFeedResponse, we need to convert it to Event format
         // Since EventFeedResponse doesn't have all Event fields, we'll create a minimal Event
         setEvent({
-          id: eventData.eventId,
-          name: eventData.eventName,
-          description: eventData.description || null,
+          id: data.eventId,
+          name: data.eventName,
+          description: data.description || null,
           eventType: 'OTHER' as any, // EventFeedResponse doesn't include eventType
           eventStatus: 'DRAFT' as any, // EventFeedResponse doesn't include eventStatus
-          startDateTime: eventData.startDateTime || null,
+          startDateTime: data.startDateTime || null,
           endDateTime: null,
           registrationDeadline: null,
           capacity: null,
@@ -218,10 +222,23 @@ export default function EventDetailScreen() {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
 
+  // Show loading state
   if (loading) {
     return <LoadingOverlay visible={true} message="Loading event details..." />;
   }
 
+  // If event is FEED scope (GUEST), show feeds screen ONLY - no dashboard access
+  if (eventData && isFeedResponse(eventData)) {
+    return (
+      <EventFeedsScreen
+        eventId={eventId}
+        eventName={eventData.eventName}
+        onBack={() => navigation.goBack()}
+      />
+    );
+  }
+
+  // If error or no event (FULL scope only), show error state
   if (error || !event) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
