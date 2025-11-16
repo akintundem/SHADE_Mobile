@@ -3,7 +3,7 @@ import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { UserResponse } from '../../../../shared/types/auth';
-import { EventUserType } from '../../../../shared/types/enums';
+import { EventUserType } from '../../../../../shared/types/enums';
 import { UserSearchInput } from './UserSearchInput';
 import { SearchResultsList } from './SearchResultsList';
 import { SelectedUserDisplay } from './SelectedUserDisplay';

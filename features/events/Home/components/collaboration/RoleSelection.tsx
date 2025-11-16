@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { EventUserType } from '../../../../shared/types/enums';
+import { EventUserType } from '../../../../../shared/types/enums';
 
 const ROLE_LABELS: Record<EventUserType, string> = {
   ORGANIZER: 'Organizer',

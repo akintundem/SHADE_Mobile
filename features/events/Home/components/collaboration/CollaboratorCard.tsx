@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Mail, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react-native';
 import { EventCollaboratorResponse } from '../../../../shared/types';
-import { EventUserType } from '../../../../shared/types/enums';
+import { EventUserType } from '../../../../../shared/types/enums';
 
 const ROLE_LABELS: Record<EventUserType, string> = {
   ORGANIZER: 'Organizer',
