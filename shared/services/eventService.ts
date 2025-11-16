@@ -524,6 +524,48 @@ export const eventService = {
     return res.data;
   },
 
+  // Event Collaborators API
+  async getEventCollaborators(
+    eventId: string,
+    page: number = 0,
+    size: number = 20,
+  ): Promise<EventCollaboratorResponse[]> {
+    const res = await http.get<EventCollaboratorResponse[]>(
+      `/api/v1/events/${eventId}/collaborators?page=${page}&size=${size}`,
+    );
+    return res.data;
+  },
+
+  async addEventCollaborator(
+    eventId: string,
+    payload: EventCollaboratorRequest,
+  ): Promise<EventCollaboratorResponse> {
+    const res = await http.post<EventCollaboratorResponse>(
+      `/api/v1/events/${eventId}/collaborators`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async updateEventCollaborator(
+    eventId: string,
+    collaboratorId: string,
+    payload: Partial<EventCollaboratorRequest>,
+  ): Promise<EventCollaboratorResponse> {
+    const res = await http.put<EventCollaboratorResponse>(
+      `/api/v1/events/${eventId}/collaborators/${collaboratorId}`,
+      payload,
+    );
+    return res.data;
+  },
+
+  async removeEventCollaborator(
+    eventId: string,
+    collaboratorId: string,
+  ): Promise<void> {
+    await http.delete(`/api/v1/events/${eventId}/collaborators/${collaboratorId}`);
+  },
+
   async getEventAnalytics(eventId: string): Promise<EventAnalyticsResponse> {
     const res = await http.get<EventAnalyticsResponse>(
       `/api/v1/events/${eventId}/analytics`,

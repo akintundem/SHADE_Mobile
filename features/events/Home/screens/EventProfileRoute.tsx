@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../shared/components/LoadingStates';
@@ -17,6 +17,7 @@ import VendorsScreen from '../components/VendorsScreen';
 import RSVPScreen from '../components/RSVPScreen';
 import { EventFeedsScreen } from './EventFeedsScreen';
 import { shareEvent } from '../../../../shared/utils/shareUtils';
+import CollaborationScreen from '../components/CollaborationScreen';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
 
@@ -92,7 +93,7 @@ export const EventProfileRoute = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | null>(null);
+  const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | 'collaboration' | null>(null);
   const [isFeedScope, setIsFeedScope] = useState(false);
   const [feedEventName, setFeedEventName] = useState<string>('');
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -322,6 +323,9 @@ export const EventProfileRoute = () => {
   }
   if (activeScreen === 'feeds' && eventId) {
     return <EventFeedsScreen eventId={eventId} eventName={event?.name ?? params.title ?? 'Event'} onBack={() => setActiveScreen(null)} />;
+  }
+  if (activeScreen === 'collaboration' && eventId) {
+    return <CollaborationScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
   }
 
   return (
@@ -778,7 +782,7 @@ export const EventProfileRoute = () => {
                     <ChevronRight size={20} color="#000000" />
                   </TouchableOpacity>
 
-                  {/* Tasks */}
+                  {/* Timeline */}
                   <TouchableOpacity
                     onPress={() => {
                       const eventDate = formattedStart || (event?.startDateTime 
@@ -814,7 +818,7 @@ export const EventProfileRoute = () => {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <ClipboardCheck size={24} color="#FFFFFF" />
+                      <Calendar size={24} color="#FFFFFF" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
@@ -822,7 +826,7 @@ export const EventProfileRoute = () => {
                         fontSize: typography.size.base,
                         fontWeight: typography.weight.bold
                       }}>
-                        {t('Tasks')}
+                        Timeline
                       </Text>
                       <Text style={{
                         color: '#000000',
@@ -831,6 +835,51 @@ export const EventProfileRoute = () => {
                         opacity: 0.6
                       }}>
                         View timeline and manage tasks
+                      </Text>
+                    </View>
+                    <ChevronRight size={20} color="#000000" />
+                  </TouchableOpacity>
+
+                  {/* Collaboration */}
+                  <TouchableOpacity
+                    onPress={() => setActiveScreen('collaboration')}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: borderRadius.xl,
+                      padding: spacing.lg,
+                      borderWidth: 2,
+                      borderColor: '#000000',
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: borderRadius.md,
+                      backgroundColor: '#000000',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Users size={24} color="#FFFFFF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{
+                        color: '#000000',
+                        fontSize: typography.size.base,
+                        fontWeight: typography.weight.bold
+                      }}>
+                        Collaboration
+                      </Text>
+                      <Text style={{
+                        color: '#000000',
+                        fontSize: typography.size.sm,
+                        marginTop: 2,
+                        opacity: 0.6
+                      }}>
+                        Manage collaborators and team
                       </Text>
                     </View>
                     <ChevronRight size={20} color="#000000" />

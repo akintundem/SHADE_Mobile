@@ -269,11 +269,14 @@ export type EventCollaboratorResponse = {
   eventId: string;
   userId: string | null;
   email: string;
+  userName?: string;
   role: EventUserType;
   permissions: string[];
+  registrationStatus?: string;
   notes: string | null;
   sendInvitation: boolean | null;
   invitationMessage: string | null;
+  invitationSent: boolean;
   invitationSentAt: string | null;
   createdAt: string;
   updatedAt: string;
