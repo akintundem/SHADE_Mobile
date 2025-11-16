@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, Heart, ChevronUp, ChevronRight, MessageSquare } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../shared/components/LoadingStates';
@@ -412,7 +412,7 @@ export const EventProfileRoute = () => {
                 </ImageBackground>
               )}
 
-              {/* Back button */}
+              {/* Back button and Share button */}
               <SafeAreaView edges={['top']} style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
                 <TouchableOpacity 
                   onPress={() => navigation.goBack()} 
@@ -429,6 +429,25 @@ export const EventProfileRoute = () => {
                   }}
                 >
                   <ChevronLeft size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                
+                {/* Share Button */}
+                <TouchableOpacity
+                  onPress={() => {}}
+                  activeOpacity={0.7}
+                  style={{
+                    position: 'absolute',
+                    top: spacing.lg,
+                    right: spacing.lg,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Share2 size={20} color="#FFFFFF" />
                 </TouchableOpacity>
               </SafeAreaView>
 
@@ -484,77 +503,11 @@ export const EventProfileRoute = () => {
               )}
             </View>
 
-            {/* Action Buttons */}
-            <View style={{ 
-              paddingHorizontal: spacing.xl, 
-              paddingTop: spacing.xl,
-              flexDirection: 'row',
-              gap: spacing.md,
-              alignItems: 'center',
-            }}>
-              {/* Get Tickets Button */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={{
-                  flex: 1,
-                  backgroundColor: '#000000',
-                  borderRadius: borderRadius.xl,
-                  paddingVertical: spacing.lg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontWeight: typography.weight.bold,
-                  fontSize: typography.size.base,
-                }}>
-                  Get Tickets
-                </Text>
-              </TouchableOpacity>
-
-              {/* Share Button */}
-              <TouchableOpacity
-                onPress={() => {}}
-                activeOpacity={0.7}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#000000',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Share2 size={24} color="#000000" />
-              </TouchableOpacity>
-
-              {/* Heart Button */}
-              <TouchableOpacity
-                onPress={() => {}}
-                activeOpacity={0.7}
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: '#FFFFFF',
-                  borderWidth: 1,
-                  borderColor: '#000000',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Heart size={24} color="#000000" />
-              </TouchableOpacity>
-            </View>
-
             {/* Content */}
             <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.xl }}>
 
               {/* Schedule Section */}
-              <View style={{ marginTop: spacing['2xl'] }}>
+              <View style={{ marginTop: spacing.lg }}>
                 <Text style={{
                   color: '#000000',
                   fontSize: typography.size['2xl'],
