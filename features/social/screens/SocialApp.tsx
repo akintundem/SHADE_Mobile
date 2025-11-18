@@ -9,7 +9,7 @@ const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScre
 const ComposeScreen = React.lazy(() => import('../../media/compose/screens/ComposeScreen'));
 const CameraScreen = React.lazy(() => import('../../media/camera/screens/CameraScreen'));
 const VideoEditorScreen = React.lazy(() => import('../../media/editor/screens/VideoEditorScreen'));
-const CreateEventScreen = React.lazy(() => import('../../events/create/screens/CreateEventScreen'));
+const CreateEventScreen = React.lazy(() => import('../../events/Create/screens/CreateEventScreen'));
 const SettingsScreen = React.lazy(() => import('../../settings/screens/SettingsScreen'));
 const ChatScreen = React.lazy(() => import('../../chat/screens/ChatScreen'));
 import { EventThreadScreen } from '../../events/home/components/EventThreadScreen';

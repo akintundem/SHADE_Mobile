@@ -10,7 +10,7 @@ import { EventNotificationRequest,
   EventReminderRequest,
   EventReminderResponse,
   EventReminderUpdateRequest, } from '../../../../../shared/types';
-import { DateTimePickerModal } from '../../../create/components/DateTimePickerModal';
+import { DateTimePickerModal } from '../../../Create/components/DateTimePickerModal';
 import { dateUtils } from '../../../../../shared/utils/helpers';
 import { DATE_FORMAT } from '../../../../../shared/utils/constants';
 
