@@ -103,6 +103,9 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Local development configuration
+dev-config.json
+
 # Logs
 *.log
 logs/

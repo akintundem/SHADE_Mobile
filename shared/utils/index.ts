@@ -5,4 +5,3 @@ export * from './formValidation';
 export * from './gestureHandler';
 export * from './constants';
 export * from './helpers';
-export * from './testUtils';
