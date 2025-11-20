@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { MapPin, Clock } from 'lucide-react-native';
+import React, { useMemo } from 'react';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { EventStatus } from '../../../../shared/types';
@@ -27,8 +28,8 @@ export type EventItem = {
   isPast?: boolean;
 };
 
-type Props = { 
-  item: EventItem; 
+type Props = {
+  item: EventItem;
   width?: number;
 };
 
@@ -63,10 +64,10 @@ export const EventCard = ({ item, width }: Props) => {
     const dayMs = 1000 * 60 * 60 * 24;
     if (diffInMs >= 0) {
       const elapsedDays = Math.floor(diffInMs / dayMs);
-      return `Day ${ elapsedDays + 1 } `;
+      return `Day ${elapsedDays + 1} `;
     }
     const daysUntil = Math.ceil(Math.abs(diffInMs) / dayMs);
-    return daysUntil === 0 ? 'Starts today' : `Starts in ${ daysUntil } day${ daysUntil === 1 ? '' : 's' } `;
+    return daysUntil === 0 ? 'Starts today' : `Starts in ${daysUntil} day${daysUntil === 1 ? '' : 's'} `;
   }, [item.startAt]);
 
   const participantInitials = useMemo(() => {
@@ -88,7 +89,7 @@ export const EventCard = ({ item, width }: Props) => {
 
   const participantCount = item.cosignedCount ?? item.cosigners?.length ?? 0;
   const extraParticipants = Math.max(participantCount - participantInitials.length, 0);
-  const participantSummary = participantCount > 0 ? `${ participantCount } traveling together` : 'Be the first to join';
+  const participantSummary = participantCount > 0 ? `${participantCount} traveling together` : 'Be the first to join';
 
   const content = (
     <View style={{ flex: 1, justifyContent: 'space-between' }}>
@@ -142,7 +143,7 @@ export const EventCard = ({ item, width }: Props) => {
             {participantInitials.length > 0 ? (
               participantInitials.map((initials, index) => (
                 <View
-                  key={`${ initials } -${ index } `}
+                  key={`${initials} -${index} `}
                   style={{
                     width: avatarSize,
                     height: avatarSize,

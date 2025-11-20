@@ -23,18 +23,18 @@ export const AgentProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [askState, askActions] = useAsync(
     async (ctx: AgentContext, message?: string) => {
       if (!ctx) throw new Error('Context is required');
-      
+
       const next = message ? [...messages, { role: 'user' as const, content: message }] : messages;
       const result = await askAgent(ctx, next);
-      
+
       if (result?.reply) {
         setMessages([...next, { role: 'assistant' as const, content: result.reply }]);
       }
-      
+
       if (result?.suggestions) {
         setSuggestions(result.suggestions);
       }
-      
+
       return result;
     }
   );
@@ -73,5 +73,3 @@ export const useAgent = (): AgentState => {
   }
   return ctx;
 };
-
-
