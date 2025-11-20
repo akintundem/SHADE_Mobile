@@ -6,7 +6,6 @@ import { authService } from '../../../shared/services/authService';
 import HomeScreen from '../../events/home/screens/HomeScreen';
 import DiscoverScreen from '../../events/discover/screens/DiscoverScreen';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
-const ComposeScreen = React.lazy(() => import('../../media/compose/screens/ComposeScreen'));
 const CameraScreen = React.lazy(() => import('../../media/camera/screens/CameraScreen'));
 const VideoEditorScreen = React.lazy(() => import('../../media/editor/screens/VideoEditorScreen'));
 const CreateEventScreen = React.lazy(() => import('../../events/Create/screens/CreateEventScreen'));
@@ -25,29 +24,17 @@ export default function SocialApp({ user, onLogout }: Props) {
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'home' | 'discover' | 'map' | 'profile'>('home');
-  const [isComposeOpen, setComposeOpen] = useState(false);
   const [isCreateEventOpen, setCreateEventOpen] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
-  
+
   const [isCameraOpen, setCameraOpen] = useState(false);
   const [captured, setCaptured] = useState<{ path: string; type: 'photo' | 'video' } | null>(null);
   const [isEditorOpen, setEditorOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
-  const [hasDraft, setHasDraft] = useState(false);
 
   const [threadOpen, setThreadOpen] = useState<null | { title: string; posts: ThreadPost[] }>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { loadDraftClips } = await import('../../../shared/storage/drafts');
-      const clips = await loadDraftClips();
-      if (mounted) setHasDraft(!!clips && clips.length > 0);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [isComposeOpen]);
+
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -55,7 +42,7 @@ export default function SocialApp({ user, onLogout }: Props) {
         <HomeScreen
           user={user}
           onTabChange={setTab}
-          onCreateEvent={() => setComposeOpen(true)}
+          onCreateEvent={() => setCreateEventOpen(true)}
           onOpenChat={() => setChatOpen(true)}
         />
       ) : tab === 'discover' ? (
@@ -66,7 +53,7 @@ export default function SocialApp({ user, onLogout }: Props) {
         />
       ) : (
         <React.Suspense fallback={null}>
-          <ProfileScreen user={user} onTabChange={setTab} onOpenCompose={() => setComposeOpen(true)} onLogout={async () => {
+          <ProfileScreen user={user} onTabChange={setTab} onOpenCompose={() => setCreateEventOpen(true)} onLogout={async () => {
             if (loading) return;
             try {
               setLoading(true);
@@ -84,40 +71,6 @@ export default function SocialApp({ user, onLogout }: Props) {
         </React.Suspense>
       )}
 
-      {isComposeOpen ? (
-        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.background, zIndex: 100 }}>
-          <React.Suspense fallback={null}>
-            <ComposeScreen
-              onClose={() => setComposeOpen(false)}
-              onOpenCamera={() => setCameraOpen(true)}
-              hasDraft={hasDraft}
-              onContinueDraft={async () => {
-                const [{ loadDraftClips, clearDraftClips }, { setCaptureClips }] = await Promise.all([
-                  import('../../../shared/storage/drafts'),
-                  import('../../../shared/storage/captureSession'),
-                ]);
-                const clips = (await loadDraftClips()) || [];
-                setCaptureClips(clips as any);
-                setComposeOpen(false);
-                setEditorOpen(true);
-              }}
-              onClearDraft={async () => {
-                const { clearDraftClips } = await import('../../../shared/storage/drafts');
-                await clearDraftClips();
-                setHasDraft(false);
-              }}
-              onSaveDraft={async () => {
-                const { saveDraftClips } = await import('../../../shared/storage/drafts');
-                const { getCaptureClips } = await import('../../../shared/storage/captureSession');
-                await saveDraftClips(getCaptureClips() as any);
-                setHasDraft(true);
-                setComposeOpen(false);
-              }}
-            />
-          </React.Suspense>
-        </View>
-      ) : null}
-
       {isCreateEventOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.background, zIndex: 100 }}>
           <React.Suspense fallback={null}>
@@ -125,8 +78,6 @@ export default function SocialApp({ user, onLogout }: Props) {
           </React.Suspense>
         </View>
       ) : null}
-
-      
 
       {isCameraOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.background, zIndex: 110 }}>
@@ -166,8 +117,8 @@ export default function SocialApp({ user, onLogout }: Props) {
       {isSettingsOpen ? (
         <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.overlay, zIndex: 130 }}>
           <React.Suspense fallback={null}>
-            <SettingsScreen 
-              onClose={() => setSettingsOpen(false)} 
+            <SettingsScreen
+              onClose={() => setSettingsOpen(false)}
               onLogout={async () => {
                 if (loading) return;
                 try {

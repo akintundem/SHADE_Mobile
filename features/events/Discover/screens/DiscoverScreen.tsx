@@ -44,8 +44,8 @@ const convertEvent = (evt: UserEventRelationshipResponse): ManageItem => ({
   imageUrl: evt.coverImageUrl ?? FALLBACK_IMAGE,
   description: evt.eventDescription ?? undefined,
   status: evt.eventStatus,
-  capacity: (evt.currentAttendeeCount !== null && evt.currentAttendeeCount !== undefined && 
-            evt.capacity !== null && evt.capacity !== undefined) ? {
+  capacity: (evt.currentAttendeeCount !== null && evt.currentAttendeeCount !== undefined &&
+    evt.capacity !== null && evt.capacity !== undefined) ? {
     current: evt.currentAttendeeCount,
     total: evt.capacity
   } : undefined,
@@ -99,7 +99,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
         eventService.getMyUpcomingEvents(),
         eventService.getMyPastEvents(),
       ]);
-      
+
       setEventsSummary(summary);
       setOwnedEvents(owned.map(convertEvent));
       setUpcomingEvents(upcoming.map(convertEvent));
@@ -131,8 +131,8 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
   );
 
   const activeEvents = useMemo(
-    () => ownedEvents.filter(evt => 
-      evt.status === EventStatus.PUBLISHED || 
+    () => ownedEvents.filter(evt =>
+      evt.status === EventStatus.PUBLISHED ||
       evt.status === EventStatus.REGISTRATION_OPEN ||
       evt.status === EventStatus.IN_PROGRESS
     ),
@@ -160,7 +160,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
         }}>
           Your Events Dashboard
         </Text>
-        
+
         <View style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
@@ -182,7 +182,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
               Total Events
             </Text>
           </View>
-          
+
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={{
               fontSize: typography.size['2xl'],
@@ -199,7 +199,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
               Active
             </Text>
           </View>
-          
+
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={{
               fontSize: typography.size['2xl'],
@@ -216,7 +216,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
               Drafts
             </Text>
           </View>
-          
+
           <View style={{ flex: 1, alignItems: 'center' }}>
             <Text style={{
               fontSize: typography.size['2xl'],
@@ -241,7 +241,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
       <TopBar onCreate={onCreateEvent} />
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={{ paddingBottom: spacing['2xl'] }}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -261,7 +261,6 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
                 title="Your events are unavailable"
                 subtitle={error}
                 icon={<Calendar size={48} color={colors.text.tertiary} />}
-                action={onCreateEvent ? { label: 'Create event', onPress: onCreateEvent } : undefined}
               />
             </View>
           ) : (
@@ -300,8 +299,8 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
                   {activeEvents.length > 0 && (
                     <>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text style={{ 
-                          color: colors.text.primary, 
+                        <Text style={{
+                          color: colors.text.primary,
                           fontWeight: typography.weight.semibold,
                           fontSize: typography.size.lg,
                         }}>
@@ -322,7 +321,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
                           </Text>
                         </View>
                       </View>
-                      
+
                       {activeEvents.slice(0, 3).map((item, idx) => (
                         <ManageEventCard
                           key={item.id}
@@ -347,15 +346,15 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
                   {upcomingEvents.length > 0 && (
                     <>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text style={{ 
-                          color: colors.text.primary, 
+                        <Text style={{
+                          color: colors.text.primary,
                           fontWeight: typography.weight.semibold,
                           fontSize: typography.size.lg,
                         }}>
                           Upcoming Events ({upcomingEvents.length})
                         </Text>
                       </View>
-                      
+
                       {upcomingEvents.slice(0, 3).map((item, idx) => (
                         <ManageEventCard
                           key={item.id}
@@ -380,8 +379,8 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
                   {draftEvents.length > 0 && (
                     <>
                       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Text style={{ 
-                          color: colors.text.secondary, 
+                        <Text style={{
+                          color: colors.text.secondary,
                           fontWeight: typography.weight.semibold,
                           fontSize: typography.size.lg,
                         }}>
@@ -402,7 +401,7 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
                           </Text>
                         </View>
                       </View>
-                      
+
                       {draftEvents.slice(0, 2).map(item => (
                         <ManageEventCard
                           key={item.id}
