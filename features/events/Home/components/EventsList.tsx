@@ -14,6 +14,7 @@ type Props = {
   };
   onCreateEvent?: () => void;
   showCreateAction?: boolean;
+  onOpenChat?: (eventId: string) => void;
 };
 
 export const EventsList = ({
@@ -22,6 +23,7 @@ export const EventsList = ({
   emptyState,
   onCreateEvent,
   showCreateAction = false,
+  onOpenChat,
 }: Props) => {
   const { colors, spacing } = useTheme();
 
@@ -38,9 +40,9 @@ export const EventsList = ({
         action={
           showCreateAction && onCreateEvent
             ? {
-                label: 'Create Event',
-                onPress: onCreateEvent,
-              }
+              label: 'Create Event',
+              onPress: onCreateEvent,
+            }
             : undefined
         }
       />
@@ -50,7 +52,7 @@ export const EventsList = ({
   return (
     <View style={{ paddingHorizontal: spacing.lg, gap: spacing.lg }}>
       {events.map(item => (
-        <EventCard key={item.id} item={item} />
+        <EventCard key={item.id} item={item} onOpenChat={onOpenChat} />
       ))}
     </View>
   );

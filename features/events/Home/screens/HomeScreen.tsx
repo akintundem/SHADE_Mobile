@@ -31,7 +31,7 @@ export default function HomeScreen({
 }: Props) {
   const { colors, spacing } = useTheme();
   const [activeSegment, setActiveSegment] = useState<SegmentType>('live');
-  
+
   const { events: fetchedEvents, isLoading, refreshing, onRefresh } = useEvents();
   const allEvents = [...events, ...convertEventsToItems(fetchedEvents)];
   const { filteredEvents, emptyState } = useEventFilters(allEvents, activeSegment);
@@ -40,7 +40,7 @@ export default function HomeScreen({
     <SafeAreaWrapper edges={['top']}>
       <View style={{ flex: 1 }}>
         <View style={{ backgroundColor: colors.background }}>
-          <HomeHeader user={user} onOpenMenu={onOpenMenu} onOpenChat={onOpenChat} />
+          <HomeHeader user={user} onOpenMenu={onOpenMenu} />
           <EventSegmentedControl
             activeSegment={activeSegment}
             onSegmentChange={setActiveSegment}
@@ -66,6 +66,7 @@ export default function HomeScreen({
             emptyState={emptyState}
             onCreateEvent={onCreateEvent}
             showCreateAction={activeSegment === 'live'}
+            onOpenChat={onOpenChat}
           />
         </ScrollView>
       </View>

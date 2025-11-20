@@ -1,17 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { User } from '../../../../shared/types';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { MessageCircle } from 'lucide-react-native';
 
 type Props = {
   user: User;
   onOpenMenu?: () => void;
-  onOpenChat?: () => void;
 };
 
-export const HomeHeader = ({ onOpenChat }: Props) => {
-  const { colors, typography, spacing, brand, borderRadius, shadows } = useTheme();
+export const HomeHeader = ({ }: Props) => {
+  const { colors, typography, spacing } = useTheme();
 
   return (
     <View style={{ backgroundColor: colors.background }}>
@@ -38,21 +36,6 @@ export const HomeHeader = ({ onOpenChat }: Props) => {
             Shade
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={onOpenChat}
-          activeOpacity={0.8}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: borderRadius.full,
-            backgroundColor: brand.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...shadows.md,
-          }}
-        >
-          <MessageCircle size={22} color="#FFFFFF" strokeWidth={2} />
-        </TouchableOpacity>
       </View>
     </View>
   );

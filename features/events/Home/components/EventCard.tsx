@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
-import { MapPin, Clock } from 'lucide-react-native';
+import { MapPin, Clock, MessageCircle } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { EventStatus } from '../../../../shared/types';
@@ -28,10 +28,14 @@ export type EventItem = {
   isPast?: boolean;
 };
 
-type Props = { item: EventItem; width?: number };
+type Props = {
+  item: EventItem;
+  width?: number;
+  onOpenChat?: (eventId: string) => void;
+};
 
-export const EventCard = ({ item, width }: Props) => {
-  const { typography, spacing, borderRadius, isDark } = useTheme();
+export const EventCard = ({ item, width, onOpenChat }: Props) => {
+  const { typography, spacing, borderRadius, isDark, brand, shadows } = useTheme();
   const navigation = useNavigation<any>();
   const { width: screenWidth } = Dimensions.get('window');
   const cardWidth = width ?? screenWidth - spacing.lg * 2;
@@ -270,6 +274,31 @@ export const EventCard = ({ item, width }: Props) => {
           }}
         >
           {content}
+
+          {/* AI Chat Button */}
+          {onOpenChat && (
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                onOpenChat(item.id);
+              }}
+              activeOpacity={0.8}
+              style={{
+                position: 'absolute',
+                bottom: spacing['2xl'],
+                right: spacing['2xl'],
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                backgroundColor: brand.primary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                ...shadows.lg,
+              }}
+            >
+              <MessageCircle size={24} color="#FFFFFF" strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
         </View>
       </ImageBackground>
     </TouchableOpacity>
