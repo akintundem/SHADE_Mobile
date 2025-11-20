@@ -32,7 +32,6 @@ const FEATURES: ManageFeature[] = [
   { key: 'analytics', title: 'Analytics', description: 'Performance & engagement metrics', icon: BarChart3, screen: 'EventManageAnalytics' },
   { key: 'notifications', title: 'Notifications & Reminders', description: 'Broadcasts, updates & scheduled reminders', icon: Bell, screen: 'EventManageNotifications' },
   { key: 'collaborators', title: 'Collaborators', description: 'Team roles & permissions', icon: UserPlus, screen: 'EventManageCollaborators' },
-  { key: 'media', title: 'Media & Assets', description: 'Photos, files, cover image', icon: ImageIcon, screen: 'EventManageMedia' },
   { key: 'lifecycle', title: 'Duplicate & Archive', description: 'Copies, archive, restore', icon: Layers, screen: 'EventManageLifecycle' },
 ];
 

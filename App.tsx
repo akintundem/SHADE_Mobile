@@ -19,7 +19,6 @@ import ManageVisibilityScreen from './features/events/home/screens/manage/Manage
 import ManageAnalyticsScreen from './features/events/home/screens/manage/ManageAnalyticsScreen';
 import ManageNotificationsScreen from './features/events/home/screens/manage/ManageNotificationsScreen';
 import ManageCollaboratorsScreen from './features/events/home/screens/manage/ManageCollaboratorsScreen';
-import ManageMediaScreen from './features/events/home/screens/manage/ManageMediaScreen';
 import ManageLifecycleScreen from './features/events/home/screens/manage/ManageLifecycleScreen';
 
 function App() {
@@ -47,15 +46,15 @@ function App() {
             try {
               const { authService } = await import('./shared/services/authService');
               const validationResult = await authService.validateToken({ token });
-              
+
               if (validationResult.valid && validationResult.user) {
                 // Token is valid, set user from validation response
                 const validatedUser = validationResult.user;
-                setUser({ 
-                  id: validatedUser.id || cached.userId || 'me', 
-                  email: validatedUser.email || cached.email || '', 
-                  name: validatedUser.name || cached.username, 
-                  provider: 'password' 
+                setUser({
+                  id: validatedUser.id || cached.userId || 'me',
+                  email: validatedUser.email || cached.email || '',
+                  name: validatedUser.name || cached.username,
+                  provider: 'password'
                 });
               } else {
                 // Token validation returned invalid
@@ -137,99 +136,94 @@ function App() {
         <AgentProvider>
           <ThemeProvider>
             <NavigationContainer>
-            {isLoading ? (
-              <LoadingState message="Welcome to Shade..." />
-            ) : !user ? (
-              <Auth
-                onLogin={handleLogin}
-                initialScreen={authScreen}
-                resetToken={resetToken}
-                verifyToken={verifyToken}
-              />
-            ) : (
-              <Stack.Navigator
-                screenOptions={{
-                  headerShown: false,
-                  gestureEnabled: true,
-                  fullScreenGestureEnabled: true,
-                }}
-              >
-                <Stack.Screen name="Main">
-                  {() => (
-                    <SocialApp user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
-                  )}
-                </Stack.Screen>
-                <Stack.Screen
-                  name="EventProfile"
-                  component={EventProfileRoute}
-                  options={{
-                    headerShown: false,
-                    gestureEnabled: true,
-                    fullScreenGestureEnabled: true,
-                    animation: 'slide_from_right',
-                  }}
+              {isLoading ? (
+                <LoadingState message="Welcome to Shade..." />
+              ) : !user ? (
+                <Auth
+                  onLogin={handleLogin}
+                  initialScreen={authScreen}
+                  resetToken={resetToken}
+                  verifyToken={verifyToken}
                 />
-                <Stack.Screen
-                  name="EventManage"
-                  options={{
+              ) : (
+                <Stack.Navigator
+                  screenOptions={{
                     headerShown: false,
                     gestureEnabled: true,
                     fullScreenGestureEnabled: true,
-                    animation: 'slide_from_right',
                   }}
                 >
-                  {(props) => (
-                    // Render-as-child to avoid strict typing mismatch on route props
-                    <EventManageScreen {...(props as any)} />
-                  )}
-                </Stack.Screen>
-                <Stack.Screen
-                  name="EventAdmin"
-                  component={EventAdminScreen}
-                  options={{
-                    headerShown: false,
-                    gestureEnabled: true,
-                    fullScreenGestureEnabled: true,
-                    animation: 'slide_from_right',
-                  }}
-                />
-                <Stack.Screen
-                  name="EventManageCapacity"
-                  component={ManageCapacityScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-                <Stack.Screen
-                  name="EventManageVisibility"
-                  component={ManageVisibilityScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-                <Stack.Screen
-                  name="EventManageAnalytics"
-                  component={ManageAnalyticsScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-                <Stack.Screen
-                  name="EventManageNotifications"
-                  component={ManageNotificationsScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-                <Stack.Screen
-                  name="EventManageCollaborators"
-                  component={ManageCollaboratorsScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-                <Stack.Screen
-                  name="EventManageMedia"
-                  component={ManageMediaScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-                <Stack.Screen
-                  name="EventManageLifecycle"
-                  component={ManageLifecycleScreen}
-                  options={{ headerShown: false, animation: 'slide_from_right' }}
-                />
-              </Stack.Navigator>
-            )}
+                  <Stack.Screen name="Main">
+                    {() => (
+                      <SocialApp user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
+                    )}
+                  </Stack.Screen>
+                  <Stack.Screen
+                    name="EventProfile"
+                    component={EventProfileRoute}
+                    options={{
+                      headerShown: false,
+                      gestureEnabled: true,
+                      fullScreenGestureEnabled: true,
+                      animation: 'slide_from_right',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="EventManage"
+                    options={{
+                      headerShown: false,
+                      gestureEnabled: true,
+                      fullScreenGestureEnabled: true,
+                      animation: 'slide_from_right',
+                    }}
+                  >
+                    {(props) => (
+                      // Render-as-child to avoid strict typing mismatch on route props
+                      <EventManageScreen {...(props as any)} />
+                    )}
+                  </Stack.Screen>
+                  <Stack.Screen
+                    name="EventAdmin"
+                    component={EventAdminScreen}
+                    options={{
+                      headerShown: false,
+                      gestureEnabled: true,
+                      fullScreenGestureEnabled: true,
+                      animation: 'slide_from_right',
+                    }}
+                  />
+                  <Stack.Screen
+                    name="EventManageCapacity"
+                    component={ManageCapacityScreen}
+                    options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="EventManageVisibility"
+                    component={ManageVisibilityScreen}
+                    options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="EventManageAnalytics"
+                    component={ManageAnalyticsScreen}
+                    options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="EventManageNotifications"
+                    component={ManageNotificationsScreen}
+                    options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="EventManageCollaborators"
+                    component={ManageCollaboratorsScreen}
+                    options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="EventManageLifecycle"
+                    component={ManageLifecycleScreen}
+                    options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                </Stack.Navigator>
+              )}
             </NavigationContainer>
           </ThemeProvider>
         </AgentProvider>
