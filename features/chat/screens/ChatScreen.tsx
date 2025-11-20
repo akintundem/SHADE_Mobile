@@ -2,223 +2,60 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
-  Image,
-  Animated,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
   Keyboard,
-  PanResponder,
 } from 'react-native';
 import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { ArrowLeft, Moon, Mic, Send, Star, MapPin, Users, Heart, Mail } from 'lucide-react-native';
+import { ArrowLeft, Mail, Send } from 'lucide-react-native';
 import VenueDetailModal from '../components/VenueDetailModal';
-import { ChatRequest, AssistantChatResponse, VenueCardDTO } from '../../../shared/types';
-import { assistantService } from '../../../shared/services/assistantService';
-
-const { width: screenWidth } = Dimensions.get('window');
-
-interface Message {
-  id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: string;
-  type?: 'text' | 'venue_card' | 'email_review';
-  data?: any;
-}
-
-// Use the new VenueCardDTO type from types
-type VenueCard = VenueCardDTO;
-
-const sampleVenues: VenueCard[] = [
-  {
-    id: '1',
-    name: 'Luxury Plaza Hotel',
-    location: 'Historic District',
-    guestCapacity: '250-400 guests',
-    priceRange: '$10,000 - $15,000',
-    rating: 4.9,
-    reviewCount: 203,
-    imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
-    description: 'Elegant venue with stunning architecture',
-    amenities: ['WiFi', 'AV Equipment', 'Catering', 'Parking'],
-    contactEmail: 'info@luxuryplaza.com',
-    contactPhone: '+1-555-0123',
-    website: 'https://luxuryplaza.com',
-  },
-  {
-    id: '2',
-    name: 'Enchanted Garden Estate',
-    location: 'Countryside',
-    guestCapacity: '150-250 guests',
-    priceRange: '$6,500 - $10,000',
-    rating: 4.8,
-    reviewCount: 156,
-    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
-    description: 'Beautiful garden venue with natural beauty',
-    amenities: ['Garden', 'Outdoor Space', 'Catering', 'Parking'],
-    contactEmail: 'info@enchantedgarden.com',
-    contactPhone: '+1-555-0124',
-    website: 'https://enchantedgarden.com',
-  },
-  {
-    id: '3',
-    name: 'Rustic Barn & Vineyard',
-    location: 'Wine Country',
-    guestCapacity: '100-200 guests',
-    priceRange: '$5,500 - $9,000',
-    rating: 4.7,
-    reviewCount: 89,
-    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
-    description: 'Charming rustic venue with vineyard views',
-    amenities: ['Vineyard Views', 'Rustic Charm', 'Wine Tasting', 'Parking'],
-    contactEmail: 'info@rusticbarn.com',
-    contactPhone: '+1-555-0125',
-    website: 'https://rusticbarn.com',
-  },
-  {
-    id: '4',
-    name: 'Grand Ballroom Palace',
-    location: 'Downtown',
-    guestCapacity: '300-500 guests',
-    priceRange: '$12,000 - $18,000',
-    rating: 4.9,
-    reviewCount: 287,
-    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
-    description: 'Luxurious ballroom with grand architecture',
-    amenities: ['Grand Ballroom', 'Luxury Decor', 'Full Service', 'Valet Parking'],
-    contactEmail: 'info@grandballroom.com',
-    contactPhone: '+1-555-0126',
-    website: 'https://grandballroom.com',
-  },
-  {
-    id: '5',
-    name: 'Seaside Resort & Spa',
-    location: 'Coastal',
-    guestCapacity: '200-350 guests',
-    priceRange: '$8,500 - $13,000',
-    rating: 4.8,
-    reviewCount: 194,
-    imageUrl: 'https://images.unsplash.com/photo-1519167758481-83f142b8d0c1?w=800&h=600&fit=crop',
-    description: 'Stunning coastal venue with ocean views',
-    amenities: ['Ocean Views', 'Spa Services', 'Resort Amenities', 'Beach Access'],
-    contactEmail: 'info@seasideresort.com',
-    contactPhone: '+1-555-0127',
-    website: 'https://seasideresort.com',
-  },
-];
-
-const eventTypes = [
-  { id: 'wedding', label: 'Wedding', icon: '⛪', color: 'primary' },
-  { id: 'birthday', label: 'Birthday', icon: '🎂', color: 'secondary' },
-  { id: 'corporate', label: 'Corp', icon: '💼', color: 'primary' },
-];
+import { VenueCardDTO } from '../../../shared/types';
+import { ChatMessage, Message } from '../components/ChatMessage';
+import { ChatInput } from '../components/ChatInput';
+import { useChat } from '../hooks/useChat';
 
 export default function ChatScreen({ onClose }: { onClose: () => void }) {
   const { colors, spacing, typography, borderRadius, shadows } = useTheme();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hey there! 👋 I'm Shade, and I'm so excited to help you plan something special! Whether it's a dreamy wedding, an unforgettable birthday bash, or a professional corporate event, I've got you covered from start to finish.\n\nI can help with venues, guest lists, budgets, invitations, and so much more. What kind of celebration are we planning together? 🎉",
-      isUser: false,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    },
-  ]);
+  const { messages, isLoading, sendMessage, sendVenueInquiry } = useChat();
+
   const [inputText, setInputText] = useState('');
   const [selectedEventType, setSelectedEventType] = useState('wedding');
   const [showEmailReview, setShowEmailReview] = useState(false);
-  const [selectedVenue, setSelectedVenue] = useState<VenueCard | null>(null);
+  const [selectedVenue, setSelectedVenue] = useState<VenueCardDTO | null>(null);
   const [showVenueDetail, setShowVenueDetail] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const inputRef = useRef<TextInput>(null);
-  const inputPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only respond to downward swipes when keyboard is open
-        return gestureState.dy > 10 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
-      },
-      onPanResponderMove: () => {},
-      onPanResponderRelease: (_, gestureState) => {
-        // If user swiped down significantly, dismiss keyboard
-        if (gestureState.dy > 50) {
-          Keyboard.dismiss();
-        }
-      },
-    })
-  ).current;
 
-  const scrollToBottom = () => {
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  };
+  }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText,
-      isUser: true,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setMessages(prev => [...prev, newMessage]);
-    setInputText('');
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "OMG, congratulations! 💍✨ This is such an exciting time! I found 5 amazing wedding venues that would be perfect for your special day. Take a look and tap on any venue to see more details!",
-        isUser: false,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages(prev => [...prev, aiResponse]);
-      
-      // Add venue cards as separate messages
-      sampleVenues.forEach((venue, index) => {
-        setTimeout(() => {
-          const venueMessage: Message = {
-            id: (Date.now() + 2 + index).toString(),
-            text: "",
-            isUser: false,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            type: 'venue_card',
-            data: [venue],
-          };
-          setMessages(prev => [...prev, venueMessage]);
-          scrollToBottom();
-        }, 1500 + (index * 300));
-      });
-      
-      scrollToBottom();
-    }, 1000);
-
-    scrollToBottom();
+    const text = inputText;
+    setInputText(''); // Clear input immediately
+    await sendMessage(text);
   };
 
-  const handleVenueSelect = (venue: VenueCard) => {
+  const handleVenueSelect = (venue: VenueCardDTO) => {
     setSelectedVenue(venue);
     setShowVenueDetail(true);
   };
 
   const handleSelectVenue = () => {
     setShowVenueDetail(false);
-    // Add success message
-    const successMessage: Message = {
-      id: Date.now().toString(),
-      text: `Perfect! I've selected ${selectedVenue?.name} for your event. This venue is absolutely stunning and will create the perfect atmosphere for your special day!`,
-      isUser: false,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages(prev => [...prev, successMessage]);
-    scrollToBottom();
+    // In a real app, this might trigger another API call or state update
+    // For now, we can simulate a confirmation message via the hook if we wanted,
+    // but the requirement was mainly to clean up the stubs.
+    // Let's just add a simple local message or use the hook if we extended it.
+    // For this refactor, I'll leave it as a UI action that might trigger the inquiry flow.
+    sendMessage(`I'd like to select ${selectedVenue?.name} for my event.`);
   };
 
   const handleSendInquiry = () => {
@@ -226,201 +63,11 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
     setShowEmailReview(true);
   };
 
-  const handleSendEmail = () => {
-    setShowEmailReview(false);
-    // Add success message
-    const successMessage: Message = {
-      id: Date.now().toString(),
-      text: "Perfect! I've sent your inquiry to Luxury Plaza Hotel. They typically respond within 24 hours. I'll keep you updated on their response!",
-      isUser: false,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages(prev => [...prev, successMessage]);
-    scrollToBottom();
-  };
-
-  const renderMessage = (message: Message) => {
-    if (message.type === 'venue_card' && message.data) {
-      return (
-        <View key={message.id} style={{ marginBottom: spacing.lg }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            marginBottom: spacing.sm,
-          }}>
-            <View style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              backgroundColor: colors.primary,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginRight: spacing.sm,
-            }}>
-              <Text style={{ fontSize: 16 }}>🎉</Text>
-            </View>
-            <View style={{
-              flex: 1,
-              backgroundColor: colors.surfaceElevated,
-              borderRadius: borderRadius.xl,
-              padding: spacing.lg,
-              ...shadows.sm,
-            }}>
-              {message.text && (
-                <Text style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  lineHeight: typography.lineHeight.normal * typography.size.base,
-                  marginBottom: spacing.md,
-                }}>
-                  {message.text}
-                </Text>
-              )}
-              {message.data.map((venue: VenueCard) => (
-                  <TouchableOpacity
-                    key={venue.id}
-                    onPress={() => handleVenueSelect(venue)}
-                    style={{
-                      backgroundColor: colors.surfaceElevated,
-                      borderRadius: borderRadius.lg,
-                      ...shadows.sm,
-                    }}
-                  >
-                  <Image
-                    source={{ uri: venue.imageUrl }}
-                    style={{
-                      width: '100%',
-                      height: 160,
-                      borderTopLeftRadius: borderRadius.lg,
-                      borderTopRightRadius: borderRadius.lg,
-                    }}
-                    resizeMode="cover"
-                  />
-                  <View style={{
-                    position: 'absolute',
-                    top: spacing.sm,
-                    right: spacing.sm,
-                    backgroundColor: colors.text.primary,
-                    paddingHorizontal: spacing.sm,
-                    paddingVertical: spacing.xs,
-                    borderRadius: borderRadius.md,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}>
-                    <Star size={12} color={colors.brand.secondary} fill={colors.brand.secondary} />
-                    <Text style={{
-                      color: colors.surfaceElevated,
-                      fontSize: typography.size.sm,
-                      fontWeight: typography.weight.semibold,
-                      marginLeft: spacing.xs,
-                    }}>
-                      {venue.rating}
-                    </Text>
-                  </View>
-                  <View style={{ padding: spacing.lg }}>
-                    <Text style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.lg,
-                      fontWeight: typography.weight.bold,
-                      marginBottom: spacing.sm,
-                    }}>
-                      {venue.name}
-                    </Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
-                      <MapPin size={14} color={colors.text.secondary} />
-                      <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.sm,
-                        marginLeft: spacing.xs,
-                      }}>
-                        {venue.location}
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
-                      <Users size={14} color={colors.text.secondary} />
-                      <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.sm,
-                        marginLeft: spacing.xs,
-                      }}>
-                        {venue.guestCapacity}
-                      </Text>
-                    </View>
-                    <Text style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.base,
-                      fontWeight: typography.weight.semibold,
-                    }}>
-                      {venue.priceRange}
-                    </Text>
-                  </View>
-                  </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          <Text style={{
-            color: colors.text.tertiary,
-            fontSize: typography.size.xs,
-            marginLeft: 44,
-          }}>
-            {message.timestamp}
-          </Text>
-        </View>
-      );
+  const handleSendEmail = async () => {
+    if (selectedVenue) {
+      await sendVenueInquiry(selectedVenue);
+      setShowEmailReview(false);
     }
-
-    return (
-      <View key={message.id} style={{
-        marginBottom: spacing.lg,
-        flexDirection: message.isUser ? 'row-reverse' : 'row',
-        alignItems: 'flex-end',
-      }}>
-        <View style={{
-          width: 32,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: message.isUser ? colors.primary : colors.primary,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginHorizontal: spacing.sm,
-          marginBottom: 2,
-        }}>
-          {message.isUser ? (
-            <View style={{
-              width: 16,
-              height: 16,
-              borderRadius: 8,
-              backgroundColor: colors.surfaceElevated,
-            }} />
-          ) : (
-            <Text style={{ fontSize: 16 }}>🎉</Text>
-          )}
-        </View>
-        <View style={{
-          maxWidth: screenWidth * 0.7,
-          backgroundColor: message.isUser ? colors.primary : colors.surfaceElevated,
-          borderRadius: borderRadius.xl,
-          padding: spacing.lg,
-          ...(message.isUser ? {} : shadows.sm),
-        }}>
-          <Text style={{
-            color: message.isUser ? colors.surfaceElevated : colors.text.primary,
-            fontSize: typography.size.base,
-            lineHeight: typography.lineHeight.normal * typography.size.base,
-          }}>
-            {message.text}
-          </Text>
-        </View>
-        <Text style={{
-          color: colors.text.tertiary,
-          fontSize: typography.size.xs,
-          marginHorizontal: spacing.sm,
-          marginBottom: 2,
-        }}>
-          {message.timestamp}
-        </Text>
-      </View>
-    );
   };
 
   if (showEmailReview) {
@@ -609,7 +256,7 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           <TouchableOpacity onPress={onClose}>
             <ArrowLeft size={24} color={colors.text.primary} />
           </TouchableOpacity>
-          
+
           <View style={{ alignItems: 'center', flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
             <View style={{
               width: 32,
@@ -652,120 +299,22 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           keyboardDismissMode="interactive"
           onScrollBeginDrag={() => Keyboard.dismiss()}
         >
-          {messages.map(renderMessage)}
+          {messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              message={message}
+              onVenueSelect={handleVenueSelect}
+            />
+          ))}
         </ScrollView>
 
-
-          {/* Text Input Area - Clean & Elegant */}
-          <View style={{
-            backgroundColor: colors.background,
-            paddingHorizontal: spacing.md,
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.md,
-            borderTopWidth: 1,
-            borderTopColor: colors.border,
-          }}>
-            {/* Event Type Suggestions */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: spacing.sm }}
-              contentContainerStyle={{ paddingRight: spacing.md }}
-            >
-              {eventTypes.map((type, index) => (
-                <TouchableOpacity
-                  key={type.id}
-                  onPress={() => setSelectedEventType(type.id)}
-                  style={{
-                    backgroundColor: selectedEventType === type.id ? colors.surfaceElevated : colors.surface,
-                    borderRadius: borderRadius.full,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.xs,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginRight: index < eventTypes.length - 1 ? spacing.xs : 0,
-                  }}
-                >
-                  <Text style={{ fontSize: 14, marginRight: spacing.xs / 2 }}>{type.icon}</Text>
-                  <Text style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.xs,
-                    fontWeight: typography.weight.medium,
-                  }}>
-                    {type.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Input Container */}
-            <View 
-              {...inputPanResponder.panHandlers}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: colors.surface,
-                borderRadius: borderRadius.lg,
-                borderWidth: 1,
-                borderColor: colors.border,
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.xs,
-                minHeight: 48,
-              }}
-            >
-              <TextInput
-                ref={inputRef}
-                value={inputText}
-                onChangeText={setInputText}
-                placeholder="Tell me about your event..."
-                placeholderTextColor={colors.text.tertiary}
-                style={{
-                  flex: 1,
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  paddingVertical: spacing.sm,
-                  paddingHorizontal: spacing.xs,
-                  minHeight: 44,
-                  maxHeight: 100,
-                  textAlignVertical: 'center',
-                }}
-                multiline
-                editable
-                returnKeyType="default"
-                blurOnSubmit={false}
-              />
-              <TouchableOpacity 
-                style={{ 
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: spacing.xs,
-                }}
-                activeOpacity={0.6}
-              >
-                <Mic size={18} color={colors.text.secondary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSendMessage}
-                disabled={!inputText.trim()}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: inputText.trim() ? colors.text.primary : colors.border,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: spacing.xs,
-                  opacity: inputText.trim() ? 1 : 0.4,
-                }}
-                activeOpacity={0.8}
-              >
-                <Send size={16} color={colors.surfaceElevated} />
-              </TouchableOpacity>
-            </View>
-          </View>
+        <ChatInput
+          inputText={inputText}
+          setInputText={setInputText}
+          onSendMessage={handleSendMessage}
+          selectedEventType={selectedEventType}
+          setSelectedEventType={setSelectedEventType}
+        />
       </KeyboardAvoidingView>
 
       {/* Venue Detail Modal */}
