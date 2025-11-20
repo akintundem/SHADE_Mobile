@@ -24,7 +24,7 @@ type Props = {
 
 export default function EventManageScreen({ route, onOpenChat }: Props) {
   const { id, title, date, location, imageUrl, initialView } = route.params || {};
-  const { colors, spacing, borderRadius, typography, brand } = useTheme();
+  const { colors, spacing, borderRadius, typography, brand, shadows } = useTheme();
   const navigation = useNavigation<any>();
   const [taskView, setTaskView] = useState<'list' | 'timeline'>(initialView || 'list');
   const [taskFilter, setTaskFilter] = useState<'all' | 'to_do' | 'active' | 'done'>('all');
