@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, List, BarChart3 } from 'lucide-react-native';
+import { ArrowLeft, List, BarChart3, MessageCircle } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import TimelineView from '../components/TimelineView';
 import ListView from '../components/ListView';
@@ -19,15 +19,16 @@ type RouteParams = {
 
 type Props = {
   route: { params: RouteParams };
+  onOpenChat?: (eventId: string) => void;
 };
 
-export default function EventManageScreen({ route }: Props) {
+export default function EventManageScreen({ route, onOpenChat }: Props) {
   const { id, title, date, location, imageUrl, initialView } = route.params || {};
   const { colors, spacing, borderRadius, typography, brand } = useTheme();
   const navigation = useNavigation<any>();
   const [taskView, setTaskView] = useState<'list' | 'timeline'>(initialView || 'list');
   const [taskFilter, setTaskFilter] = useState<'all' | 'to_do' | 'active' | 'done'>('all');
-  
+
   // Update view when initialView changes
   useEffect(() => {
     if (initialView) {
@@ -256,11 +257,11 @@ export default function EventManageScreen({ route }: Props) {
           borderWidth: 1,
           borderColor: colors.border
         }}>
-          <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            marginBottom: spacing.sm 
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: spacing.sm
           }}>
             <Text style={{
               color: colors.text.primary,
@@ -358,6 +359,32 @@ export default function EventManageScreen({ route }: Props) {
         />
       ) : (
         <TimelineView tasks={tasks} eventId={id} />
+      )}
+
+      {/* AI Chat Button */}
+      {onOpenChat && (
+        <TouchableOpacity
+          onPress={() => onOpenChat(id)}
+          activeOpacity={0.8}
+          style={{
+            position: 'absolute',
+            bottom: spacing.xl,
+            right: spacing.xl,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: brand.primary,
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+        >
+          <MessageCircle size={26} color="#FFFFFF" strokeWidth={2.5} />
+        </TouchableOpacity>
       )}
     </SafeAreaView>
   );

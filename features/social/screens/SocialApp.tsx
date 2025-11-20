@@ -43,7 +43,6 @@ export default function SocialApp({ user, onLogout }: Props) {
           user={user}
           onTabChange={setTab}
           onCreateEvent={() => setCreateEventOpen(true)}
-          onOpenChat={() => setChatOpen(true)}
         />
       ) : tab === 'discover' ? (
         <DiscoverScreen

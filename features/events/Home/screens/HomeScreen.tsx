@@ -17,7 +17,6 @@ type Props = {
   events?: EventItem[];
   onCreateEvent?: () => void;
   onOpenMenu?: () => void;
-  onOpenChat?: () => void;
   onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void;
 };
 
@@ -26,7 +25,6 @@ export default function HomeScreen({
   events = [],
   onCreateEvent,
   onOpenMenu,
-  onOpenChat,
   onTabChange,
 }: Props) {
   const { colors, spacing } = useTheme();
@@ -66,7 +64,6 @@ export default function HomeScreen({
             emptyState={emptyState}
             onCreateEvent={onCreateEvent}
             showCreateAction={activeSegment === 'live'}
-            onOpenChat={onOpenChat}
           />
         </ScrollView>
       </View>

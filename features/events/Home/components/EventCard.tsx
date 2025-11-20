@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
-import { MapPin, Clock, MessageCircle } from 'lucide-react-native';
+import { MapPin, Clock } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { EventStatus } from '../../../../shared/types';
@@ -28,13 +27,12 @@ export type EventItem = {
   isPast?: boolean;
 };
 
-type Props = {
-  item: EventItem;
+type Props = { 
+  item: EventItem; 
   width?: number;
-  onOpenChat?: (eventId: string) => void;
 };
 
-export const EventCard = ({ item, width, onOpenChat }: Props) => {
+export const EventCard = ({ item, width }: Props) => {
   const { typography, spacing, borderRadius, isDark, brand, shadows } = useTheme();
   const navigation = useNavigation<any>();
   const { width: screenWidth } = Dimensions.get('window');
@@ -65,10 +63,10 @@ export const EventCard = ({ item, width, onOpenChat }: Props) => {
     const dayMs = 1000 * 60 * 60 * 24;
     if (diffInMs >= 0) {
       const elapsedDays = Math.floor(diffInMs / dayMs);
-      return `Day ${elapsedDays + 1}`;
+      return `Day ${ elapsedDays + 1 } `;
     }
     const daysUntil = Math.ceil(Math.abs(diffInMs) / dayMs);
-    return daysUntil === 0 ? 'Starts today' : `Starts in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+    return daysUntil === 0 ? 'Starts today' : `Starts in ${ daysUntil } day${ daysUntil === 1 ? '' : 's' } `;
   }, [item.startAt]);
 
   const participantInitials = useMemo(() => {
@@ -90,7 +88,7 @@ export const EventCard = ({ item, width, onOpenChat }: Props) => {
 
   const participantCount = item.cosignedCount ?? item.cosigners?.length ?? 0;
   const extraParticipants = Math.max(participantCount - participantInitials.length, 0);
-  const participantSummary = participantCount > 0 ? `${participantCount} traveling together` : 'Be the first to join';
+  const participantSummary = participantCount > 0 ? `${ participantCount } traveling together` : 'Be the first to join';
 
   const content = (
     <View style={{ flex: 1, justifyContent: 'space-between' }}>
@@ -144,7 +142,7 @@ export const EventCard = ({ item, width, onOpenChat }: Props) => {
             {participantInitials.length > 0 ? (
               participantInitials.map((initials, index) => (
                 <View
-                  key={`${initials}-${index}`}
+                  key={`${ initials } -${ index } `}
                   style={{
                     width: avatarSize,
                     height: avatarSize,
@@ -274,31 +272,6 @@ export const EventCard = ({ item, width, onOpenChat }: Props) => {
           }}
         >
           {content}
-
-          {/* AI Chat Button */}
-          {onOpenChat && (
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                onOpenChat(item.id);
-              }}
-              activeOpacity={0.8}
-              style={{
-                position: 'absolute',
-                bottom: spacing['2xl'],
-                right: spacing['2xl'],
-                width: 52,
-                height: 52,
-                borderRadius: 26,
-                backgroundColor: brand.primary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                ...shadows.lg,
-              }}
-            >
-              <MessageCircle size={24} color="#FFFFFF" strokeWidth={2.5} />
-            </TouchableOpacity>
-          )}
         </View>
       </ImageBackground>
     </TouchableOpacity>
