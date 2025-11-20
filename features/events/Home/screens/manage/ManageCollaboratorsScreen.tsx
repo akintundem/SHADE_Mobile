@@ -247,10 +247,11 @@ const ManageCollaboratorsScreen = () => {
             borderRadius: borderRadius.lg,
             borderWidth: 1,
             borderColor: colors.text.primary,
+            backgroundColor: colors.text.primary,
           }}
         >
-          <UserPlus size={18} color={colors.text.primary} />
-          <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>
+          <UserPlus size={18} color={colors.background} />
+          <Text style={{ color: colors.background, fontWeight: typography.weight.semibold }}>
             Invite collaborator
           </Text>
         </TouchableOpacity>

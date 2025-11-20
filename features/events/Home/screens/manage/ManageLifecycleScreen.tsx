@@ -137,10 +137,11 @@ const ManageLifecycleScreen = () => {
               borderRadius: borderRadius.lg,
               borderWidth: 1,
               borderColor: colors.text.primary,
+              backgroundColor: colors.text.primary,
             }}
           >
-            <Copy size={18} color={colors.text.primary} />
-            <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>
+            <Copy size={18} color={colors.background} />
+            <Text style={{ color: colors.background, fontWeight: typography.weight.semibold }}>
               Duplicate event
             </Text>
           </TouchableOpacity>
@@ -190,10 +191,11 @@ const ManageLifecycleScreen = () => {
               borderRadius: borderRadius.lg,
               borderWidth: 1,
               borderColor: colors.text.primary,
+              backgroundColor: colors.text.primary,
             }}
           >
-            <Archive size={18} color={colors.text.primary} />
-            <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>
+            <Archive size={18} color={colors.background} />
+            <Text style={{ color: colors.background, fontWeight: typography.weight.semibold }}>
               Archive event
             </Text>
           </TouchableOpacity>
@@ -209,10 +211,11 @@ const ManageLifecycleScreen = () => {
               borderRadius: borderRadius.lg,
               borderWidth: 1,
               borderColor: colors.text.primary,
+              backgroundColor: colors.text.primary,
             }}
           >
-            <RotateCcw size={18} color={colors.text.primary} />
-            <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold }}>
+            <RotateCcw size={18} color={colors.background} />
+            <Text style={{ color: colors.background, fontWeight: typography.weight.semibold }}>
               Restore event
             </Text>
           </TouchableOpacity>
