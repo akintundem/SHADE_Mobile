@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Linking } from 'react-native';
+import { Linking, Alert } from 'react-native';
 import { I18nProvider } from './shared/i18n/I18nProvider';
 import { AgentProvider } from './features/agent/Agent/AgentProvider';
 import { NavigationContainer } from '@react-navigation/native';
@@ -14,6 +14,9 @@ import { getToken, getUser as getCachedUser } from './shared/storage/authStorage
 import { UserDTO } from './shared/services/authService';
 import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
 import EventManageScreen from './features/events/Home/screens/EventManageScreen';
+import notificationService from './shared/services/notificationService';
+import fcmTokenSync from './shared/services/fcmTokenSync';
+import type { Notification } from './shared/types/notification.types';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +28,9 @@ function App() {
   useEffect(() => {
     (async () => {
       try {
+        // Initialize push notifications
+        await initializeNotifications();
+
         // Check for deep link on app start
         const url = await Linking.getInitialURL();
         if (url) {
@@ -44,6 +50,9 @@ function App() {
               console.log('✅ Token is valid');
               // Token is valid, set user
               setUser({ id: cached.userId || 'me', email: cached.email, name: cached.username, provider: 'password' });
+
+              // Sync FCM token with backend
+              await fcmTokenSync.syncTokenWithBackend(token);
             } catch (error: unknown) {
               const err = error as { status?: number; message?: string } | Error;
               const message = 'message' in err && typeof err.message === 'string' ? err.message : 'Unknown error';
@@ -90,6 +99,53 @@ function App() {
     };
   }, []);
 
+  const initializeNotifications = async () => {
+    try {
+      await notificationService.initialize({
+        onNotificationReceived: (notification: Notification) => {
+          console.log('📬 Notification received:', notification);
+
+          // Show an alert when notification is received in foreground
+          if (notification.title && notification.body) {
+            Alert.alert(
+              notification.title,
+              notification.body,
+              [{ text: 'OK' }]
+            );
+          }
+        },
+        onNotificationOpened: (notification: Notification) => {
+          console.log('📭 Notification opened:', notification);
+
+          // Handle notification tap - navigate to relevant screen
+          // You can use notification.data to determine where to navigate
+          // Example:
+          // if (notification.data?.eventId) {
+          //   navigation.navigate('EventProfile', { eventId: notification.data.eventId });
+          // }
+        },
+        onTokenRefresh: async (token: string) => {
+          console.log('🔄 FCM Token refreshed:', token);
+
+          const authToken = await getToken();
+          if (authToken) {
+            await fcmTokenSync.syncTokenWithBackend(authToken);
+          }
+        },
+      });
+
+      console.log('✅ Notifications initialized successfully');
+
+      // Sync FCM token on init
+      const authToken = await getToken();
+      if (authToken) {
+        await fcmTokenSync.syncTokenWithBackend(authToken);
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize notifications:', error);
+    }
+  };
+
   const handleDeepLink = (url: string) => {
     console.log('🔗 Deep link received:', url);
 
@@ -126,7 +182,10 @@ function App() {
   };
 
   const handleLogin = (u: User) => setUser(u);
-  const handleLogout = () => setUser(null);
+  const handleLogout = async () => {
+    await fcmTokenSync.clearToken();
+    setUser(null);
+  };
   const handleUpdateUser = (u: User) => setUser(u);
 
   const Stack = createNativeStackNavigator();

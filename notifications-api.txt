@@ -1,0 +1,51 @@
+Push Notifications API Endpoint Needed
+
+The mobile app will automatically POST FCM tokens to this endpoint:
+
+POST /api/notifications/register-token
+
+Headers:
+  Authorization: Bearer {user_auth_token}
+  Content-Type: application/json
+
+Body:
+{
+  "token": "string - FCM device token",
+  "platform": "string - 'android' or 'ios'",
+  "deviceInfo": {
+    "os": "string - 'android' or 'ios'",
+    "version": "string/number - OS version"
+  }
+}
+
+Response (200 OK):
+{
+  "success": true
+}
+
+Notes:
+- Store the token in your database linked to the user
+- Update if token already exists for that device
+- Token will be sent on login and whenever it refreshes
+- Tokens can be reused across multiple devices per user
+
+To send notifications from backend:
+1. Install: npm install firebase-admin
+2. Initialize with service account JSON file (get from Firebase Console)
+3. Send like this:
+
+const admin = require('firebase-admin');
+admin.messaging().send({
+  token: userFcmToken,
+  notification: {
+    title: 'Title',
+    body: 'Message'
+  },
+  data: {
+    eventId: '123',
+    type: 'event_update'
+  }
+});
+
+Firebase service account file location: firebase-service-account.json (not in git)
+Get it from: Firebase Console > Project Settings > Service accounts > Generate private key

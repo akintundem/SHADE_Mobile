@@ -9,6 +9,8 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  Clipboard,
 } from 'react-native';
 import {
   Accessibility,
@@ -36,6 +38,7 @@ import Button from '../../../shared/components/ui/Button';
 import KeyboardOptimizedInput from '../../../shared/components/ui/KeyboardOptimizedInput';
 import { authService } from '../../../shared/services/authService';
 import { User as AuthUser } from '../../../shared/types';
+import notificationService from '../../../shared/services/notificationService';
 
 type Props = {
   user: AuthUser;
@@ -69,6 +72,17 @@ export default function SettingsScreen({
   const [changeError, setChangeError] = useState<string | null>(null);
 
   const [isResendingVerification, setIsResendingVerification] = useState(false);
+
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
+
+  // Get FCM token on mount
+  React.useEffect(() => {
+    const fetchToken = async () => {
+      const token = await notificationService.getFCMToken();
+      setFcmToken(token);
+    };
+    fetchToken();
+  }, []);
 
   const Section = ({ title }: { title: string }) => (
     <View
@@ -390,7 +404,33 @@ export default function SettingsScreen({
         <Row
           icon={Bell}
           title="Notifications"
-          subtitle="Manage your notification preferences"
+          subtitle="View FCM token and manage notifications"
+          onPress={() => {
+            if (fcmToken) {
+              Alert.alert(
+                'FCM Token',
+                `Tap Copy to copy your device token for testing.\n\n${fcmToken.substring(0, 30)}...`,
+                [
+                  {
+                    text: 'Copy Full Token',
+                    onPress: () => {
+                      Clipboard.setString(fcmToken);
+                      setBanner({
+                        text: 'FCM Token copied! Use it to send test notifications.',
+                        tone: 'success',
+                      });
+                    },
+                  },
+                  { text: 'Cancel', style: 'cancel' },
+                ]
+              );
+            } else {
+              Alert.alert(
+                'Loading',
+                'FCM token is still loading. Please wait a moment.'
+              );
+            }
+          }}
         />
         <Row
           icon={Shield}

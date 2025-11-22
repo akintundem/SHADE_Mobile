@@ -37,8 +37,18 @@
 	<string></string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We use the microphone so your videos can include audio.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to let you choose cover images for your events.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to save photos to your library.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>We use notifications to keep you updated about your events and activities.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

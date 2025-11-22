@@ -103,6 +103,12 @@ Thumbs.db
 .env.*
 !.env.example
 
+# Firebase
+google-services.json
+GoogleService-Info.plist
+firebase-service-account.json
+*-firebase-adminsdk-*.json
+
 # Logs
 *.log
 logs/
@@ -122,3 +128,4 @@ lerna-debug.log*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+.claude/settings.local.json
