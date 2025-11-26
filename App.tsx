@@ -20,6 +20,7 @@ import ManageAnalyticsScreen from './features/events/home/screens/manage/ManageA
 import ManageNotificationsScreen from './features/events/home/screens/manage/ManageNotificationsScreen';
 import ManageCollaboratorsScreen from './features/events/home/screens/manage/ManageCollaboratorsScreen';
 import ManageLifecycleScreen from './features/events/home/screens/manage/ManageLifecycleScreen';
+import ChatScreen from './features/chat/screens/ChatScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -221,6 +222,16 @@ function App() {
                     name="EventManageLifecycle"
                     component={ManageLifecycleScreen}
                     options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="Chat"
+                    component={ChatScreen}
+                    options={{
+                      headerShown: false,
+                      gestureEnabled: true,
+                      fullScreenGestureEnabled: true,
+                      animation: 'slide_from_bottom',
+                    }}
                   />
                 </Stack.Navigator>
               )}

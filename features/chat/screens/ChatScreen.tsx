@@ -8,6 +8,7 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { ArrowLeft, Mail, Send } from 'lucide-react-native';
@@ -16,10 +17,30 @@ import { VenueCardDTO } from '../../../shared/types';
 import { ChatMessage, Message } from '../components/ChatMessage';
 import { ChatInput } from '../components/ChatInput';
 import { useChat } from '../hooks/useChat';
+import { getUser } from '../../../shared/storage/authStorage';
 
-export default function ChatScreen({ onClose }: { onClose: () => void }) {
+type ChatScreenRouteProp = RouteProp<{ params: { eventId?: string } }, 'params'>;
+
+export default function ChatScreen({ onClose }: { onClose?: () => void }) {
   const { colors, spacing, typography, borderRadius, shadows } = useTheme();
-  const { messages, isLoading, sendMessage, sendVenueInquiry } = useChat();
+  const navigation = useNavigation();
+  const route = useRoute<ChatScreenRouteProp>();
+  const eventId = route.params?.eventId || 'general'; // Default to general if not provided (e.g. from SocialApp)
+
+  const [userId, setUserId] = useState<string>('');
+
+  useEffect(() => {
+    getUser<{ userId: string }>().then(user => {
+      if (user?.userId) {
+        setUserId(user.userId);
+      }
+    });
+  }, []);
+
+  const { messages, isLoading, sendMessage, sendVenueInquiry } = useChat({
+    eventId,
+    userId
+  });
 
   const [inputText, setInputText] = useState('');
   const [selectedEventType, setSelectedEventType] = useState('wedding');
@@ -253,7 +274,13 @@ export default function ChatScreen({ onClose }: { onClose: () => void }) {
           borderBottomColor: colors.border,
           backgroundColor: colors.background,
         }}>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity onPress={() => {
+            if (onClose) {
+              onClose();
+            } else {
+              navigation.goBack();
+            }
+          }}>
             <ArrowLeft size={24} color={colors.text.primary} />
           </TouchableOpacity>
 

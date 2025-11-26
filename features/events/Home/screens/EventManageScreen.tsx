@@ -19,10 +19,9 @@ type RouteParams = {
 
 type Props = {
   route: { params: RouteParams };
-  onOpenChat?: (eventId: string) => void;
 };
 
-export default function EventManageScreen({ route, onOpenChat }: Props) {
+export default function EventManageScreen({ route }: Props) {
   const { id, title, date, location, imageUrl, initialView } = route.params || {};
   const { colors, spacing, borderRadius, typography, brand, shadows } = useTheme();
   const navigation = useNavigation<any>();
@@ -362,30 +361,28 @@ export default function EventManageScreen({ route, onOpenChat }: Props) {
       )}
 
       {/* AI Chat Button */}
-      {onOpenChat && (
-        <TouchableOpacity
-          onPress={() => onOpenChat(id)}
-          activeOpacity={0.8}
-          style={{
-            position: 'absolute',
-            bottom: spacing.xl,
-            right: spacing.xl,
-            width: 56,
-            height: 56,
-            borderRadius: 28,
-            backgroundColor: brand.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            shadowColor: '#000000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
-            elevation: 8,
-          }}
-        >
-          <MessageCircle size={26} color="#FFFFFF" strokeWidth={2.5} />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Chat', { eventId: id })}
+        activeOpacity={0.8}
+        style={{
+          position: 'absolute',
+          bottom: spacing.xl,
+          right: spacing.xl,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: brand.primary,
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
+        <MessageCircle size={26} color="#FFFFFF" strokeWidth={2.5} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
