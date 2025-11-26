@@ -17,6 +17,8 @@ type Props = {
   events?: EventItem[];
   onCreateEvent?: () => void;
   onOpenMenu?: () => void;
+  onOpenCamera?: () => void;
+  onOpenGallery?: () => void;
   onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void;
 };
 
@@ -25,6 +27,8 @@ export default function HomeScreen({
   events = [],
   onCreateEvent,
   onOpenMenu,
+  onOpenCamera,
+  onOpenGallery,
   onTabChange,
 }: Props) {
   const { colors, spacing } = useTheme();
@@ -38,7 +42,7 @@ export default function HomeScreen({
     <SafeAreaWrapper edges={['top']}>
       <View style={{ flex: 1 }}>
         <View style={{ backgroundColor: colors.background }}>
-          <HomeHeader user={user} onOpenMenu={onOpenMenu} />
+          <HomeHeader user={user} onOpenMenu={onOpenMenu} onOpenCamera={onOpenCamera} onOpenGallery={onOpenGallery} />
           <EventSegmentedControl
             activeSegment={activeSegment}
             onSegmentChange={setActiveSegment}

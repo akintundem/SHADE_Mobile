@@ -79,6 +79,14 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
   useEffect(() => {
     clearCaptureClips();
     setClips([]);
+    
+    // Cleanup on unmount
+    return () => {
+      if (recordTimerRef.current) {
+        clearInterval(recordTimerRef.current);
+        recordTimerRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -138,12 +146,17 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
   const takePhoto = useCallback(async () => {
     if (!cameraRef.current) return;
     const capture = async () => {
-      const photo = await cameraRef.current.takePhoto({ flash: flash === 'on' ? 'on' : 'off' });
-      const clip: Clip = { id: `${Date.now()}`, path: photo.path, duration: 3, speed: 1, type: 'photo' };
-      setClips(prev => [...prev, clip]);
-      addCaptureClip(clip);
-      // Do not auto-close camera on photo capture; keep user in camera
-      onCapture({ path: photo.path, type: 'photo' });
+      try {
+        const photo = await cameraRef.current.takePhoto({ flash: flash === 'on' ? 'on' : 'off' });
+        if (photo && photo.path) {
+          const clip: Clip = { id: `${Date.now()}`, path: photo.path, duration: 3, speed: 1, type: 'photo' };
+          setClips(prev => [...prev, clip]);
+          addCaptureClip(clip);
+          onCapture({ path: photo.path, type: 'photo' });
+        }
+      } catch (error) {
+        console.error('Error taking photo:', error);
+      }
     };
     runCountdown(capture);
   }, [flash, onCapture, runCountdown]);
@@ -165,42 +178,59 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
     [onCapture, recordMs, speed],
   );
 
-  const stopTimers = () => {
+  const stopTimers = useCallback(() => {
     if (recordTimerRef.current) {
       clearInterval(recordTimerRef.current);
       recordTimerRef.current = null;
     }
-  };
+  }, []);
 
   const startStopRecord = useCallback(async () => {
     if (!cameraRef.current) return;
     if (recording) {
-      const file = await cameraRef.current.stopRecording();
-      stopTimers();
-      setRecording(false);
-      pushClip(file);
+      try {
+        const file = await cameraRef.current.stopRecording();
+        stopTimers();
+        setRecording(false);
+        if (file && file.path) {
+          pushClip(file);
+        }
+      } catch (error) {
+        console.error('Error stopping recording:', error);
+        stopTimers();
+        setRecording(false);
+      }
     } else {
       const start = () => {
         setRecordMs(0);
         setRecording(true);
         stopTimers();
         recordTimerRef.current = setInterval(() => setRecordMs(ms => ms + 100), 100);
-        cameraRef.current.startRecording({
-          flash: flash === 'on' ? 'on' : 'off',
-          onRecordingFinished: (video: any) => {
-            stopTimers();
-            setRecording(false);
-            pushClip(video);
-          },
-          onRecordingError: () => {
-            stopTimers();
-            setRecording(false);
-          },
-        });
+        try {
+          cameraRef.current.startRecording({
+            flash: flash === 'on' ? 'on' : 'off',
+            onRecordingFinished: (video: any) => {
+              stopTimers();
+              setRecording(false);
+              if (video && video.path) {
+                pushClip(video);
+              }
+            },
+            onRecordingError: (error: any) => {
+              console.error('Recording error:', error);
+              stopTimers();
+              setRecording(false);
+            },
+          });
+        } catch (error) {
+          console.error('Error starting recording:', error);
+          stopTimers();
+          setRecording(false);
+        }
       };
       runCountdown(start);
     }
-  }, [flash, pushClip, recording, runCountdown]);
+  }, [flash, pushClip, recording, runCountdown, stopTimers]);
 
   // Explicit handlers for shutter behaviors
   const handleShutterPress = useCallback(() => {
@@ -222,10 +252,11 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
   }, [recording, startStopRecord]);
 
   const handleShutterRelease = useCallback(() => {
-    // Stop recording when user releases long press
-    if (recording) {
+    // Only stop if we actually started via long press
+    if (longPressActiveRef.current && recording) {
       startStopRecord();
     }
+    longPressActiveRef.current = false;
   }, [recording, startStopRecord]);
 
   const deleteLastClip = useCallback(() => {
@@ -322,7 +353,7 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
   if (!CameraModule || !device || !hasPermission) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#fff' }}>Preparing camera… (rebuild may be required)</Text>
+        <Text style={{ color: '#fff' }}>Loading camera...</Text>
       </SafeAreaView>
     );
   }

@@ -57,7 +57,7 @@ export function DateTimePickerModal({
     }
   }, [visible, initialDate, initialTime]);
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = selectedDate.getFullYear();
   const currentMonth = selectedDate.getMonth();
   const currentDay = selectedDate.getDate();
 
@@ -84,13 +84,22 @@ export function DateTimePickerModal({
   };
 
   const handleDaySelect = (day: number) => {
-    setSelectedDate(new Date(currentYear, currentMonth, day));
+    const newDate = new Date(currentYear, currentMonth, day);
+    setSelectedDate(newDate);
+    console.log('Day selected:', day, 'New date:', newDate);
   };
 
   const handleConfirm = () => {
     const hour24 = isAM 
       ? (selectedHour === 12 ? 0 : selectedHour)
       : (selectedHour === 12 ? 12 : selectedHour + 12);
+    
+    console.log('Confirming:', {
+      date: selectedDate,
+      hour24,
+      minute: selectedMinute,
+      isAM
+    });
     
     onConfirm(selectedDate, { hour: hour24, minute: selectedMinute });
     onClose();

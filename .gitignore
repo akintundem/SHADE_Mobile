@@ -85,6 +85,8 @@ android/app/build/
 android/build/
 *.iml
 .gradle/
+android/app/src/main/res/drawable-*/node_modules_*
+android/app/src/main/assets/index.android.bundle
 
 # Fastlane
 fastlane/report.xml

@@ -310,6 +310,13 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             price={price}
             capacity={capacity}
             onEditStep={setCurrentStep}
+            onImageSelected={(imageUri) => {
+              setCoverImage({
+                uri: imageUri,
+                type: 'image/jpeg',
+                fileName: 'event-cover.jpg',
+              } as Asset);
+            }}
           />
         );
       default:

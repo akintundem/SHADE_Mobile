@@ -3,16 +3,17 @@ import { View } from 'react-native';
 import { User } from '../../../shared/types';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { authService } from '../../../shared/services/authService';
-import HomeScreen from '../../events/home/screens/HomeScreen';
-import DiscoverScreen from '../../events/discover/screens/DiscoverScreen';
+import HomeScreen from '../../events/Home/screens/HomeScreen';
+import DiscoverScreen from '../../events/Discover/screens/DiscoverScreen';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
-const CameraScreen = React.lazy(() => import('../../media/camera/screens/CameraScreen'));
+const CameraScreen = React.lazy(() => import('../../media/Camera/screens/CameraScreen'));
 const VideoEditorScreen = React.lazy(() => import('../../media/editor/screens/VideoEditorScreen'));
 const CreateEventScreen = React.lazy(() => import('../../events/Create/screens/CreateEventScreen'));
 const SettingsScreen = React.lazy(() => import('../../settings/screens/SettingsScreen'));
 const ChatScreen = React.lazy(() => import('../../chat/screens/ChatScreen'));
-import { EventThreadScreen } from '../../events/home/components/EventThreadScreen';
-import type { ThreadPost } from '../../events/home/components/EventThreadModal';
+const CapturedPhotosScreen = React.lazy(() => import('../../media/Camera/screens/CapturedPhotosScreen'));
+import { EventThreadScreen } from '../../events/Home/components/EventThreadScreen';
+import type { ThreadPost } from '../../events/Home/components/EventThreadModal';
 
 type Props = {
   user: User;
@@ -29,8 +30,10 @@ export default function SocialApp({ user, onLogout }: Props) {
 
   const [isCameraOpen, setCameraOpen] = useState(false);
   const [captured, setCaptured] = useState<{ path: string; type: 'photo' | 'video' } | null>(null);
+  const [capturedPhotos, setCapturedPhotos] = useState<Array<{ path: string; type: 'photo' | 'video'; timestamp: number }>>([]);
   const [isEditorOpen, setEditorOpen] = useState(false);
   const [isSettingsOpen, setSettingsOpen] = useState(false);
+  const [isGalleryOpen, setGalleryOpen] = useState(false);
 
   const [threadOpen, setThreadOpen] = useState<null | { title: string; posts: ThreadPost[] }>(null);
 
@@ -43,6 +46,8 @@ export default function SocialApp({ user, onLogout }: Props) {
           user={user}
           onTabChange={setTab}
           onCreateEvent={() => setCreateEventOpen(true)}
+          onOpenCamera={() => setCameraOpen(true)}
+          onOpenGallery={() => setGalleryOpen(true)}
         />
       ) : tab === 'discover' ? (
         <DiscoverScreen
@@ -85,6 +90,11 @@ export default function SocialApp({ user, onLogout }: Props) {
               onClose={() => setCameraOpen(false)}
               onCapture={asset => {
                 setCaptured(asset);
+                // Save photo to gallery
+                if (asset.type === 'photo') {
+                  setCapturedPhotos(prev => [...prev, { ...asset, timestamp: Date.now() }]);
+                  setCameraOpen(false);
+                }
                 const isFile = asset.path?.startsWith('file:') || asset.path?.startsWith('/') || asset.path?.startsWith('content:');
                 if (asset.type === 'video' && isFile) {
                   setCameraOpen(false);
@@ -151,6 +161,17 @@ export default function SocialApp({ user, onLogout }: Props) {
 
       {threadOpen ? (
         <EventThreadScreen visible={true} onClose={() => setThreadOpen(null)} title={threadOpen.title} posts={threadOpen.posts} />
+      ) : null}
+
+      {isGalleryOpen ? (
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: colors.background, zIndex: 150 }}>
+          <React.Suspense fallback={null}>
+            <CapturedPhotosScreen
+              photos={capturedPhotos}
+              onClose={() => setGalleryOpen(false)}
+            />
+          </React.Suspense>
+        </View>
       ) : null}
     </View>
   );

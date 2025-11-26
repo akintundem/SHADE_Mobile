@@ -1,8 +1,9 @@
 /**
- * Geolocation service with fallback to React Native's built-in geolocation
+ * Geolocation service using @react-native-community/geolocation
  */
 
 import { Platform, PermissionsAndroid } from 'react-native';
+import Geolocation from '@react-native-community/geolocation';
 
 export interface Position {
   coords: {
@@ -53,28 +54,14 @@ export class GeolocationService {
       ...options,
     };
 
-    // Try react-native-geolocation-service first
-    try {
-      const GeolocationService = require('react-native-geolocation-service');
-      GeolocationService.getCurrentPosition(success, error, defaultOptions);
-      return;
-    } catch (e) {
-      console.log('react-native-geolocation-service not available, using built-in geolocation');
-    }
-
-    // Fallback to React Native's built-in geolocation
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(success, error, defaultOptions);
-    } else {
-      error(new Error('Geolocation is not supported by this browser.'));
-    }
+    Geolocation.getCurrentPosition(success, error, defaultOptions);
   }
 
   static watchPosition(
     success: (position: Position) => void,
     error: (error: any) => void,
     options: GeolocationOptions = {}
-  ): number | null {
+  ): number {
     const defaultOptions = {
       enableHighAccuracy: true,
       timeout: 15000,
@@ -82,36 +69,10 @@ export class GeolocationService {
       ...options,
     };
 
-    // Try react-native-geolocation-service first
-    try {
-      const GeolocationService = require('react-native-geolocation-service');
-      return GeolocationService.watchPosition(success, error, defaultOptions);
-    } catch (e) {
-      console.log('react-native-geolocation-service not available, using built-in geolocation');
-    }
-
-    // Fallback to React Native's built-in geolocation
-    if (navigator.geolocation) {
-      return navigator.geolocation.watchPosition(success, error, defaultOptions);
-    } else {
-      error(new Error('Geolocation is not supported by this browser.'));
-      return null;
-    }
+    return Geolocation.watchPosition(success, error, defaultOptions);
   }
 
   static clearWatch(watchId: number): void {
-    // Try react-native-geolocation-service first
-    try {
-      const GeolocationService = require('react-native-geolocation-service');
-      GeolocationService.clearWatch(watchId);
-      return;
-    } catch (e) {
-      console.log('react-native-geolocation-service not available, using built-in geolocation');
-    }
-
-    // Fallback to React Native's built-in geolocation
-    if (navigator.geolocation) {
-      navigator.geolocation.clearWatch(watchId);
-    }
+    Geolocation.clearWatch(watchId);
   }
 }

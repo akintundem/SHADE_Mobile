@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Sparkles, Upload, Calendar, MapPin, Users, DollarSign, Tag, Clock, Edit3 } from 'lucide-react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { EventType } from '../../../../../shared/types';
 
@@ -25,6 +26,7 @@ type Props = {
   price: string;
   capacity: string;
   onEditStep: (step: number) => void;
+  onImageSelected?: (imageUri: string) => void;
 };
 
 export function ReviewStep({
@@ -41,8 +43,31 @@ export function ReviewStep({
   price,
   capacity,
   onEditStep,
+  onImageSelected,
 }: Props) {
   const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
+
+  const handleUploadImage = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 2000,
+        maxHeight: 2000,
+      });
+
+      if (result.didCancel || result.errorMessage) {
+        return;
+      }
+
+      const uri = result.assets?.[0]?.uri;
+      if (uri && onImageSelected) {
+        onImageSelected(uri);
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+    }
+  };
 
   const staticMapUrl = useMemo(() => {
     if (venue?.latitude && venue?.longitude) {
@@ -217,6 +242,7 @@ export function ReviewStep({
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={handleUploadImage}
             style={{
               flex: 1,
               flexDirection: 'row',
