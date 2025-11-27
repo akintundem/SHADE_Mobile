@@ -2,6 +2,12 @@ import { useState, useCallback } from 'react';
 import { Message } from '../components/ChatMessage';
 import { VenueCardDTO } from '../../../shared/types';
 import { sampleVenues } from '../data/chatData';
+import { aiService } from '../../../shared/services/aiService';
+
+interface UseChatProps {
+    eventId: string;
+    userId: string;
+}
 
 interface UseChatReturn {
     messages: Message[];
@@ -10,7 +16,7 @@ interface UseChatReturn {
     sendVenueInquiry: (venue: VenueCardDTO) => Promise<void>;
 }
 
-export const useChat = (): UseChatReturn => {
+export const useChat = ({ eventId, userId }: UseChatProps): UseChatReturn => {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
@@ -35,46 +41,46 @@ export const useChat = (): UseChatReturn => {
         setIsLoading(true);
 
         try {
-            // TODO: Replace with actual API call
-            // const response = await api.chat.sendMessage(text);
-
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const response = await aiService.sendMessage({
+                message: text,
+                eventId,
+                userId
+            });
 
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
-                text: "OMG, congratulations! 💍✨ This is such an exciting time! I found 5 amazing wedding venues that would be perfect for your special day. Take a look and tap on any venue to see more details!",
+                text: response.replyText,
                 isUser: false,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
 
             setMessages(prev => [...prev, aiResponse]);
 
-            // Simulate venue cards arriving shortly after
-            // In a real API, these might come as part of the response or a separate stream
-            setTimeout(() => {
-                const venueMessage: Message = {
-                    id: (Date.now() + 2).toString(),
-                    text: "",
-                    isUser: false,
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    type: 'venue_card',
-                    data: sampleVenues,
-                };
-                setMessages(prev => [...prev, venueMessage]);
-            }, 500);
+            // TODO: Handle domains/actions from response if needed (e.g. show venues if domain is 'venue')
+            // For now, we keep the existing mock logic for venues as a fallback or if specific keywords trigger it
+            // But strictly following the user request, we just display the replyText.
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to send message:', error);
-            // Handle error state if needed
+
+            // Handle error message for user
+            const errorMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                text: "I'm having trouble connecting right now. Please try again later.",
+                isUser: false,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                isError: true
+            };
+            setMessages(prev => [...prev, errorMessage]);
+
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [eventId, userId]);
 
     const sendVenueInquiry = useCallback(async (venue: VenueCardDTO) => {
         // Simulate API call for sending inquiry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(() => resolve(null), 1000));
 
         const successMessage: Message = {
             id: Date.now().toString(),

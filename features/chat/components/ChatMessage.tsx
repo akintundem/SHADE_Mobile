@@ -13,6 +13,7 @@ export interface Message {
     timestamp: string;
     type?: 'text' | 'venue_card' | 'email_review';
     data?: any;
+    isError?: boolean;
 }
 
 interface ChatMessageProps {
@@ -89,7 +90,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onVenueSelect
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: message.isUser ? colors.primary : colors.primary,
+                backgroundColor: message.isError ? colors.semantic.error : (message.isUser ? colors.primary : colors.primary),
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginHorizontal: spacing.sm,
@@ -103,18 +104,20 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onVenueSelect
                         backgroundColor: colors.surfaceElevated,
                     }} />
                 ) : (
-                    <Text style={{ fontSize: 16 }}>🎉</Text>
+                    <Text style={{ fontSize: 16 }}>{message.isError ? '⚠️' : '🎉'}</Text>
                 )}
             </View>
             <View style={{
                 maxWidth: screenWidth * 0.7,
-                backgroundColor: message.isUser ? colors.primary : colors.surfaceElevated,
+                backgroundColor: message.isError ? colors.semantic.error + '20' : (message.isUser ? colors.primary : colors.surfaceElevated),
                 borderRadius: borderRadius.xl,
                 padding: spacing.lg,
+                borderWidth: message.isError ? 1 : 0,
+                borderColor: message.isError ? colors.semantic.error : 'transparent',
                 ...(message.isUser ? {} : shadows.sm),
             }}>
                 <Text style={{
-                    color: message.isUser ? colors.surfaceElevated : colors.text.primary,
+                    color: message.isError ? colors.semantic.error : (message.isUser ? colors.surfaceElevated : colors.text.primary),
                     fontSize: typography.size.base,
                     lineHeight: typography.lineHeight.normal * typography.size.base,
                 }}>

@@ -11,15 +11,16 @@ import LoadingState from './shared/components/LoadingState';
 import SocialApp from './features/social/screens/SocialApp';
 import { User } from './shared/types';
 import { getToken, getUser as getCachedUser } from './shared/storage/authStorage';
-import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
-import EventManageScreen from './features/events/Home/screens/EventManageScreen';
-import EventAdminScreen from './features/events/Home/screens/EventAdminScreen';
-import ManageCapacityScreen from './features/events/Home/screens/manage/ManageCapacityScreen';
-import ManageVisibilityScreen from './features/events/Home/screens/manage/ManageVisibilityScreen';
-import ManageAnalyticsScreen from './features/events/Home/screens/manage/ManageAnalyticsScreen';
-import ManageNotificationsScreen from './features/events/Home/screens/manage/ManageNotificationsScreen';
-import ManageCollaboratorsScreen from './features/events/Home/screens/manage/ManageCollaboratorsScreen';
-import ManageLifecycleScreen from './features/events/Home/screens/manage/ManageLifecycleScreen';
+import { EventProfileRoute } from './features/events/home/screens/EventProfileRoute';
+import EventManageScreen from './features/events/home/screens/EventManageScreen';
+import EventAdminScreen from './features/events/home/screens/EventAdminScreen';
+import ManageCapacityScreen from './features/events/home/screens/manage/ManageCapacityScreen';
+import ManageVisibilityScreen from './features/events/home/screens/manage/ManageVisibilityScreen';
+import ManageAnalyticsScreen from './features/events/home/screens/manage/ManageAnalyticsScreen';
+import ManageNotificationsScreen from './features/events/home/screens/manage/ManageNotificationsScreen';
+import ManageCollaboratorsScreen from './features/events/home/screens/manage/ManageCollaboratorsScreen';
+import ManageLifecycleScreen from './features/events/home/screens/manage/ManageLifecycleScreen';
+import ChatScreen from './features/chat/screens/ChatScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -221,6 +222,16 @@ function App() {
                     name="EventManageLifecycle"
                     component={ManageLifecycleScreen}
                     options={{ headerShown: false, animation: 'slide_from_right' }}
+                  />
+                  <Stack.Screen
+                    name="Chat"
+                    component={ChatScreen}
+                    options={{
+                      headerShown: false,
+                      gestureEnabled: true,
+                      fullScreenGestureEnabled: true,
+                      animation: 'slide_from_bottom',
+                    }}
                   />
                 </Stack.Navigator>
               )}
