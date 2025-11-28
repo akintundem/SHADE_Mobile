@@ -3,6 +3,13 @@ import { View, Text, ScrollView, TouchableOpacity, TouchableWithoutFeedback, Key
 import { CalendarDays, Clock, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { DateTimePickerModal } from '../DateTimePickerModal';
+import {
+  formatDisplayDateTime,
+  parseDateInput,
+  parseTimeInput,
+  toIsoDateString,
+  toTimeString,
+} from '../../utils/dateFormatting';
 
 type Props = {
   startDate: string;
@@ -37,72 +44,24 @@ export function WhenStep({
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  const parseDateTime = (dateStr: string, timeStr: string): { date: Date | null; time: { hour: number; minute: number } | null } => {
-    let date: Date | null = null;
-    let time: { hour: number; minute: number } | null = null;
-
-    if (dateStr) {
-      const [year, month, day] = dateStr.split(' - ').map(Number);
-      if (year && month && day) {
-        date = new Date(year, month - 1, day);
-      }
-    }
-
-    if (timeStr) {
-      const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (match) {
-        let hour = parseInt(match[1]);
-        const minute = parseInt(match[2]);
-        const period = match[3].toUpperCase();
-        
-        if (period === 'PM' && hour !== 12) hour += 12;
-        if (period === 'AM' && hour === 12) hour = 0;
-        
-        time = { hour, minute };
-      }
-    }
-
-    return { date, time };
-  };
-
   const handleStartConfirm = (date: Date, time: { hour: number; minute: number }) => {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    
-    const hour12 = time.hour === 0 ? 12 : time.hour > 12 ? time.hour - 12 : time.hour;
-    const minuteStr = time.minute.toString().padStart(2, '0');
-    const period = time.hour < 12 ? 'AM' : 'PM';
-    
-    onStartDateChange(`${year} - ${month} - ${day}`);
-    onStartTimeChange(`${hour12}:${minuteStr} ${period}`);
+    onStartDateChange(toIsoDateString(date));
+    onStartTimeChange(toTimeString(time));
     onStartDateBlur();
     onStartTimeBlur();
   };
 
   const handleEndConfirm = (date: Date, time: { hour: number; minute: number }) => {
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    
-    const hour12 = time.hour === 0 ? 12 : time.hour > 12 ? time.hour - 12 : time.hour;
-    const minuteStr = time.minute.toString().padStart(2, '0');
-    const period = time.hour < 12 ? 'AM' : 'PM';
-    
-    onEndDateChange(`${year} - ${month} - ${day}`);
-    onEndTimeChange(`${hour12}:${minuteStr} ${period}`);
+    onEndDateChange(toIsoDateString(date));
+    onEndTimeChange(toTimeString(time));
   };
 
-  const { date: startDateObj, time: startTimeObj } = parseDateTime(startDate, startTime);
-  const { date: endDateObj, time: endTimeObj } = parseDateTime(endDate, endTime);
-
-  const formatDisplayValue = (dateStr: string, timeStr: string) => {
-    if (!dateStr && !timeStr) return null;
-    const parts = [];
-    if (dateStr) parts.push(dateStr);
-    if (timeStr) parts.push(timeStr);
-    return parts.join(' at ');
-  };
+  const startDateObj = parseDateInput(startDate);
+  const startTimeObj = parseTimeInput(startTime);
+  const endDateObj = parseDateInput(endDate);
+  const endTimeObj = parseTimeInput(endTime);
+  const startDisplayValue = formatDisplayDateTime(startDate, startTime);
+  const endDisplayValue = formatDisplayDateTime(endDate, endTime);
 
   return (
     <>
@@ -168,12 +127,10 @@ export function WhenStep({
                   <Text
                     style={{
                       fontSize: typography.size.base,
-                      color: formatDisplayValue(startDate, startTime)
-                        ? colors.text.primary
-                        : colors.text.tertiary,
+                      color: startDisplayValue ? colors.text.primary : colors.text.tertiary,
                     }}
                   >
-                    {formatDisplayValue(startDate, startTime) || 'Select start date and time'}
+                    {startDisplayValue || 'Select start date and time'}
                   </Text>
                   <ChevronRight size={20} color={colors.text.tertiary} />
                 </TouchableOpacity>
@@ -219,12 +176,10 @@ export function WhenStep({
                   <Text
                     style={{
                       fontSize: typography.size.base,
-                      color: formatDisplayValue(endDate, endTime)
-                        ? colors.text.primary
-                        : colors.text.tertiary,
+                      color: endDisplayValue ? colors.text.primary : colors.text.tertiary,
                     }}
                   >
-                    {formatDisplayValue(endDate, endTime) || 'Select end date and time'}
+                    {endDisplayValue || 'Select end date and time'}
                   </Text>
                   <ChevronRight size={20} color={colors.text.tertiary} />
                 </TouchableOpacity>
@@ -255,4 +210,3 @@ export function WhenStep({
     </>
   );
 }
-

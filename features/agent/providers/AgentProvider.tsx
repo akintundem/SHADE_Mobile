@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useMemo } from 'react';
 import { AgentContext, AgentMessage, AgentResponse, Suggestion } from '../../../shared/services/agentService';
 
 interface AgentProviderState {
@@ -16,11 +16,11 @@ export function AgentProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 
-  const setContext = (newContext: AgentContext) => {
+  const setContext = useCallback((newContext: AgentContext) => {
     setContextState(newContext);
-  };
+  }, []);
 
-  const ask = async (message: string) => {
+  const ask = useCallback(async (message: string) => {
     try {
       // Add user message
       const userMessage: AgentMessage = {
@@ -42,15 +42,15 @@ export function AgentProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Agent ask error:', error);
     }
-  };
+  }, []);
 
-  const value: AgentProviderState = {
+  const value = useMemo<AgentProviderState>(() => ({
     context,
     messages,
     suggestions,
     setContext,
     ask,
-  };
+  }), [context, messages, suggestions, setContext, ask]);
 
   return <AgentContext_.Provider value={value}>{children}</AgentContext_.Provider>;
 }

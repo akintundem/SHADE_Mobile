@@ -4,6 +4,7 @@ import { Sparkles, Upload, Calendar, MapPin, Users, DollarSign, Tag, Clock, Edit
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { EventType } from '../../../../../shared/types';
+import { formatDisplayDateTime } from '../../utils/dateFormatting';
 
 type Props = {
   title: string;
@@ -108,6 +109,16 @@ export function ReviewStep({
     if (venue.state) parts.push(venue.state);
     return parts.join(', ');
   };
+
+  const formattedStart = useMemo(
+    () => formatDisplayDateTime(startDate, startTime),
+    [startDate, startTime],
+  );
+
+  const formattedEnd = useMemo(
+    () => formatDisplayDateTime(endDate, endTime),
+    [endDate, endTime],
+  );
 
   // Pure black and white for cards
   const cardBackgroundColor = isDark ? '#000000' : '#FFFFFF';
@@ -479,10 +490,10 @@ export function ReviewStep({
               </Text>
             </View>
             <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-              {startDate && startTime ? `${startDate} at ${startTime}` : 'Not set'}
+              {formattedStart || 'Not set'}
             </Text>
 
-            {endDate && endTime && (
+            {formattedEnd && (
               <>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs }}>
                   <Clock size={14} color={colors.text.tertiary} />
@@ -491,7 +502,7 @@ export function ReviewStep({
                   </Text>
                 </View>
                 <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                  {`${endDate} at ${endTime}`}
+                  {formattedEnd}
                 </Text>
               </>
             )}
@@ -657,4 +668,3 @@ export function ReviewStep({
     </ScrollView>
   );
 }
-
