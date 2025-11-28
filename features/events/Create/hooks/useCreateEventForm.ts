@@ -23,7 +23,7 @@ export function useCreateEventForm() {
   const [endTime, setEndTime] = useState('');
   const [venue, setVenue] = useState<Venue | null>(null);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [contributionAmount, setContributionAmount] = useState('');
 
   // Form validation
   const {
@@ -107,7 +107,7 @@ export function useCreateEventForm() {
     endTime,
     venue,
     locationSearchQuery,
-    isGettingLocation,
+    contributionAmount,
     // Setters
     setPublic,
     setFree,
@@ -124,7 +124,7 @@ export function useCreateEventForm() {
     setEndTime,
     setVenue,
     setLocationSearchQuery,
-    setIsGettingLocation,
+    setContributionAmount,
     // Validation
     validateField,
     setFieldTouched,
@@ -134,4 +134,3 @@ export function useCreateEventForm() {
     handleToggleTag,
   };
 }
-

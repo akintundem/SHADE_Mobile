@@ -5,6 +5,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { EventType } from '../../../../../shared/types';
 import { formatDisplayDateTime } from '../../utils/dateFormatting';
+import devConfig from '../../../../../dev-config.json';
 
 type Props = {
   title: string;
@@ -26,6 +27,8 @@ type Props = {
   free: boolean;
   price: string;
   capacity: string;
+  enableContrib: boolean;
+  contributionAmount: string;
   onEditStep: (step: number) => void;
   onImageSelected?: (imageUri: string) => void;
 };
@@ -43,9 +46,12 @@ export function ReviewStep({
   free,
   price,
   capacity,
+  enableContrib,
+  contributionAmount,
   onEditStep,
   onImageSelected,
 }: Props) {
+  const mapApiKey = devConfig?.geoapifyApiKey || 'demo';
   const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
 
   const handleUploadImage = async () => {
@@ -71,12 +77,12 @@ export function ReviewStep({
   };
 
   const staticMapUrl = useMemo(() => {
-    if (venue?.latitude && venue?.longitude) {
+    if (venue?.latitude && venue?.longitude && mapApiKey) {
       const zoom = 13;
-      return `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=300&center=lonlat:${venue.longitude},${venue.latitude}&zoom=${zoom}&marker=lonlat:${venue.longitude},${venue.latitude};type:material;color:%23F59E0B;size:medium&apiKey=demo`;
+      return `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=300&center=lonlat:${venue.longitude},${venue.latitude}&zoom=${zoom}&marker=lonlat:${venue.longitude},${venue.latitude};type:material;color:%23F59E0B;size:medium&apiKey=${mapApiKey}`;
     }
     return null;
-  }, [venue?.latitude, venue?.longitude]);
+  }, [venue?.latitude, venue?.longitude, mapApiKey]);
 
   const getCategoryDisplay = () => {
     const categoryMap: Record<EventType, string> = {
@@ -663,6 +669,16 @@ export function ReviewStep({
               </View>
             )}
           </View>
+          {enableContrib && (
+            <View style={{ marginTop: spacing.md }}>
+              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
+                Team Contributions
+              </Text>
+              <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
+                {contributionAmount ? `Suggested: $${contributionAmount}` : 'Enabled'}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </ScrollView>

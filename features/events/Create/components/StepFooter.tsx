@@ -81,29 +81,31 @@ export function StepFooter({
         disabled={!canProceed}
         onPress={onNext}
         style={{
-          height: 56,
-          borderRadius: borderRadius.lg,
+          height: 48,
+          borderRadius: 999,
           backgroundColor: canProceed ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'row',
           gap: spacing.sm,
-          paddingHorizontal: spacing.xl,
-          minWidth: 120,
+          paddingHorizontal: spacing.lg,
+          minWidth: 140,
         }}
       >
         <Text
           style={{
             color: canProceed ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary,
             fontWeight: typography.weight.semibold,
-            fontSize: typography.size.lg,
+            fontSize: typography.size.base,
           }}
         >
           Next
         </Text>
-        <ChevronRight size={22} color={canProceed ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary} />
+        <ChevronRight
+          size={18}
+          color={canProceed ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary}
+        />
       </TouchableOpacity>
     </View>
   );
 }
-

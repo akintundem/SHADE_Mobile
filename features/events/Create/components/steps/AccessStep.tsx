@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, Switch } from 'react-native';
-import { Globe, DollarSign } from 'lucide-react-native';
+import { Globe, DollarSign, Users } from 'lucide-react-native';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import Input from '../../../../../shared/components/ui/Input';
 import { Section } from '../Section';
@@ -12,22 +12,30 @@ type Props = {
   isPublic: boolean;
   free: boolean;
   price: string;
+  capacity: string;
   onPublicChange: (value: boolean) => void;
   onFreeChange: (value: boolean) => void;
   onPriceChange: (text: string) => void;
   onPriceBlur: () => void;
   priceError?: string;
+  onCapacityChange: (text: string) => void;
+  onCapacityBlur: () => void;
+  capacityError?: string;
 };
 
 export function AccessStep({
   isPublic,
   free,
   price,
+  capacity,
   onPublicChange,
   onFreeChange,
   onPriceChange,
   onPriceBlur,
   priceError,
+  onCapacityChange,
+  onCapacityBlur,
+  capacityError,
 }: Props) {
   const { colors, typography, spacing, borderRadius, isDark } = useTheme();
 
@@ -98,7 +106,35 @@ export function AccessStep({
           )}
         </View>
       </Section>
+
+      <Section title="Capacity">
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: borderColor,
+            borderRadius: borderRadius.lg,
+            padding: spacing.md,
+            backgroundColor: cardBackgroundColor,
+            gap: spacing.md,
+          }}
+        >
+          <FieldLabel
+            icon={<Users size={16} color={colors.text.secondary} />}
+            label="Maximum attendees"
+          />
+          <Input
+            placeholder="e.g. 150"
+            keyboardType="number-pad"
+            value={capacity}
+            onChangeText={onCapacityChange}
+            onBlur={onCapacityBlur}
+            error={capacityError}
+          />
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
+            Leave blank if you do not want to enforce a capacity limit.
+          </Text>
+        </View>
+      </Section>
     </ScrollView>
   );
 }
-

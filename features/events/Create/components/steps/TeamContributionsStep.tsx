@@ -9,11 +9,15 @@ import { Row } from '../Row';
 type Props = {
   enableContrib: boolean;
   onEnableContribChange: (value: boolean) => void;
+  contributionAmount: string;
+  onContributionAmountChange: (value: string) => void;
 };
 
 export function TeamContributionsStep({
   enableContrib,
   onEnableContribChange,
+  contributionAmount,
+  onContributionAmountChange,
 }: Props) {
   const { colors, typography, spacing, borderRadius, isDark } = useTheme();
 
@@ -46,6 +50,8 @@ export function TeamContributionsStep({
               <Input
                 placeholder="Suggested contribution (USD)"
                 keyboardType="decimal-pad"
+                value={contributionAmount}
+                onChangeText={onContributionAmountChange}
               />
             </View>
           )}
@@ -100,4 +106,3 @@ export function TeamContributionsStep({
     </ScrollView>
   );
 }
-

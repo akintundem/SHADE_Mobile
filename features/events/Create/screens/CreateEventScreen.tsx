@@ -1,10 +1,8 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { View, Alert, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Asset } from 'react-native-image-picker';
-import { MessageSquare } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useAgent } from '../../../../features/agent/providers/AgentProvider';
-import { AgentChatSheet } from '../../../../shared/components/AgentChatSheet';
 import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
 import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
 import { eventService } from '../../../../shared/services/eventService';
@@ -30,8 +28,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<Asset | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const { colors, spacing, borderRadius, brand, shadows } = useTheme();
+  const { colors, spacing } = useTheme();
   const { setContext, ask } = useAgent();
 
   const form = useCreateEventForm();
@@ -45,27 +42,28 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     price,
     capacity,
     enableContrib,
+    contributionAmount,
     startDate,
     startTime,
     endDate,
     endTime,
     venue,
     locationSearchQuery,
-    isGettingLocation,
     setPublic,
     setFree,
     setSelectedEventType,
     setTitle,
     setDescription,
     setPrice,
+    setCapacity,
     setStartDate,
     setStartTime,
     setEndDate,
     setEndTime,
     setVenue,
     setLocationSearchQuery,
-    setIsGettingLocation,
     setEnableContrib,
+    setContributionAmount,
     validateField,
     setFieldTouched,
     getFieldError,
@@ -125,6 +123,43 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     try {
       const startDateTime = `${startDate}T${startTime}:00.000Z`;
       const endDateTime = endDate && endTime ? `${endDate}T${endTime}:00.000Z` : startDateTime;
+      const parsedPrice = !free && price ? Number(price) : undefined;
+      const parsedContribution =
+        enableContrib && contributionAmount ? Number(contributionAmount) : undefined;
+      const sanitizedVenue =
+        venue && Object.values(venue).some((value) => value !== undefined && value !== null && value !== '')
+          ? Object.fromEntries(
+              Object.entries(venue).filter(
+                ([, value]) => value !== undefined && value !== null && value !== '',
+              ),
+            )
+          : undefined;
+      const metadataPayload: Record<string, unknown> = {};
+
+      if (tags.length) {
+        metadataPayload.tags = tags;
+      }
+      metadataPayload.access = free ? 'free' : 'paid';
+      if (parsedPrice !== undefined && !Number.isNaN(parsedPrice)) {
+        metadataPayload.price = parsedPrice;
+      }
+      if (enableContrib) {
+        metadataPayload.contributions = {
+          enabled: true,
+          suggestedAmount:
+            parsedContribution !== undefined && !Number.isNaN(parsedContribution)
+              ? parsedContribution
+              : undefined,
+        };
+      }
+      if (sanitizedVenue && Object.keys(sanitizedVenue).length > 0) {
+        metadataPayload.venue = sanitizedVenue;
+      }
+      if (locationSearchQuery.trim().length > 0) {
+        metadataPayload.locationQuery = locationSearchQuery.trim();
+      }
+
+      const metadataKeys = Object.keys(metadataPayload);
 
       const eventData: CreateEventRequest = {
         name: title.trim(),
@@ -135,8 +170,9 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         endDateTime,
         capacity: capacity ? Number(capacity) : undefined,
         isPublic,
-        requiresApproval: false,
+        requiresApproval: !isPublic,
         qrCodeEnabled: true,
+        metadata: metadataKeys.length ? JSON.stringify(metadataPayload) : undefined,
       };
 
       const createdEvent = await eventService.createEvent(eventData);
@@ -190,6 +226,13 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
     selectedEventType,
     capacity,
     isPublic,
+    free,
+    price,
+    tags,
+    enableContrib,
+    contributionAmount,
+    venue,
+    locationSearchQuery,
     coverImage,
     onCreate,
     onClose,
@@ -265,10 +308,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           <LocationStep
             venue={venue}
             locationSearchQuery={locationSearchQuery}
-            isGettingLocation={isGettingLocation}
             onVenueChange={setVenue}
             onLocationSearchChange={setLocationSearchQuery}
-            onGettingLocationChange={setIsGettingLocation}
           />
         );
       case 4:
@@ -277,6 +318,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             isPublic={isPublic}
             free={free}
             price={price}
+            capacity={capacity}
             onPublicChange={setPublic}
             onFreeChange={setFree}
             onPriceChange={(text) => {
@@ -285,13 +327,26 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             }}
             onPriceBlur={() => setFieldTouched('price')}
             priceError={getFieldError('price')}
+            onCapacityChange={(text) => {
+              setCapacity(text);
+              validateField('capacity', text);
+            }}
+            onCapacityBlur={() => setFieldTouched('capacity')}
+            capacityError={getFieldError('capacity')}
           />
         );
       case 5:
         return (
           <TeamContributionsStep
             enableContrib={enableContrib}
-            onEnableContribChange={setEnableContrib}
+            contributionAmount={contributionAmount}
+            onContributionAmountChange={setContributionAmount}
+            onEnableContribChange={(value) => {
+              setEnableContrib(value);
+              if (!value) {
+                setContributionAmount('');
+              }
+            }}
           />
         );
       case 6:
@@ -309,6 +364,8 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             free={free}
             price={price}
             capacity={capacity}
+            enableContrib={enableContrib}
+            contributionAmount={contributionAmount}
             onEditStep={setCurrentStep}
             onImageSelected={(imageUri) => {
               setCoverImage({
@@ -342,15 +399,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           {renderStepContent()}
         </View>
 
-        <View
-          style={{
-            padding: spacing.lg,
-            backgroundColor: colors.background,
-            borderTopWidth: 1,
-            borderColor: colors.border,
-            ...shadows.lg,
-          }}
-        >
+        <View style={{ padding: spacing.lg }}>
           <StepFooter
             isLastStep={currentStep === STEPS.length - 1}
             canProceed={canProceedToNextStep}
@@ -361,26 +410,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           />
         </View>
 
-        <TouchableOpacity
-          onPress={() => setChatOpen(true)}
-          activeOpacity={0.9}
-          style={{
-            position: 'absolute',
-            right: spacing.lg,
-            bottom: 96,
-            width: 52,
-            height: 52,
-            borderRadius: 26,
-            backgroundColor: brand.secondary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            ...shadows.lg,
-          }}
-        >
-          <MessageSquare size={20} color={colors.background} />
-        </TouchableOpacity>
-
-        <AgentChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} />
         <LoadingOverlay visible={isLoading} message="Creating event..." />
       </KeyboardAvoidingView>
     </SafeAreaWrapper>
