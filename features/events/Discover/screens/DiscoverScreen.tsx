@@ -5,7 +5,7 @@ import { Calendar } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ManageEventCard } from '../components/ManageEventCard';
 import { TopBar } from '../components/TopBar';
-import { TabBar } from '../../Home/components/TabBar';
+import { TabBar } from '../../home/components/TabBar';
 import { User, UserEventRelationshipResponse, EventStatus } from '../../../../shared/types';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';

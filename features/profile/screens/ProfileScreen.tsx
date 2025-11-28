@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { EventMiniCard } from '../components/EventMiniCard';
-import { TabBar } from '../../events/Home/components/TabBar';
+import { TabBar } from '../../events/home/components/TabBar';
 import SettingsScreen from './SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { User } from '../../../shared/types';
@@ -36,7 +36,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={{ paddingBottom: spacing['3xl'] }}
         showsVerticalScrollIndicator={false}
       >
@@ -44,7 +44,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
 
         <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
           {/* Segmented control */}
-          <View style={{ 
+          <View style={{
             flexDirection: 'row',
             backgroundColor: colors.surface,
             borderRadius: borderRadius.lg,
@@ -99,11 +99,11 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
               />
             </View>
           ) : (
-            <View style={{ 
+            <View style={{
               alignItems: 'center',
               paddingVertical: spacing['5xl'],
             }}>
-              <Text style={{ 
+              <Text style={{
                 color: colors.text.tertiary,
                 fontSize: typography.size.base,
               }}>

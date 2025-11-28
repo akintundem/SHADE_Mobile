@@ -4,18 +4,39 @@ import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { CalendarClock, MapPin, Users } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { EventStatus } from '../../../../shared/types';
+
 type Props = {
+  eventId: string;
   title: string;
   date: string;
   location: string;
   imageUrl: string;
   progress?: number; // 0 - 100
   collaborators?: number;
+  status?: EventStatus;
+  capacity?: { current: number; total: number };
+  analytics?: { views: number; registrations: number };
   onOpen?: () => void;
   onInvite?: () => void;
+  onRefresh?: () => void;
 };
 
-export const ManageEventCard = ({ title, date, location, imageUrl, progress = 35, collaborators = 0, onOpen, onInvite }: Props) => {
+export const ManageEventCard = ({
+  eventId,
+  title,
+  date,
+  location,
+  imageUrl,
+  progress = 35,
+  collaborators = 0,
+  status,
+  capacity,
+  analytics,
+  onOpen,
+  onInvite,
+  onRefresh
+}: Props) => {
   const { colors, spacing, borderRadius, typography, brand, shadows } = useTheme();
   const navigation = useNavigation<any>();
 
@@ -52,7 +73,7 @@ export const ManageEventCard = ({ title, date, location, imageUrl, progress = 35
 
         {/* Actions */}
         <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm }}>
-          <TouchableOpacity onPress={() => navigation.navigate('EventManage', { id: title, title, date, location, imageUrl })} activeOpacity={0.9} style={{ flex: 1, backgroundColor: brand.primary, borderRadius: borderRadius.lg, alignItems: 'center', justifyContent: 'center', height: 40 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('EventManage', { id: eventId, title, date, location, imageUrl })} activeOpacity={0.9} style={{ flex: 1, backgroundColor: brand.primary, borderRadius: borderRadius.lg, alignItems: 'center', justifyContent: 'center', height: 40 }}>
             <Text style={{ color: '#FFFFFF', fontWeight: typography.weight.semibold }}>Open</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onInvite} activeOpacity={0.9} style={{ flex: 1, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.lg, alignItems: 'center', justifyContent: 'center', height: 40 }}>
