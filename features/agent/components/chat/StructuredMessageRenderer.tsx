@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { StructuredResponseDTO, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO, ChipDTO, ActionButtonDTO } from '../../types';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { StructuredResponseDTO, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO, ChipDTO, ActionButtonDTO } from '../../../../shared/types';
 import VenueCard from './VenueCard';
 import EmailCard from './EmailCard';
 import ApprovalCard from './ApprovalCard';

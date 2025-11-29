@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground, Animated, Dimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar, Stars } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { useI18n } from '../../../../shared/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../shared/components/LoadingStates';
@@ -18,6 +18,8 @@ import RSVPScreen from '../components/RSVPScreen';
 import { EventFeedsScreen } from './EventFeedsScreen';
 import { shareEvent } from '../../../../shared/utils/shareUtils';
 import CollaborationScreen from '../components/CollaborationScreen';
+import { useAgent } from '../../../agent/providers/AgentProvider';
+import EnhancedChatScreen from '../../../agent/components/chat/EnhancedChatScreen';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
 
@@ -99,8 +101,10 @@ export const EventProfileRoute = () => {
   const [feedEventName, setFeedEventName] = useState<string>('');
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [mapImageError, setMapImageError] = useState(false);
+  const [isAgentOpen, setIsAgentOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const carouselTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { setContext, suggestions } = useAgent();
 
   const handleShare = useCallback(async () => {
     if (!event) return;
@@ -248,6 +252,27 @@ export const EventProfileRoute = () => {
     fetchEvent();
   }, [fetchEvent]);
 
+  useEffect(() => {
+    if (!eventId || !event) return;
+    setContext({
+      surface: 'manage_event',
+      eventId,
+      metadata: {
+        name: event.name,
+        start: event.startDateTime,
+        end: event.endDateTime,
+      },
+      form: {
+        title: event.name ?? undefined,
+        description: event.description ?? undefined,
+        start: event.startDateTime ?? undefined,
+        end: event.endDateTime ?? undefined,
+        locationName: event.venueRequirements ?? undefined,
+        capacity: event.capacity ?? undefined,
+      },
+    });
+  }, [eventId, event, setContext]);
+
   const onRefresh = useCallback(async () => {
     if (!eventId) return;
     setRefreshing(true);
@@ -342,7 +367,7 @@ export const EventProfileRoute = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', position: 'relative' }} edges={['top']}>
 
       {showEmpty ? (
         <View style={{ flex: 1, paddingBottom: bottomGutter }}>
@@ -995,6 +1020,56 @@ export const EventProfileRoute = () => {
             </View>
           </View>
         </ScrollView>
+      )}
+
+      {!isFeedScope && !activeScreen && !!eventId && (
+        <>
+          {isAgentOpen && (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+              <EnhancedChatScreen eventId={eventId} onClose={() => setIsAgentOpen(false)} />
+            </View>
+          )}
+          {!isAgentOpen && (
+            <View
+              style={{
+                position: 'absolute',
+                right: spacing.lg,
+                bottom: Math.max(insets.bottom, spacing.xl),
+                alignItems: 'flex-end',
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setIsAgentOpen(true)}
+                activeOpacity={0.9}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: brand.secondary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  ...shadows.sm,
+                }}
+              >
+                <Stars size={24} color={colors.background} />
+                {suggestions?.length ? (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      backgroundColor: colors.background,
+                      opacity: 0.85,
+                    }}
+                  />
+                ) : null}
+              </TouchableOpacity>
+            </View>
+          )}
+        </>
       )}
 
       <LoadingOverlay visible={isLoading && !refreshing} message="Loading event..." transparent />

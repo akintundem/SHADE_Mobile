@@ -1,5 +1,4 @@
-import { VALIDATION_LIMITS } from '../utils/constants';
-import { validationUtils } from '../utils/helpers';
+import { validationUtils } from '../../../shared/utils/helpers';
 
 export type AgentMessage = { 
   role: 'user' | 'assistant'; 
@@ -10,6 +9,9 @@ export type AgentMessage = {
 export type AgentContext = {
   surface: 'create_event' | 'manage_event';
   eventId?: string;
+  currentStep?: number;
+  stepName?: string;
+  metadata?: Record<string, unknown>;
   form?: {
     title?: string;
     description?: string;
@@ -223,5 +225,4 @@ export const agentService = AgentService.getInstance();
 export async function askAgent(context: AgentContext, messages: AgentMessage[]): Promise<AgentResponse> {
   return agentService.askAgent(context, messages);
 }
-
 

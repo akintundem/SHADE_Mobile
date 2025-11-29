@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { CheckCircle, XCircle, Clock, AlertTriangle, User, Calendar, Paperclip } from 'lucide-react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { ApprovalCardDTO } from '../../types';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { ApprovalCardDTO } from '../../../../shared/types';
 
 interface ApprovalCardProps {
   approval: ApprovalCardDTO;

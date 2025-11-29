@@ -11,14 +11,14 @@ import {
   Keyboard,
   PanResponder,
 } from 'react-native';
-import { SafeAreaWrapper } from '../SafeAreaWrapper';
-import { useTheme } from '../../theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
 import { ArrowLeft, Mic, Send } from 'lucide-react-native';
-import { ChatRequest, AssistantChatResponse, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO } from '../../types';
-import { assistantService } from '../../services/assistantService';
+import { ChatRequest, AssistantChatResponse, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO } from '../../../../shared/types';
+import { assistantService } from '../../../../shared/services/assistantService';
 import StructuredMessageRenderer from './StructuredMessageRenderer';
-import { useErrorHandler } from '../../hooks/useErrorHandler';
-import ErrorModal from '../common/ErrorModal';
+import { useErrorHandler } from '../../../../shared/hooks/useErrorHandler';
+import ErrorModal from '../../../../shared/components/common/ErrorModal';
 
 const { width: screenWidth } = Dimensions.get('window');
 

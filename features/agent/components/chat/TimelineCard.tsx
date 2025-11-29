@@ -1,24 +1,22 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { CheckCircle, Clock, AlertTriangle, User, Calendar, Tag, Play, Pause } from 'lucide-react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { TaskCardDTO } from '../../types';
+import { Calendar, Clock, CheckCircle, Play, AlertTriangle, User } from 'lucide-react-native';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { TimelineCardDTO } from '../../../../shared/types';
 
-interface TaskCardProps {
-  task: TaskCardDTO;
-  onComplete?: (id: string) => void;
+interface TimelineCardProps {
+  timeline: TimelineCardDTO;
   onStart?: (id: string) => void;
-  onPause?: (id: string) => void;
+  onComplete?: (id: string) => void;
   onViewDetails?: (id: string) => void;
 }
 
-export default function TaskCard({ 
-  task, 
-  onComplete, 
+export default function TimelineCard({ 
+  timeline, 
   onStart, 
-  onPause, 
+  onComplete, 
   onViewDetails 
-}: TaskCardProps) {
+}: TimelineCardProps) {
   const { colors, spacing, typography, borderRadius, shadows } = useTheme();
 
   const getStatusColor = (status: string) => {
@@ -27,9 +25,9 @@ export default function TaskCard({
         return colors.semantic.success;
       case 'in_progress':
         return colors.semantic.warning;
-      case 'cancelled':
+      case 'delayed':
         return colors.semantic.error;
-      case 'pending':
+      case 'scheduled':
         return colors.text.secondary;
       default:
         return colors.text.secondary;
@@ -42,9 +40,9 @@ export default function TaskCard({
         return <CheckCircle size={16} color={colors.semantic.success} />;
       case 'in_progress':
         return <Play size={16} color={colors.semantic.warning} />;
-      case 'cancelled':
+      case 'delayed':
         return <AlertTriangle size={16} color={colors.semantic.error} />;
-      case 'pending':
+      case 'scheduled':
         return <Clock size={16} color={colors.text.secondary} />;
       default:
         return <Clock size={16} color={colors.text.secondary} />;
@@ -53,7 +51,7 @@ export default function TaskCard({
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent':
+      case 'critical':
         return colors.semantic.error;
       case 'high':
         return colors.semantic.warning;
@@ -68,7 +66,7 @@ export default function TaskCard({
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'urgent':
+      case 'critical':
         return <AlertTriangle size={16} color={colors.semantic.error} />;
       case 'high':
         return <AlertTriangle size={16} color={colors.semantic.warning} />;
@@ -107,14 +105,14 @@ export default function TaskCard({
             fontWeight: typography.weight.bold,
             marginBottom: spacing.xs
           }}>
-            {task.title}
+            {timeline.title}
           </Text>
           <Text style={{
             color: colors.text.secondary,
             fontSize: typography.size.base,
             lineHeight: typography.lineHeight.normal * typography.size.base,
           }}>
-            {task.description}
+            {timeline.description}
           </Text>
         </View>
         
@@ -123,14 +121,14 @@ export default function TaskCard({
           alignItems: 'center',
           gap: spacing.xs
         }}>
-          {getStatusIcon(task.status)}
+          {getStatusIcon(timeline.status)}
           <Text style={{
-            color: getStatusColor(task.status),
+            color: getStatusColor(timeline.status),
             fontSize: typography.size.sm,
             fontWeight: typography.weight.semibold,
             textTransform: 'capitalize'
           }}>
-            {task.status.replace('_', ' ')}
+            {timeline.status.replace('_', ' ')}
           </Text>
         </View>
       </View>
@@ -155,7 +153,7 @@ export default function TaskCard({
             fontSize: typography.size.sm,
             fontWeight: typography.weight.semibold
           }}>
-            {task.progress}%
+            {timeline.progress}%
           </Text>
         </View>
         <View style={{
@@ -166,54 +164,32 @@ export default function TaskCard({
         }}>
           <View style={{
             height: '100%',
-            width: `${task.progress}%`,
-            backgroundColor: getStatusColor(task.status),
+            width: `${timeline.progress}%`,
+            backgroundColor: getStatusColor(timeline.status),
             borderRadius: borderRadius.sm
           }} />
         </View>
       </View>
 
-      {/* Priority and Category */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
-        marginBottom: spacing.md
-      }}>
-        {getPriorityIcon(task.priority) && (
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.xs
-          }}>
-            {getPriorityIcon(task.priority)}
-            <Text style={{
-              color: getPriorityColor(task.priority),
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.semibold,
-              textTransform: 'capitalize'
-            }}>
-              {task.priority}
-            </Text>
-          </View>
-        )}
-        
+      {/* Priority */}
+      {getPriorityIcon(timeline.priority) && (
         <View style={{
-          backgroundColor: colors.surface,
-          paddingHorizontal: spacing.sm,
-          paddingVertical: spacing.xs,
-          borderRadius: borderRadius.sm
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.xs,
+          marginBottom: spacing.sm
         }}>
+          {getPriorityIcon(timeline.priority)}
           <Text style={{
-            color: colors.text.tertiary,
+            color: getPriorityColor(timeline.priority),
             fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium,
+            fontWeight: typography.weight.semibold,
             textTransform: 'capitalize'
           }}>
-            {task.category}
+            {timeline.priority}
           </Text>
         </View>
-      </View>
+      )}
 
       {/* Assigned To */}
       <View style={{
@@ -227,11 +203,11 @@ export default function TaskCard({
           color: colors.text.secondary,
           fontSize: typography.size.sm
         }}>
-          Assigned to: {task.assignedTo}
+          Assigned to: {timeline.assignedTo}
         </Text>
       </View>
 
-      {/* Due Date */}
+      {/* Date Range */}
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -243,46 +219,12 @@ export default function TaskCard({
           color: colors.text.secondary,
           fontSize: typography.size.sm
         }}>
-          Due: {formatDate(task.dueDate)}
+          {formatDate(timeline.startDate)} - {formatDate(timeline.endDate)}
         </Text>
       </View>
 
-      {/* Tags */}
-      {task.tags && task.tags.length > 0 && (
-        <View style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: spacing.xs,
-          marginBottom: spacing.sm
-        }}>
-          {task.tags.map((tag, index) => (
-            <View
-              key={index}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: spacing.xs,
-                paddingHorizontal: spacing.sm,
-                paddingVertical: spacing.xs,
-                backgroundColor: colors.brand.primaryLight,
-                borderRadius: borderRadius.sm
-              }}
-            >
-              <Tag size={12} color={colors.brand.primary} />
-              <Text style={{
-                color: colors.brand.primary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.semibold
-              }}>
-                {tag}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
       {/* Dependencies */}
-      {task.dependencies && task.dependencies.length > 0 && (
+      {timeline.dependencies && timeline.dependencies.length > 0 && (
         <View style={{
           backgroundColor: colors.surface,
           padding: spacing.md,
@@ -301,7 +243,7 @@ export default function TaskCard({
             color: colors.text.primary,
             fontSize: typography.size.sm
           }}>
-            {task.dependencies.join(', ')}
+            {timeline.dependencies.join(', ')}
           </Text>
         </View>
       )}
@@ -313,7 +255,7 @@ export default function TaskCard({
         justifyContent: 'flex-end'
       }}>
         <TouchableOpacity
-          onPress={() => onViewDetails?.(task.id)}
+          onPress={() => onViewDetails?.(timeline.id)}
           style={{
             paddingHorizontal: spacing.md,
             paddingVertical: spacing.sm,
@@ -332,9 +274,9 @@ export default function TaskCard({
           </Text>
         </TouchableOpacity>
 
-        {task.status === 'pending' && (
+        {timeline.status === 'scheduled' && (
           <TouchableOpacity
-            onPress={() => onStart?.(task.id)}
+            onPress={() => onStart?.(timeline.id)}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -357,35 +299,9 @@ export default function TaskCard({
           </TouchableOpacity>
         )}
 
-        {task.status === 'in_progress' && (
+        {timeline.status === 'in_progress' && (
           <TouchableOpacity
-            onPress={() => onPause?.(task.id)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.xs,
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.sm,
-              backgroundColor: colors.semantic.warningLight,
-              borderRadius: borderRadius.lg,
-              borderWidth: 1,
-              borderColor: colors.semantic.warning
-            }}
-          >
-            <Pause size={16} color={colors.semantic.warning} />
-            <Text style={{
-              color: colors.semantic.warning,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.semibold
-            }}>
-              Pause
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {task.status === 'in_progress' && (
-          <TouchableOpacity
-            onPress={() => onComplete?.(task.id)}
+            onPress={() => onComplete?.(timeline.id)}
             style={{
               flexDirection: 'row',
               alignItems: 'center',

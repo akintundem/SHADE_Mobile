@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Star, MapPin, Users, Heart } from 'lucide-react-native';
-import { useTheme } from '../../theme/ThemeProvider';
-import { VenueCardDTO } from '../../types';
+import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { VenueCardDTO } from '../../../../shared/types';
 
 interface VenueCardProps {
   venue: VenueCardDTO;
