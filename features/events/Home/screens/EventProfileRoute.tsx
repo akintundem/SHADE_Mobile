@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground, Animated, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar } from 'lucide-react-native';
 import { useTheme } from '../../../../shared/theme/ThemeProvider';
@@ -83,6 +83,7 @@ const Pill = ({ label, color }: { label: string; color?: string }) => {
 
 export const EventProfileRoute = () => {
   const { colors, spacing, typography, borderRadius, shadows, brand } = useTheme();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const route = useRoute();
   const params = (route.params || {}) as Params;
@@ -277,14 +278,18 @@ export const EventProfileRoute = () => {
     return `${current}/${event.capacity} attendees`;
   }, [event]);
 
+  const bottomGutter = Math.max(spacing.lg, Math.min(insets.bottom, spacing.xl));
+
   if (!eventId) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-        <EmptyState
-          title="Event not found"
-          subtitle="We could not determine which event to open."
-          action={{ label: 'Go back', onPress: () => navigation.goBack() }}
-        />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+        <View style={{ flex: 1, paddingBottom: bottomGutter }}>
+          <EmptyState
+            title="Event not found"
+            subtitle="We could not determine which event to open."
+            action={{ label: 'Go back', onPress: () => navigation.goBack() }}
+          />
+        </View>
       </SafeAreaView>
     );
   }
@@ -337,17 +342,20 @@ export const EventProfileRoute = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }} edges={['top']}>
 
       {showEmpty ? (
-        <EmptyState
-          title="Unable to load event"
-          subtitle={error || 'Something went wrong while loading this event.'}
-          action={{ label: 'Try again', onPress: fetchEvent }}
-        />
+        <View style={{ flex: 1, paddingBottom: bottomGutter }}>
+          <EmptyState
+            title="Unable to load event"
+            subtitle={error || 'Something went wrong while loading this event.'}
+            action={{ label: 'Try again', onPress: fetchEvent }}
+          />
+        </View>
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: bottomGutter }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -357,7 +365,7 @@ export const EventProfileRoute = () => {
             />
           }
         >
-          <View style={{ paddingBottom: spacing['4xl'] }}>
+          <View>
             {/* Header with Carousel (Image + Map) */}
             <View style={{ position: 'relative', height: 320, overflow: 'hidden' }}>
               {staticMapUrl ? (
