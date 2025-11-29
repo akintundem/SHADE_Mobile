@@ -6,7 +6,7 @@ import { ArrowLeft, Users, CalendarClock, Unlock, Lock, Plus, Minus, RefreshCcw 
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { eventService } from '../../../../../shared/services/eventService';
 import { EventCapacityResponse } from '../../../../../shared/types';
-import { DateTimePickerModal } from '../../../../../common/DateTimePickerModal';
+import { DateTimePickerModal } from '../../../../../common/datetime';
 import { dateUtils } from '../../../../../shared/utils/helpers';
 import { DATE_FORMAT } from '../../../../../shared/utils/constants';
 

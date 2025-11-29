@@ -4,7 +4,7 @@ import { Sparkles, Upload, Calendar, MapPin, Users, DollarSign, Tag, Clock, Edit
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from '../../../../../shared/theme/ThemeProvider';
 import { EventType } from '../../../../../shared/types';
-import { formatDisplayDateTime } from '../../utils/dateFormatting';
+import { formatDisplayDateTime } from '../../../../../common/datetime';
 import devConfig from '../../../../../dev-config.json';
 
 type Props = {
