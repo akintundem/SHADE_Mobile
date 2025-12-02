@@ -15,7 +15,7 @@ type Props = {
 
 export default function TimelineManagementScreen({ eventId, onBack, onAddTask }: Props) {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
-  const [sortBy, setSortBy] = useState<'due_date' | 'priority' | 'status'>('due_date');
+  const [sortBy] = useState<'due_date' | 'priority' | 'status'>('due_date');
   
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
   const { error, handleError, hideError } = useErrorHandler();

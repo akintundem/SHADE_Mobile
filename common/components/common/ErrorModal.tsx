@@ -1,5 +1,4 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Modal, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { X, AlertTriangle, RefreshCw } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useI18n } from '../../i18n/I18nProvider';

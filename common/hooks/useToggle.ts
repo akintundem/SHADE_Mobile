@@ -13,7 +13,3 @@ export function useToggle(initialValue: boolean = false): [boolean, () => void, 
 
   return [value, toggle, setToggle];
 }
-
-export function useBoolean(initialValue: boolean = false) {
-  return useToggle(initialValue);
-}

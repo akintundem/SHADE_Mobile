@@ -1,7 +1,6 @@
-import React, { useState, useRef } from 'react';
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { Check, AlertCircle, Loader } from 'lucide-react-native';
 import SmartInput from './SmartInput';
 import KeyboardAwareContainer from './KeyboardAwareContainer';
 import Button from './Button';
@@ -49,7 +48,6 @@ export default function EnhancedForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const formRef = useRef<View>(null);
 
   // Handle field change
   const handleFieldChange = (fieldName: string, value: string) => {

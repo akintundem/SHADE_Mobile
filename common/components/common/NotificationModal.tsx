@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
 import { X, AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -353,7 +353,4 @@ export default function NotificationModal({
     </Modal>
   );
 }
-
-
-
 

@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
-import { ScrollView, View, Text, Image, RefreshControl, TouchableOpacity, Linking, ImageBackground, Animated, Dimensions } from 'react-native';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { ScrollView, View, Text, RefreshControl, TouchableOpacity, ImageBackground, Animated, Dimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, MapPin, Globe, Hash, ShieldCheck, Users, UsersRound, BarChart3, Wallet, Store, Gift, ClipboardCheck, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar, Stars } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, Hash, Users, UsersRound, Wallet, Store, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar, Stars } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../common/components/LoadingStates';
-import { Event, EventStatus, EventData, isFullEventResponse, isFeedResponse } from '../../types/events';
+import { Event, EventData, isFullEventResponse, isFeedResponse } from '../../types/events';
 import { eventService } from '../../services/eventService';
-import { dateUtils, stringUtils } from '../../../../common/utils/helpers';
+import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 import BudgetScreen from '../components/BudgetScreen';
@@ -20,67 +20,9 @@ import { shareEvent } from '../../../../common/utils/shareUtils';
 import CollaborationScreen from '../components/CollaborationScreen';
 import EnhancedChatScreen from '../../../agent/components/chat/EnhancedChatScreen';
 
-type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
+type Params = { eventId?: string; title?: string; imageUrl?: string };
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop';
-
-const STATUS_COLORS: Record<EventStatus, string> = {
-  [EventStatus.DRAFT]: '#6B7280',
-  [EventStatus.PLANNING]: '#0EA5E9',
-  [EventStatus.PUBLISHED]: '#0EA5E9',
-  [EventStatus.REGISTRATION_OPEN]: '#34D399',
-  [EventStatus.REGISTRATION_CLOSED]: '#F59E0B',
-  [EventStatus.IN_PROGRESS]: '#22C55E',
-  [EventStatus.COMPLETED]: '#6366F1',
-  [EventStatus.CANCELLED]: '#EF4444',
-  [EventStatus.POSTPONED]: '#F97316',
-};
-
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => {
-  const { colors, spacing, typography } = useTheme();
-  return (
-    <View style={{ marginTop: spacing['2xl'] }}>
-      <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold, fontSize: typography.size.lg }}>
-        {title}
-      </Text>
-      <View style={{ marginTop: spacing.md, gap: spacing.sm }}>{children}</View>
-    </View>
-  );
-};
-
-const InfoRow = ({ icon: Icon, label, value }: { icon: any; label: string; value: string | undefined | null }) => {
-  const { colors, spacing, typography } = useTheme();
-  if (!value) return null;
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-      <Icon size={18} color={colors.text.secondary} />
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs, fontWeight: typography.weight.medium }}>
-          {label}
-        </Text>
-        <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, marginTop: 2 }}>{value}</Text>
-      </View>
-    </View>
-  );
-};
-
-const Pill = ({ label, color }: { label: string; color?: string }) => {
-  const { spacing, typography } = useTheme();
-  return (
-    <View
-      style={{
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.xs,
-        borderRadius: 999,
-        backgroundColor: color ?? '#11182710',
-      }}
-    >
-      <Text style={{ color: color ? '#FFFFFF' : '#111827', fontWeight: typography.weight.semibold, fontSize: typography.size.xs }}>
-        {label}
-      </Text>
-    </View>
-  );
-};
 
 export const EventProfileRoute = () => {
   const { colors, spacing, typography, borderRadius, shadows, brand } = useTheme();
@@ -95,11 +37,10 @@ export const EventProfileRoute = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeScreen, setActiveScreen] = useState<'details' | 'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | 'collaboration' | null>(null);
+  const [activeScreen, setActiveScreen] = useState<'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | 'collaboration' | null>(null);
   const [isFeedScope, setIsFeedScope] = useState(false);
   const [feedEventName, setFeedEventName] = useState<string>('');
   const [carouselIndex, setCarouselIndex] = useState(0);
-  const [mapImageError, setMapImageError] = useState(false);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const carouselTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -180,7 +121,6 @@ export const EventProfileRoute = () => {
       setError(null);
       setIsFeedScope(false); // Reset when fetching new event
       setCarouselIndex(0); // Reset carousel to first slide
-      setMapImageError(false); // Reset map image error
       const data = await eventService.getEvent(eventId);
       setEventData(data);
       
@@ -257,12 +197,6 @@ export const EventProfileRoute = () => {
     setRefreshing(false);
   }, [eventId, fetchEvent]);
 
-  const status = event?.eventStatus ?? params.status;
-  const statusLabel = status
-    ? stringUtils.capitalize(status.replace(/_/g, ' ').toLowerCase())
-    : undefined;
-  const statusColor = status ? STATUS_COLORS[status] : undefined;
-
   const formattedStart = event?.startDateTime
     ? dateUtils.formatDate(event.startDateTime, DATE_FORMATS.DISPLAY_DATETIME)
     : undefined;
@@ -272,13 +206,6 @@ export const EventProfileRoute = () => {
   const formattedRegistration = event?.registrationDeadline
     ? dateUtils.formatDate(event.registrationDeadline, DATE_FORMATS.DISPLAY_DATETIME)
     : undefined;
-
-  const capacityText = useMemo(() => {
-    if (!event) return undefined;
-    if (event.capacity === null || event.capacity === undefined) return 'Unlimited';
-    const current = event.currentAttendeeCount ?? 0;
-    return `${current}/${event.capacity} attendees`;
-  }, [event]);
 
   const bottomGutter = Math.max(spacing.lg, Math.min(insets.bottom, spacing.xl));
 

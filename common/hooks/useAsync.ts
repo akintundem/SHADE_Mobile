@@ -109,19 +109,3 @@ export function useAsync<T = any>(
 
   return [state, actions];
 }
-
-// Specialized hooks for common patterns
-export function useAsyncCallback<T = any>(
-  asyncFunction: (...args: any[]) => Promise<T>,
-  options: UseAsyncOptions = {}
-) {
-  return useAsync(asyncFunction, { ...options, immediate: false });
-}
-
-export function useAsyncEffect<T = any>(
-  asyncFunction: (...args: any[]) => Promise<T>,
-  deps: any[] = [],
-  options: UseAsyncOptions = {}
-) {
-  return useAsync(asyncFunction, { ...options, immediate: true });
-}

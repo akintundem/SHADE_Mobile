@@ -18,7 +18,7 @@ export default function CommunicationScreen({ eventId, onBack, onSendMessage }: 
   const [filterStatus, setFilterStatus] = useState<'all' | 'sent' | 'draft' | 'scheduled'>('all');
   
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
-  const { error, handleError, hideError } = useErrorHandler();
+  const { error, hideError } = useErrorHandler();
 
   // Sample communications data
   const communications: CommunicationDTO[] = [

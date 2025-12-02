@@ -12,7 +12,7 @@ import {
   Dimensions
 } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { X, Check, AlertCircle, Eye, EyeOff } from 'lucide-react-native';
+import { Check, AlertCircle, Eye, EyeOff } from 'lucide-react-native';
 
 type Suggestion = {
   id: string;

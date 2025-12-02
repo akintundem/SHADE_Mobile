@@ -15,7 +15,7 @@ type Props = {
 export default function AttendeeManagementScreen({ eventId, onBack, onInviteAttendees }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'status'>('name');
+  const [sortBy] = useState<'name' | 'date' | 'status'>('name');
   
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
   const { t } = useI18n();

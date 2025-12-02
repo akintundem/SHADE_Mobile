@@ -1,10 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Search, CheckCircle, XCircle, Clock, Mail, Phone, Calendar, Filter, TrendingUp, Sparkles, Users } from 'lucide-react-native';
+import { ArrowLeft, Search, Mail, Phone } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { dateUtils } from '../../../../common/utils/helpers';
-import { DATE_FORMATS } from '../../../../common/utils/constants';
 
 type Props = {
   eventId: string;

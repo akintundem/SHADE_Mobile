@@ -47,27 +47,3 @@ export function useLocalStorage<T>(
 
   return [storedValue, setValue, removeValue];
 }
-
-export function useAsyncStorage<T>(
-  key: string,
-  initialValue: T
-): {
-  value: T;
-  setValue: (value: T | ((prev: T) => T)) => Promise<void>;
-  removeValue: () => Promise<void>;
-  isLoading: boolean;
-} {
-  const [value, setValue, removeValue] = useLocalStorage(key, initialValue);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(false);
-  }, [value]);
-
-  return {
-    value,
-    setValue,
-    removeValue,
-    isLoading,
-  };
-}

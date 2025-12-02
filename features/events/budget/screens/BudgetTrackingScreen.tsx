@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
-import { ArrowLeft, Plus, DollarSign, Filter, Download } from 'lucide-react-native';
+import { ArrowLeft, Plus, Filter, Download } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { BudgetDTO, ExpenseDTO } from '../../types/events';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
@@ -14,10 +14,10 @@ type Props = {
 
 export default function BudgetTrackingScreen({ eventId, onBack, onAddExpense }: Props) {
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'category'>('date');
+  const [sortBy] = useState<'date' | 'amount' | 'category'>('date');
   
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
-  const { error, handleError, hideError } = useErrorHandler();
+  const { error, hideError } = useErrorHandler();
 
   // Sample budget data
   const budget: BudgetDTO = {

@@ -220,30 +220,3 @@ export class GestureHandler {
   }
 }
 
-// HOC for adding swipe-to-dismiss functionality
-export const withSwipeToDismiss = <P extends object>(
-  Component: React.ComponentType<P>,
-  direction: 'left' | 'right' = 'right'
-) => {
-  return React.forwardRef<any, P & { onDismiss: () => void }>((props, ref) => {
-    const { onDismiss, ...restProps } = props;
-    const gesture = GestureHandler.createSwipeToDismiss(onDismiss, direction);
-
-    return (
-      <PanGestureHandler
-        onGestureEvent={gesture.onGestureEvent}
-        onHandlerStateChange={gesture.onHandlerStateChange}
-      >
-        <Animated.View
-          ref={ref}
-          style={{
-            transform: [{ translateX: gesture.translateX }],
-            opacity: gesture.opacity,
-          }}
-        >
-          <Component {...(restProps as P)} />
-        </Animated.View>
-      </PanGestureHandler>
-    );
-  });
-};

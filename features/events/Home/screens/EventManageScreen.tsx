@@ -22,7 +22,7 @@ type Props = {
 };
 
 export default function EventManageScreen({ route }: Props) {
-  const { id, title, date, location, imageUrl, initialView } = route.params || {};
+  const { id, title, initialView } = route.params || {};
   const { colors, spacing, borderRadius, typography, brand, shadows } = useTheme();
   const navigation = useNavigation<any>();
   const [taskView, setTaskView] = useState<'list' | 'timeline'>(initialView || 'list');

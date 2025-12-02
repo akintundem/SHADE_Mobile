@@ -91,9 +91,3 @@ export const formatDisplayDateTime = (dateStr?: string, timeStr?: string): strin
 
   return null;
 };
-
-export const formatDisplayTime = (timeStr?: string): string | null => {
-  const time = parseTimeInput(timeStr);
-  if (!time) return timeStr || null;
-  return formatDisplayTimeFromParts(time);
-};

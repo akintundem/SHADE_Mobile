@@ -1,8 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, Text, Animated, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface SkeletonProps {
   width?: number | string;
