@@ -10,6 +10,9 @@ import {
   EventUserType 
 } from './enums';
 
+// Re-export enums for convenience
+export { EventStatus, EventType, EventUserType, EventNotificationChannel, EventNotificationPriority };
+
 export type Event = {
   id: string;
   name: string;
