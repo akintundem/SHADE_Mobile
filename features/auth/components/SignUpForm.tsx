@@ -197,7 +197,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             color: colors.semantic.success,
             marginTop: spacing.xs,
           }}>
-            ✓ Passwords match
+            Passwords match
           </Text>
         )}
       </View>
@@ -233,7 +233,6 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
                 fontWeight: typography.weight.bold,
               }}
             >
-              ✓
             </Text>
           )}
         </View>
@@ -281,14 +280,6 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
       <Button
         onPress={async () => {
           if (!canCreate) {
-            console.warn('⚠️ Cannot create account: validation failed', {
-              hasEmail: !!email,
-              hasPassword: !!password,
-              passwordsMatch: password === confirm,
-              passwordLength: password.length,
-              passwordValid: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password),
-              acceptTerms,
-            });
             return;
           }
 
@@ -297,8 +288,6 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             setError(null);
             setNotification(null);
             
-            console.log('📝 Attempting registration...', { email: email.trim() });
-            
             const registerRequest: RegisterRequest = {
               email: email.trim(),
               password,
@@ -306,8 +295,6 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             };
             
             const registerResponse = await authService.registerNew(registerRequest);
-            
-            console.log('✅ Registration response received:', registerResponse);
             
             // Registration successful - trigger success callback
             onSignedUp?.({
@@ -321,8 +308,6 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
               },
             });
           } catch (e: any) {
-            console.error('❌ Registration error:', e);
-            
             // Handle specific error codes from API
             let errorMessage = e?.message || 'Registration failed';
             let errorTitle = 'Registration Failed';
@@ -429,7 +414,7 @@ const RequirementItem = ({
         fontSize: typography.size.xs,
         color: met ? colors.semantic.success : colors.text.secondary,
       }}>
-        {met ? '✓' : '○'}
+        {met ? '' : ''}
       </Text>
       <Text style={{
         fontSize: typography.size.xs,

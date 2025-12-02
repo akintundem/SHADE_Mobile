@@ -27,7 +27,6 @@ const ManageLifecycleScreen = () => {
       setDuplicateName('');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to duplicate event.');
-      console.warn(error);
     } finally {
       setBusy(false);
     }
@@ -40,7 +39,6 @@ const ManageLifecycleScreen = () => {
       Alert.alert('Archived', 'Event archived successfully.');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to archive event.');
-      console.warn(error);
     } finally {
       setBusy(false);
     }
@@ -53,7 +51,6 @@ const ManageLifecycleScreen = () => {
       Alert.alert('Restored', 'Event restored successfully.');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to restore event.');
-      console.warn(error);
     } finally {
       setBusy(false);
     }

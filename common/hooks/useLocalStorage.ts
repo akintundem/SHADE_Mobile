@@ -17,7 +17,7 @@ export function useLocalStorage<T>(
           setStoredValue(JSON.parse(item));
         }
       } catch (error) {
-        console.error(`Error loading ${key} from storage:`, error);
+        // Error loading from storage
       } finally {
         setIsLoading(false);
       }
@@ -32,7 +32,7 @@ export function useLocalStorage<T>(
       setStoredValue(valueToStore);
       await AsyncStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
-      console.error(`Error saving ${key} to storage:`, error);
+      // Error saving to storage
     }
   }, [key, storedValue]);
 
@@ -41,7 +41,7 @@ export function useLocalStorage<T>(
       setStoredValue(initialValue);
       await AsyncStorage.removeItem(key);
     } catch (error) {
-      console.error(`Error removing ${key} from storage:`, error);
+      // Error removing from storage
     }
   }, [key, initialValue]);
 

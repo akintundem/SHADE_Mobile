@@ -106,8 +106,6 @@ export default function CollaborationScreen({ eventId, onBack }: Props) {
   };
 
   const handleAddCollaborator = async () => {
-    console.log('handleAddCollaborator called', { selectedUser, inviteEmail, selectedRole });
-
     const email = selectedUser?.email || inviteEmail.trim();
 
     if (!email) {
@@ -131,9 +129,7 @@ export default function CollaborationScreen({ eventId, onBack }: Props) {
         sendInvitation: true,
       };
 
-      console.log('Adding collaborator with request:', request);
       const newCollaborator = await eventService.addEventCollaborator(eventId, request);
-      console.log('Collaborator added successfully:', newCollaborator);
 
       setCollaborators(prev => [newCollaborator, ...prev]);
       setShowAddModal(false);
@@ -143,7 +139,6 @@ export default function CollaborationScreen({ eventId, onBack }: Props) {
       setSearchResults([]);
       Alert.alert('Success', 'Collaborator added successfully');
     } catch (err: any) {
-      console.error('Error adding collaborator:', err);
       const message = err?.response?.data?.message || err?.message || 'Failed to add collaborator';
       Alert.alert('Error', message);
       ErrorHandler.handle(err, 'addEventCollaborator');

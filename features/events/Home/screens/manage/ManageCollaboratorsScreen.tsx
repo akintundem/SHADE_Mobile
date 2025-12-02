@@ -29,7 +29,6 @@ const ManageCollaboratorsScreen = () => {
       setCollaborators(data);
     } catch (error) {
       Alert.alert('Error', 'Unable to load collaborators.');
-      console.warn(error);
     }
   }, [params.eventId]);
 
@@ -64,7 +63,6 @@ const ManageCollaboratorsScreen = () => {
       Alert.alert('Success', 'Collaborator added.');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to add collaborator.');
-      console.warn(error);
     } finally {
       setBusy(false);
     }
@@ -78,7 +76,6 @@ const ManageCollaboratorsScreen = () => {
         setCollaborators(current => current.filter(item => item.collaboratorId !== id));
       } catch (error) {
         Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to remove collaborator.');
-        console.warn(error);
       } finally {
         setBusy(false);
       }

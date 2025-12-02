@@ -158,9 +158,7 @@ export function LocationStep({
 
         setSuggestions(mapped);
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          console.warn('Location search error', error);
-        }
+        // Location search error
       } finally {
         setIsSearching(false);
       }

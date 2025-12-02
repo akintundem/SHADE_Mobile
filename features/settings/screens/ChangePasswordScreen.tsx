@@ -327,7 +327,7 @@ function RequirementItem({
           color: met ? colors.semantic.success : colors.text.secondary,
         }}
       >
-        {met ? '✓' : '○'} {text}
+        {text}
       </Text>
     </View>
   );

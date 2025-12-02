@@ -86,20 +86,12 @@ export function DateTimePickerModal({
   const handleDaySelect = (day: number) => {
     const newDate = new Date(currentYear, currentMonth, day);
     setSelectedDate(newDate);
-    console.log('Day selected:', day, 'New date:', newDate);
   };
 
   const handleConfirm = () => {
     const hour24 = isAM 
       ? (selectedHour === 12 ? 0 : selectedHour)
       : (selectedHour === 12 ? 12 : selectedHour + 12);
-    
-    console.log('Confirming:', {
-      date: selectedDate,
-      hour24,
-      minute: selectedMinute,
-      isAM
-    });
     
     onConfirm(selectedDate, { hour: hour24, minute: selectedMinute });
     onClose();

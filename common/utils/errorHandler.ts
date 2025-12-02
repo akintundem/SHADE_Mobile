@@ -9,8 +9,6 @@ export interface ApiError {
 
 export class ErrorHandler {
   static handle(error: any, context?: string): void {
-    console.error(`Error in ${context || 'unknown context'}:`, error);
-    
     const apiError = this.parseError(error);
     
     // Don't show alerts for network errors in background operations
@@ -154,7 +152,6 @@ export class ErrorHandler {
         
         // Wait before retrying
         const delay = this.getRetryDelay(attempt);
-        console.log(`Retrying ${context || 'operation'} in ${delay}ms (attempt ${attempt + 1}/${maxAttempts})`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }

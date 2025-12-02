@@ -188,7 +188,6 @@ export const eventService = {
       if (replayHeader === 'true') {
         // Event already exists, return the existing event
         // The response should contain the existing event data
-        console.log('[EventService] Idempotency replay detected - returning existing event');
       }
 
       return res.data;
@@ -796,7 +795,6 @@ export const eventService = {
 
       throw new Error('No upload URL provided in presigned response');
     } catch (error) {
-      console.error('Cover image upload error:', error);
       ErrorHandler.handle(error, 'uploadCoverImage');
       throw error;
     }

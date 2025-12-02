@@ -79,7 +79,7 @@ export const sampleVenues: VenueCardDTO[] = [
 ];
 
 export const eventTypes = [
-    { id: 'wedding', label: 'Wedding', icon: '⛪', color: 'primary' },
-    { id: 'birthday', label: 'Birthday', icon: '🎂', color: 'secondary' },
-    { id: 'corporate', label: 'Corp', icon: '💼', color: 'primary' },
+    { id: 'wedding', label: 'Wedding', icon: '', color: 'primary' },
+    { id: 'birthday', label: 'Birthday', icon: '', color: 'secondary' },
+    { id: 'corporate', label: 'Corp', icon: '', color: 'primary' },
 ];

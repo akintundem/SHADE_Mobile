@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { Sparkles, AlertTriangle, Lightbulb } from 'lucide-react-native';
@@ -56,26 +56,6 @@ export const AgentBanner = ({
 
   const semanticColors = getSemanticColors();
 
-  // Subtle pulse on the icon to make it feel alive
-  const pulse = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1.15,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
 
   return (
     <View
@@ -97,20 +77,6 @@ export const AgentBanner = ({
            marginBottom: 20
         }}
       >
-        {/* <Animated.View style={{ transform: [{ scale: pulse }] }}>
-          <View style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            backgroundColor: semanticColors.iconBackground,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1.5,
-            borderColor: semanticColors.borderColor,
-          }}>
-            <semanticColors.Icon size={22} color={semanticColors.iconColor} strokeWidth={2.5} />
-          </View>
-        </Animated.View> */}
         <View style={{ flex: 1, marginBottom: 20 }}>
           {/* Suggestions list */}
           <View style={{ gap: 12 }}>

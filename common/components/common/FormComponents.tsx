@@ -223,7 +223,6 @@ export function ToggleRow({
       }}>
         {value && (
           <Text style={{ color: colors.text.inverse, fontSize: 12, fontWeight: 'bold' }}>
-            ✓
           </Text>
         )}
       </View>

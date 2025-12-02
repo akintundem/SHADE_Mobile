@@ -41,7 +41,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onVenueSelect
                         justifyContent: 'center',
                         marginRight: spacing.sm,
                     }}>
-                        <Text style={{ fontSize: 16 }}>🎉</Text>
                     </View>
                     <View style={{
                         flex: 1,
@@ -103,9 +102,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, onVenueSelect
                         borderRadius: 8,
                         backgroundColor: colors.surfaceElevated,
                     }} />
-                ) : (
-                    <Text style={{ fontSize: 16 }}>{message.isError ? '⚠️' : '🎉'}</Text>
-                )}
+                ) : null}
             </View>
             <View style={{
                 maxWidth: screenWidth * 0.7,

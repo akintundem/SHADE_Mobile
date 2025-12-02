@@ -114,7 +114,6 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
                 fontWeight: typography.weight.bold,
               }}
             >
-              ✓
             </Text>
           )}
         </View>

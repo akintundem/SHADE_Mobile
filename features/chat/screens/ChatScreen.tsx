@@ -37,7 +37,7 @@ export default function ChatScreen({ onClose }: { onClose?: () => void }) {
     });
   }, []);
 
-  const { messages, isLoading, sendMessage, sendVenueInquiry } = useChat({
+  const { messages, sendMessage, sendVenueInquiry } = useChat({
     eventId,
     userId
   });
@@ -294,7 +294,6 @@ export default function ChatScreen({ onClose }: { onClose?: () => void }) {
               justifyContent: 'center',
               marginRight: spacing.sm,
             }}>
-              <Text style={{ fontSize: 18 }}>🎉</Text>
             </View>
             <View style={{ alignItems: 'center' }}>
               <Text style={{

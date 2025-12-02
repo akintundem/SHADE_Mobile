@@ -201,7 +201,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           };
           await eventService.uploadCoverImage(createdEvent.id, uploadRequest, coverImage);
         } catch (imageError) {
-          console.warn('Failed to upload cover image:', imageError);
           Alert.alert(
             t('ImageUploadFailed'),
             t('ImageUploadFailedMessage'),

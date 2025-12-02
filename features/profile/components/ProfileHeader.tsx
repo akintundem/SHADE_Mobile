@@ -6,14 +6,12 @@ import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
   user: User;
-  onOpenMenu?: () => void;
-  onCreate?: () => void;
   onEditProfile?: () => void;
   onOpenSettings?: () => void;
 };
 
-export const ProfileHeader = ({ user, onOpenMenu, onCreate, onEditProfile, onOpenSettings }: Props) => {
-  const { colors, brand, typography, spacing, shadows, borderRadius } = useTheme();
+export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) => {
+  const { colors, brand, typography, spacing, borderRadius } = useTheme();
   
   return (
     <View style={{ backgroundColor: colors.background }}>

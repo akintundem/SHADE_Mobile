@@ -9,7 +9,7 @@ import EditProfileScreen from './EditProfileScreen';
 import { User } from '../../auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 
-type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void; onOpenCompose?: () => void };
+type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void };
 
 export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
   const { colors, brand, typography, spacing, borderRadius } = useTheme();

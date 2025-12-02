@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { DollarSign, CheckCircle, XCircle, Clock, User, Calendar, Receipt } from 'lucide-react-native';
+import { CheckCircle, XCircle, Clock, User, Calendar, Receipt } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { BudgetCardDTO } from '../../types/assistant';
 

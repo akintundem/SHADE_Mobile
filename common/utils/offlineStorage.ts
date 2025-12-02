@@ -5,7 +5,7 @@ let NetInfo: any = null;
 try {
   NetInfo = require('@react-native-community/netinfo');
 } catch (error) {
-  console.warn('NetInfo not available:', error);
+  // NetInfo not available
 }
 
 export interface OfflineAction {
@@ -48,7 +48,7 @@ export class OfflineStorage {
       actions.push(newAction);
       await AsyncStorage.setItem(this.OFFLINE_ACTIONS_KEY, JSON.stringify(actions));
     } catch (error) {
-      console.error('Failed to store offline action:', error);
+      // Failed to store offline action
     }
   }
 
@@ -58,7 +58,6 @@ export class OfflineStorage {
       const actionsJson = await AsyncStorage.getItem(this.OFFLINE_ACTIONS_KEY);
       return actionsJson ? JSON.parse(actionsJson) : [];
     } catch (error) {
-      console.error('Failed to get offline actions:', error);
       return [];
     }
   }
@@ -70,7 +69,7 @@ export class OfflineStorage {
       const filteredActions = actions.filter(action => action.id !== actionId);
       await AsyncStorage.setItem(this.OFFLINE_ACTIONS_KEY, JSON.stringify(filteredActions));
     } catch (error) {
-      console.error('Failed to remove offline action:', error);
+      // Failed to remove offline action
     }
   }
 
@@ -84,7 +83,7 @@ export class OfflineStorage {
         await AsyncStorage.setItem(this.OFFLINE_ACTIONS_KEY, JSON.stringify(actions));
       }
     } catch (error) {
-      console.error('Failed to update offline action retry:', error);
+      // Failed to update offline action retry
     }
   }
 
@@ -93,7 +92,7 @@ export class OfflineStorage {
     try {
       await AsyncStorage.removeItem(this.OFFLINE_ACTIONS_KEY);
     } catch (error) {
-      console.error('Failed to clear offline actions:', error);
+      // Failed to clear offline actions
     }
   }
 
@@ -109,7 +108,7 @@ export class OfflineStorage {
         [expiryKey, expiry.toString()],
       ]);
     } catch (error) {
-      console.error('Failed to set cache:', error);
+      // Failed to set cache
     }
   }
 
@@ -134,7 +133,6 @@ export class OfflineStorage {
       
       return cachedData[1] ? JSON.parse(cachedData[1]) : null;
     } catch (error) {
-      console.error('Failed to get cache:', error);
       return null;
     }
   }
@@ -146,7 +144,7 @@ export class OfflineStorage {
       const expiryKey = `${this.CACHE_EXPIRY_PREFIX}${key}`;
       await AsyncStorage.multiRemove([cacheKey, expiryKey]);
     } catch (error) {
-      console.error('Failed to remove cache:', error);
+      // Failed to remove cache
     }
   }
 
@@ -159,7 +157,7 @@ export class OfflineStorage {
       );
       await AsyncStorage.multiRemove(cacheKeys);
     } catch (error) {
-      console.error('Failed to clear cache:', error);
+      // Failed to clear cache
     }
   }
 
@@ -179,7 +177,6 @@ export class OfflineStorage {
       
       return totalSize;
     } catch (error) {
-      console.error('Failed to get cache size:', error);
       return 0;
     }
   }
@@ -203,7 +200,7 @@ export class OfflineStorage {
         await AsyncStorage.multiRemove(expiredKeys);
       }
     } catch (error) {
-      console.error('Failed to cleanup expired cache:', error);
+      // Failed to cleanup expired cache
     }
   }
 }

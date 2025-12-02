@@ -93,13 +93,13 @@ export const getEventTypeColorHex = (type: EventType): string => {
  */
 export const getEventTypeIcon = (type: EventType): string => {
   switch (type) {
-    case 'concert': return '🎵';
-    case 'festival': return '🎪';
-    case 'trip': return '✈️';
-    case 'party': return '🎉';
-    case 'conference': return '💼';
-    case 'exhibition': return '🎨';
-    default: return '📍';
+    case 'concert': return '';
+    case 'festival': return '';
+    case 'trip': return '';
+    case 'party': return '';
+    case 'conference': return '';
+    case 'exhibition': return '';
+    default: return '';
   }
 };
 

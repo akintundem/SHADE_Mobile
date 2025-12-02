@@ -35,7 +35,6 @@ export class GeolocationService {
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       } catch (err) {
-        console.warn('Permission request error:', err);
         return false;
       }
     }

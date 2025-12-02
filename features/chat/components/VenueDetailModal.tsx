@@ -13,7 +13,7 @@ import { useTheme } from '../../../common/theme/ThemeProvider';
 import { MapPin, Users, Heart, Mail, Star, X } from 'lucide-react-native';
 import { VenueCardDTO } from '../../../agent/types/assistant';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 interface VenueDetailModalProps {
   visible: boolean;
@@ -51,7 +51,7 @@ export default function VenueDetailModal({
         <View style={{
           width: '100%',
           maxWidth: screenWidth - (spacing.lg * 2),
-          maxHeight: screenHeight * 0.9,
+          maxHeight: '90%',
           backgroundColor: colors.surfaceElevated,
           borderRadius: borderRadius.xl,
           ...shadows.xl,

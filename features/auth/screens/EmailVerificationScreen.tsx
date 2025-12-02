@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Mail, CheckCircle, AlertCircle, Loader } from 'lucide-react-native';
+import { Mail, CheckCircle, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../services/authService';
 import Button from '../../../common/components/ui/Button';
@@ -118,7 +118,7 @@ export default function EmailVerificationScreen({
                   alignItems: 'center',
                 }}
               >
-                <Loader size={48} color={brand.primary} />
+                <Text style={{ fontSize: 32 }}>⏳</Text>
               </View>
               <Text
                 style={{

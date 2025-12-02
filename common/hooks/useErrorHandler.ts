@@ -20,8 +20,6 @@ export function useErrorHandler(): ErrorHandler {
   }, []);
 
   const handleError = useCallback((err: unknown, context?: string) => {
-    console.error('Error occurred:', err);
-    
     let errorInfo: ErrorInfo;
     
     if (err instanceof Error) {

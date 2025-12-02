@@ -120,7 +120,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('Error parsing deep link:', error);
+      // Error parsing deep link
     }
   };
 

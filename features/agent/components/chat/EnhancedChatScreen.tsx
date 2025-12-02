@@ -133,42 +133,34 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
   };
 
   const handleVenueSelect = (venue: VenueCardDTO) => {
-    console.log('Venue selected:', venue);
     // Handle venue selection
   };
 
   const handleEmailAction = (email: EmailCardDTO, action: string) => {
-    console.log('Email action:', action, email);
     // Handle email actions
   };
 
   const handleApprovalAction = (approval: ApprovalCardDTO, action: string) => {
-    console.log('Approval action:', action, approval);
     // Handle approval actions
   };
 
   const handleTaskAction = (task: TaskCardDTO, action: string) => {
-    console.log('Task action:', action, task);
     // Handle task actions
   };
 
   const handleBudgetAction = (budget: BudgetCardDTO, action: string) => {
-    console.log('Budget action:', action, budget);
     // Handle budget actions
   };
 
   const handleTimelineAction = (timeline: TimelineCardDTO, action: string) => {
-    console.log('Timeline action:', action, timeline);
     // Handle timeline actions
   };
 
   const handleChipPress = (chip: any) => {
-    console.log('Chip pressed:', chip);
     // Handle chip interactions
   };
 
   const handleActionButtonPress = (button: any) => {
-    console.log('Action button pressed:', button);
     // Handle action button interactions
   };
 
@@ -190,7 +182,6 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
               justifyContent: 'center',
               marginRight: spacing.sm,
             }}>
-              <Text style={{ fontSize: 16 }}>🎉</Text>
             </View>
             <View style={{
               flex: 1,
@@ -246,9 +237,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
               borderRadius: 8,
               backgroundColor: colors.surfaceElevated,
             }} />
-          ) : (
-            <Text style={{ fontSize: 16 }}>🎉</Text>
-          )}
+          ) : null}
         </View>
         <View style={{
           maxWidth: screenWidth * 0.7,
@@ -315,7 +304,6 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
               justifyContent: 'center',
               marginRight: spacing.sm,
             }}>
-              <Text style={{ fontSize: 18 }}>🎉</Text>
             </View>
             <View style={{ alignItems: 'center' }}>
               <Text style={{
@@ -363,7 +351,6 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
                 justifyContent: 'center',
                 marginRight: spacing.sm,
               }}>
-                <Text style={{ fontSize: 16 }}>🎉</Text>
               </View>
               <View style={{
                 backgroundColor: colors.surfaceElevated,

@@ -155,7 +155,7 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
           onCapture({ path: photo.path, type: 'photo' });
         }
       } catch (error) {
-        console.error('Error taking photo:', error);
+        // Error taking photo
       }
     };
     runCountdown(capture);
@@ -196,7 +196,7 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
           pushClip(file);
         }
       } catch (error) {
-        console.error('Error stopping recording:', error);
+        // Error stopping recording
         stopTimers();
         setRecording(false);
       }
@@ -216,14 +216,14 @@ export default function CameraScreen({ onClose, onCapture }: Props) {
                 pushClip(video);
               }
             },
-            onRecordingError: (error: any) => {
-              console.error('Recording error:', error);
+            onRecordingError: () => {
+              // Recording error
               stopTimers();
               setRecording(false);
             },
           });
         } catch (error) {
-          console.error('Error starting recording:', error);
+          // Error starting recording
           stopTimers();
           setRecording(false);
         }

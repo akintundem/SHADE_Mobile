@@ -151,7 +151,7 @@ const ManageNotificationsScreen = () => {
 
       setReminders(remindersData);
     } catch (error) {
-      console.warn('Unable to load data:', error);
+      // Unable to load data
     } finally {
       setRefreshing(false);
     }
@@ -200,7 +200,6 @@ const ManageNotificationsScreen = () => {
       });
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Failed to send notification.');
-      console.warn(error);
     } finally {
       setNotifBusy(false);
     }
@@ -266,7 +265,6 @@ const ManageNotificationsScreen = () => {
       setActionType('list');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to save reminder.');
-      console.warn(error);
     } finally {
       setReminderBusy(false);
     }
@@ -284,7 +282,6 @@ const ManageNotificationsScreen = () => {
         Alert.alert('Success', 'Reminder deleted.');
       } catch (error) {
         Alert.alert('Error', (error as { message?: string })?.message ?? 'Unable to delete reminder.');
-        console.warn(error);
       } finally {
         setReminderBusy(false);
       }

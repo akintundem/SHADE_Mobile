@@ -11,11 +11,10 @@ import { OnboardingRequest } from '../types/auth';
 
 type Props = {
   email?: string;
-  onBack?: () => void;
   onComplete?: (user: import('../types/auth').UserResponse) => void;
 };
 
-export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
+export const CompleteProfile = ({ email, onComplete }: Props) => {
   const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -256,7 +255,6 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
                 fontWeight: typography.weight.bold,
               }}
             >
-              ✓
             </Text>
           )}
         </View>
@@ -303,7 +301,6 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
                   fontWeight: typography.weight.bold,
                 }}
               >
-                ✓
               </Text>
             )}
           </View>
@@ -358,7 +355,6 @@ export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {
                   fontWeight: typography.weight.bold,
                 }}
               >
-                ✓
               </Text>
             )}
           </View>

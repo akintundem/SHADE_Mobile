@@ -72,7 +72,7 @@ export function ReviewStep({
         onImageSelected(uri);
       }
     } catch (error) {
-      console.error('Error selecting image:', error);
+      // Error selecting image
     }
   };
 

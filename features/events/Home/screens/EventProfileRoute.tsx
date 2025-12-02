@@ -74,11 +74,9 @@ export const EventProfileRoute = () => {
         // Using Geoapify's demo API for static maps (same as LocationStep.tsx)
         const url = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=${width}&height=${height}&center=lonlat:${longitude},${latitude}&zoom=${zoom}&marker=lonlat:${longitude},${latitude};type:material;color:%23F59E0B;size:medium&apiKey=demo`;
         
-        console.log('Generated static map URL:', url, 'for venue:', { latitude, longitude, zoom });
         return url;
       }
     }
-    console.log('No map URL generated. eventData:', eventData, 'has venue:', eventData && isFullEventResponse(eventData) ? !!eventData.venue : false);
     return null;
   }, [eventData]);
 
@@ -336,11 +334,11 @@ export const EventProfileRoute = () => {
                       source={{ uri: staticMapUrl }}
                       style={{ width: '100%', height: '100%' }}
                       resizeMode="cover"
-                      onError={(error) => {
-                        console.error('Map image failed to load:', staticMapUrl, error);
+                      onError={() => {
+                        // Map image failed to load
                       }}
                       onLoad={() => {
-                        console.log('Map image loaded successfully:', staticMapUrl);
+                        // Map image loaded successfully
                       }}
                     >
                       {/* Dark overlay for text readability */}

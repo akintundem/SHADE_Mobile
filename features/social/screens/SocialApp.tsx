@@ -18,7 +18,6 @@ import type { ThreadPost } from '../../events/Home/components/EventThreadModal';
 type Props = {
   user: User;
   onLogout: () => void;
-  onUpdateUser?: (user: User) => void;
 };
 
 export default function SocialApp({ user, onLogout }: Props) {
@@ -66,7 +65,6 @@ export default function SocialApp({ user, onLogout }: Props) {
               // Only navigate to login screen after successful logout
               onLogout();
             } catch (err) {
-              console.error('Logout error:', err);
               // Don't navigate if logout fails
             } finally {
               setLoading(false);
@@ -140,7 +138,6 @@ export default function SocialApp({ user, onLogout }: Props) {
                   // This sets user to null in App.tsx, which triggers Auth screen
                   onLogout();
                 } catch (err) {
-                  console.error('Logout error:', err);
                   // Don't navigate if logout fails - user stays logged in
                 } finally {
                   setLoading(false);

@@ -6,7 +6,6 @@ interface EventType {
   id: string;
   label: string;
   icon: string;
-  color: string;
 }
 
 interface EventTypeChipsProps {

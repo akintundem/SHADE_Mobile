@@ -349,13 +349,13 @@ function ExpenseCard({ expense }: { expense: ExpenseDTO }) {
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case 'CREDIT_CARD':
-        return '💳';
+        return 'CC';
       case 'BANK_TRANSFER':
-        return '🏦';
+        return 'BT';
       case 'CASH':
-        return '💵';
+        return 'C';
       default:
-        return '💰';
+        return '';
     }
   };
 

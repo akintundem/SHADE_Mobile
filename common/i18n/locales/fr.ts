@@ -193,7 +193,7 @@ export const fr = {
   UpdateSavedOffline: 'Mise à jour enregistrée hors ligne et sera synchronisée lorsque vous serez de nouveau en ligne',
 
   // Chat & AI Assistant
-  ChatWelcomeMessage: 'Salut ! 👋 Je suis Shade, votre assistant de planification d\'événements IA. Je peux vous aider avec les lieux, les budgets, les calendriers, les approbations et bien plus encore ! Que souhaitez-vous planifier aujourd\'hui ?',
+  ChatWelcomeMessage: 'Salut ! Je suis Shade, votre assistant de planification d\'événements IA. Je peux vous aider avec les lieux, les budgets, les calendriers, les approbations et bien plus encore ! Que souhaitez-vous planifier aujourd\'hui ?',
   ChatError: 'Je suis désolé, j\'ai rencontré une erreur. Veuillez réessayer.',
   Shade: 'Shade',
   YourAIEventPlanner: 'Votre planificateur d\'événements IA',

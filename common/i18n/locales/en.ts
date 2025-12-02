@@ -194,7 +194,7 @@ export const en = {
   UpdateSavedOffline: 'Update saved offline and will sync when you are back online',
 
   // Chat & AI Assistant
-  ChatWelcomeMessage: "Hey there! 👋 I'm Shade, your AI event planning assistant. I can help you with venues, budgets, timelines, approvals, and so much more! What would you like to plan today?",
+  ChatWelcomeMessage: "Hey there! I'm Shade, your AI event planning assistant. I can help you with venues, budgets, timelines, approvals, and so much more! What would you like to plan today?",
   ChatError: "I'm sorry, I encountered an error. Please try again.",
   Shade: 'Shade',
   YourAIEventPlanner: 'Your AI Event Planner',

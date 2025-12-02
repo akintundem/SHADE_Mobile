@@ -25,21 +25,21 @@ export function prepareEventShareContent(event: Event, shareLink?: string): Shar
   const venue = event.venueId ? 'Check location details' : '';
   
   // Build the share message
-  let message = `🎉 ${eventName}\n\n`;
+  let message = `${eventName}\n\n`;
   
   if (description) {
     message += `${description}\n\n`;
   }
   
-  message += `📅 Starting: ${startDate}\n`;
+  message += `Starting: ${startDate}\n`;
   
   if (event.endDateTime) {
     const endDate = dateUtils.formatDate(event.endDateTime, DATE_FORMATS.DISPLAY_DATETIME);
-    message += `📅 Ending: ${endDate}\n`;
+    message += `Ending: ${endDate}\n`;
   }
   
   if (shareLink) {
-    message += `\n🔗 ${shareLink}`;
+    message += `\n${shareLink}`;
   }
   
   if (event.hashtag) {
@@ -70,7 +70,6 @@ export async function shareViaNative(content: ShareContent): Promise<void> {
     
     await Share.share(shareOptions);
   } catch (error) {
-    console.error('Error sharing via native:', error);
     throw error;
   }
 }
@@ -92,7 +91,6 @@ export async function shareViaWhatsApp(content: ShareContent): Promise<void> {
       await Linking.openURL(webUrl);
     }
   } catch (error) {
-    console.error('Error sharing via WhatsApp:', error);
     throw error;
   }
 }
@@ -108,7 +106,6 @@ export async function shareViaFacebook(content: ShareContent): Promise<void> {
     try {
       await Linking.openURL(url);
     } catch (error) {
-      console.error('Error sharing via Facebook:', error);
       throw error;
     }
   } else {
@@ -127,7 +124,6 @@ export async function shareViaTwitter(content: ShareContent): Promise<void> {
   try {
     await Linking.openURL(url);
   } catch (error) {
-    console.error('Error sharing via Twitter:', error);
     throw error;
   }
 }
@@ -162,7 +158,6 @@ export async function shareViaSnapchat(content: ShareContent): Promise<void> {
       await shareViaNative(content);
     }
   } catch (error) {
-    console.error('Error sharing via Snapchat:', error);
     // Fallback to native share
     await shareViaNative(content);
   }
@@ -185,7 +180,6 @@ export async function shareViaTelegram(content: ShareContent): Promise<void> {
       await Linking.openURL(webUrl);
     }
   } catch (error) {
-    console.error('Error sharing via Telegram:', error);
     throw error;
   }
 }
@@ -201,7 +195,6 @@ export async function shareViaEmail(content: ShareContent): Promise<void> {
   try {
     await Linking.openURL(url);
   } catch (error) {
-    console.error('Error sharing via Email:', error);
     throw error;
   }
 }
@@ -216,7 +209,6 @@ export async function shareViaSMS(content: ShareContent): Promise<void> {
   try {
     await Linking.openURL(url);
   } catch (error) {
-    console.error('Error sharing via SMS:', error);
     throw error;
   }
 }

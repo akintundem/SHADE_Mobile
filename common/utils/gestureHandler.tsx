@@ -9,7 +9,7 @@ try {
   PanGestureHandler = gestureHandler.PanGestureHandler;
   State = gestureHandler.State;
 } catch (error) {
-  console.warn('Gesture handler not available:', error);
+  // Gesture handler not available
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');

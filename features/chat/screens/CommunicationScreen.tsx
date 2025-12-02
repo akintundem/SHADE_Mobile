@@ -217,7 +217,6 @@ export default function CommunicationScreen({ eventId, onBack, onSendMessage }: 
             paddingHorizontal: spacing.md,
             height: 48
           }}>
-            <Text style={{ color: colors.text.tertiary }}>🔍</Text>
             <TextInput
               placeholder="Search messages..."
               value={searchQuery}

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Modal, View, Text, TouchableOpacity, Image, FlatList, Dimensions } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, Image, FlatList } from 'react-native';
 import { X, MessageCircle, Repeat2, Heart, Share2, MoreHorizontal, CheckCircle2 } from 'lucide-react-native';
 import Video from 'react-native-video';
 import { useTheme } from '../../../../common/theme/ThemeProvider';

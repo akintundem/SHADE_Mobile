@@ -76,7 +76,6 @@ export class AgentService {
         nextSteps,
       };
     } catch (error) {
-      console.error('Agent service error:', error);
       throw new Error('Failed to process agent request');
     }
   }

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, PanResponder, Keyboard } from 'react-native';
 import { Mic, Send } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
@@ -20,7 +20,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     setSelectedEventType,
 }) => {
     const { colors, spacing, typography, borderRadius } = useTheme();
-    const inputRef = useRef<TextInput>(null);
 
     const inputPanResponder = useRef(
         PanResponder.create({
@@ -95,7 +94,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 }}
             >
                 <TextInput
-                    ref={inputRef}
                     value={inputText}
                     onChangeText={setInputText}
                     placeholder="Tell me about your event..."

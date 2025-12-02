@@ -1,18 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Camera, Images } from 'lucide-react-native';
-import { User } from '../../types/events';
+import { View, Text } from 'react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 
-type Props = {
-  user: User;
-  onOpenMenu?: () => void;
-  onOpenCamera?: () => void;
-  onOpenGallery?: () => void;
-};
+type Props = {};
 
-export const HomeHeader = ({ onOpenCamera, onOpenGallery }: Props) => {
-  const { colors, typography, spacing, brand, borderRadius, shadows } = useTheme();
+export const HomeHeader = ({}: Props) => {
+  const { colors, typography, spacing } = useTheme();
 
   return (
     <View style={{ backgroundColor: colors.background }}>
@@ -39,45 +32,6 @@ export const HomeHeader = ({ onOpenCamera, onOpenGallery }: Props) => {
             Shade
           </Text>
         </View>
-        
-        {/* Camera and Gallery buttons - commented out for production */}
-        {/* <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {onOpenGallery && (
-            <TouchableOpacity
-              onPress={onOpenGallery}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: borderRadius.full,
-                backgroundColor: colors.surface,
-                alignItems: 'center',
-                justifyContent: 'center',
-                ...shadows.sm,
-              }}
-              activeOpacity={0.8}
-            >
-              <Images size={20} color={colors.text.primary} strokeWidth={2.5} />
-            </TouchableOpacity>
-          )}
-          
-          {onOpenCamera && (
-            <TouchableOpacity
-              onPress={onOpenCamera}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: borderRadius.full,
-                backgroundColor: brand.secondary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                ...shadows.sm,
-              }}
-              activeOpacity={0.8}
-            >
-              <Camera size={20} color="#FFFFFF" strokeWidth={2.5} />
-            </TouchableOpacity>
-          )}
-        </View> */}
       </View>
     </View>
   );

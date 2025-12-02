@@ -24,7 +24,6 @@ const ManageAnalyticsScreen = () => {
       setAnalytics(data);
     } catch (error) {
       Alert.alert('Error', 'Unable to load analytics at this time.');
-      console.warn(error);
     } finally {
       setLoading(false);
     }

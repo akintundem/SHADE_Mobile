@@ -6,7 +6,6 @@ import { SpotifyIcon } from './icons/SpotifyIcon';
 
 type Props = {
   onApplePress?: () => void;
-  onGooglePress?: () => void;
   onSpotifyPress?: () => void;
 };
 

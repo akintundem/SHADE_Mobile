@@ -25,7 +25,6 @@ export default function SettingsScreen({ onClose, onLogout }: { onClose: () => v
         onLogout();
       }
     } catch (err) {
-      console.error('Logout error:', err);
       // Don't navigate if logout fails
       setLoggingOut(false);
     }

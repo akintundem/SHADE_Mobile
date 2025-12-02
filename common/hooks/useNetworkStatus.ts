@@ -5,7 +5,7 @@ let NetInfo: any = null;
 try {
   NetInfo = require('@react-native-community/netinfo');
 } catch (error) {
-  console.warn('NetInfo not available:', error);
+  // NetInfo not available
 }
 
 export interface NetworkStatus {

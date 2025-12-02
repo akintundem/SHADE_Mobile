@@ -117,4 +117,3 @@ export default function RegistrationSuccessScreen({ email, onContinue }: Props) 
   );
 }
 
-

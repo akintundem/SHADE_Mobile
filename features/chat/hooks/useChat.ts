@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Message } from '../components/ChatMessage';
 import { VenueCardDTO } from '../../../agent/types/assistant';
-import { sampleVenues } from '../data/chatData';
 import { aiService } from '../../agent/services/aiService';
 
 interface UseChatProps {
@@ -20,7 +19,7 @@ export const useChat = ({ eventId, userId }: UseChatProps): UseChatReturn => {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
-            text: "Hey there! 👋 I'm Shade, and I'm so excited to help you plan something special! Whether it's a dreamy wedding, an unforgettable birthday bash, or a professional corporate event, I've got you covered from start to finish.\n\nI can help with venues, guest lists, budgets, invitations, and so much more. What kind of celebration are we planning together? 🎉",
+            text: "Hey there! I'm Shade, and I'm so excited to help you plan something special! Whether it's a dreamy wedding, an unforgettable birthday bash, or a professional corporate event, I've got you covered from start to finish.\n\nI can help with venues, guest lists, budgets, invitations, and so much more. What kind of celebration are we planning together?",
             isUser: false,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
@@ -61,8 +60,6 @@ export const useChat = ({ eventId, userId }: UseChatProps): UseChatReturn => {
             // But strictly following the user request, we just display the replyText.
 
         } catch (error: any) {
-            console.error('Failed to send message:', error);
-
             // Handle error message for user
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),

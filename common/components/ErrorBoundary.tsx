@@ -41,9 +41,6 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Log error to crash reporting service
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
   }
@@ -150,8 +147,6 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
 // Hook for error boundary
 export const useErrorHandler = () => {
   const handleError = (error: Error, errorInfo?: ErrorInfo) => {
-    console.error('Error caught by useErrorHandler:', error, errorInfo);
-    
     // Here you would typically send the error to a crash reporting service
     // Example: crashlytics().recordError(error);
   };

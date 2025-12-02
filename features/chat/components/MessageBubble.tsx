@@ -37,7 +37,6 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             backgroundColor: colors.surfaceElevated,
           }} />
         ) : (
-          <Text style={{ fontSize: 16 }}>🎉</Text>
         )}
       </View>
       <View style={{

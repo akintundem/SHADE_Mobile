@@ -79,10 +79,10 @@ export default function AddExpenseScreen({ budgetId, onBack, onSave }: Props) {
   ];
 
   const paymentMethods = [
-    { label: 'Credit Card', value: 'CREDIT_CARD', icon: '💳' },
-    { label: 'Bank Transfer', value: 'BANK_TRANSFER', icon: '🏦' },
-    { label: 'Cash', value: 'CASH', icon: '💵' },
-    { label: 'Other', value: 'OTHER', icon: '💰' },
+    { label: 'Credit Card', value: 'CREDIT_CARD', icon: '' },
+    { label: 'Bank Transfer', value: 'BANK_TRANSFER', icon: '' },
+    { label: 'Cash', value: 'CASH', icon: '' },
+    { label: 'Other', value: 'OTHER', icon: '' },
   ];
 
   return (

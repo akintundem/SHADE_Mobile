@@ -14,7 +14,6 @@ export const assistantService = {
       return res.data;
     } catch (error) {
       // TODO: Chat service is returning 500 errors - return fallback response
-      console.log('⚠️  Chat service not working, returning fallback response');
       return {
         reply: "I'm having trouble reaching our planning assistant right now. Please try again shortly.",
         toolUsed: 'fallback',
@@ -39,7 +38,6 @@ export const assistantService = {
       return res.data;
     } catch (error) {
       // TODO: Shade chat service is returning 500 errors - return fallback response
-      console.log('⚠️  Shade chat service not working, returning fallback response');
       return {
         sessionId: request.sessionId,
         message: "I'm having trouble reaching our planning assistant right now. Please try again shortly.",

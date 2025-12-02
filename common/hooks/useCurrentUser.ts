@@ -7,8 +7,8 @@ export function useCurrentUser() {
     () => authService.getCurrentUser(),
     {
       immediate: true,
-      onError: (error) => {
-        console.error('Failed to fetch current user:', error);
+      onError: () => {
+        // Failed to fetch current user
       },
     }
   );

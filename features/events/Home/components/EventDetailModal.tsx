@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, Dimensions, FlatList, Image } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, FlatList, Image } from 'react-native';
 import Video from 'react-native-video';
 import { X, ImageIcon, Film, Quote } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';

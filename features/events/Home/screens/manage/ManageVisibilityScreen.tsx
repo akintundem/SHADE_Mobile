@@ -37,7 +37,6 @@ const ManageVisibilityScreen = () => {
       );
     } catch (error) {
       Alert.alert('Error', 'Unable to load event visibility.');
-      console.warn(error);
     }
   }, [params.eventId]);
 
@@ -56,7 +55,6 @@ const ManageVisibilityScreen = () => {
       Alert.alert('Success', 'Visibility updated.');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Update failed.');
-      console.warn(error);
     } finally {
       setBusy(false);
     }
@@ -81,7 +79,6 @@ const ManageVisibilityScreen = () => {
         Alert.alert('Success', 'Status updated.');
       } catch (error) {
         Alert.alert('Error', (error as { message?: string })?.message ?? 'Action failed.');
-        console.warn(error);
       } finally {
         setBusy(false);
       }

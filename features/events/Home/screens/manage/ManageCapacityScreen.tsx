@@ -360,7 +360,6 @@ const ManageCapacityScreen = () => {
       }
     } catch (error) {
       Alert.alert('Error', 'Unable to load capacity details.');
-      console.warn(error);
     }
   }, [params.eventId]);
 
@@ -386,7 +385,6 @@ const ManageCapacityScreen = () => {
       Alert.alert('Success', 'Capacity updated successfully.');
     } catch (error) {
       Alert.alert('Error', (error as { message?: string })?.message ?? 'Failed to update capacity.');
-      console.warn(error);
     } finally {
       setBusy(false);
     }
@@ -401,7 +399,6 @@ const ManageCapacityScreen = () => {
         Alert.alert('Success', 'Registration deadline updated successfully.');
       } catch (error) {
         Alert.alert('Error', (error as { message?: string })?.message ?? 'Failed to update deadline.');
-        console.warn(error);
       } finally {
         setBusy(false);
       }
@@ -422,7 +419,6 @@ const ManageCapacityScreen = () => {
         Alert.alert('Success', `Registration ${action === 'open' ? 'opened' : 'closed'} successfully.`);
       } catch (error) {
         Alert.alert('Error', (error as { message?: string })?.message ?? 'Action failed.');
-        console.warn(error);
       } finally {
         setBusy(false);
       }
