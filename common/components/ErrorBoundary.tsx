@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { BaseButton } from './common/BaseButton';
 import { AlertTriangle, RefreshCw } from 'lucide-react-native';
+import { useI18n } from '../i18n/I18nProvider';
 
 interface Props {
   children: ReactNode;
@@ -75,6 +76,7 @@ interface ErrorFallbackProps {
 
 const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
   const { colors, spacing, typography } = useTheme();
+  const { t } = useI18n();
 
   return (
     <View
@@ -97,7 +99,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
           marginBottom: spacing.sm,
         }}
       >
-        Something went wrong
+        {t('SomethingWentWrongGeneric')}
       </Text>
       
       <Text
@@ -109,7 +111,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
           marginBottom: spacing.xl,
         }}
       >
-        We're sorry, but something unexpected happened. Please try again.
+        {t('SomethingWentWrongMessage')}
       </Text>
       
       {__DEV__ && error && (
@@ -135,7 +137,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, onRetry }) => {
       )}
       
       <BaseButton
-        title="Try Again"
+        title={t('TryAgain')}
         onPress={onRetry}
         variant="primary"
         icon={<RefreshCw size={16} color="#FFFFFF" />}

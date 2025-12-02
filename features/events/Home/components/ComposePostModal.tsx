@@ -17,6 +17,7 @@ import {
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { ThreadPost } from './EventThreadModal';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 
 type Props = {
   eventId: string;
@@ -50,6 +51,7 @@ const formatFileSize = (size?: number) => {
 
 export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props) => {
   const { spacing, typography, borderRadius } = useTheme();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
@@ -272,7 +274,7 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
             <View style={{ flex: 1 }}>
               <TextInput
                 ref={textInputRef}
-                placeholder={`What's happening at ${eventName}?`}
+                placeholder={t('WhatsHappeningAtEvent', { eventName })}
                 placeholderTextColor="#9CA3AF"
                 value={text}
                 onChangeText={value => {
@@ -288,7 +290,7 @@ export const ComposePostModal = ({ eventId, eventName, onClose, onPost }: Props)
                   textAlignVertical: 'top',
                   padding: 0,
                 }}
-                accessibilityLabel="Post text"
+                accessibilityLabel={t('PostText')}
               />
 
               {validationError && (

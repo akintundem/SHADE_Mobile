@@ -4,6 +4,7 @@ import { ArrowLeft, Search, UserPlus, Phone, Calendar, CheckCircle, XCircle, Clo
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { AttendeeDTO } from '../../types/events';
 import { StatCard } from '../../../../common/components/common/FormComponents';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 
 type Props = { 
   eventId: string;
@@ -17,6 +18,7 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'status'>('name');
   
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
+  const { t } = useI18n();
 
   // Sample attendees data
   const attendees: AttendeeDTO[] = [
@@ -104,7 +106,7 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
           fontWeight: '700',
           fontSize: typography.size.lg
         }}>
-          Attendees
+          {t('Attendees')}
         </Text>
         <TouchableOpacity 
           onPress={onInviteAttendees}
@@ -126,10 +128,10 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
         borderColor: colors.border
       }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-          <StatCard label="Total" value={statusCounts.total} color={colors.text.primary} />
-          <StatCard label="Confirmed" value={statusCounts.confirmed} color={colors.semantic.success} />
-          <StatCard label="Pending" value={statusCounts.pending} color={colors.semantic.warning} />
-          <StatCard label="Cancelled" value={statusCounts.cancelled} color={colors.semantic.error} />
+          <StatCard label={t('Total')} value={statusCounts.total} color={colors.text.primary} />
+          <StatCard label={t('Confirmed')} value={statusCounts.confirmed} color={colors.semantic.success} />
+          <StatCard label={t('Pending')} value={statusCounts.pending} color={colors.semantic.warning} />
+          <StatCard label={t('Cancelled')} value={statusCounts.cancelled} color={colors.semantic.error} />
         </View>
       </View>
 
@@ -148,7 +150,7 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
         }}>
           <Search size={20} color={colors.text.tertiary} />
           <TextInput
-            placeholder="Search attendees..."
+            placeholder={t('SearchAttendees')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={{
@@ -167,10 +169,10 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
               {[
-                { key: 'all', label: 'All' },
-                { key: 'confirmed', label: 'Confirmed' },
-                { key: 'pending', label: 'Pending' },
-                { key: 'cancelled', label: 'Cancelled' },
+                { key: 'all', label: t('All') },
+                { key: 'confirmed', label: t('Confirmed') },
+                { key: 'pending', label: t('Pending') },
+                { key: 'cancelled', label: t('Cancelled') },
               ].map(option => (
                 <TouchableOpacity
                   key={option.key}
@@ -210,7 +212,7 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
           }}>
             <Filter size={16} color={colors.text.primary} />
             <Text style={{ color: colors.text.primary, fontWeight: '600', fontSize: 14 }}>
-              Sort
+              {t('Sort')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -235,6 +237,7 @@ export default function AttendeeManagementScreen({ eventId, onBack, onInviteAtte
 
 function AttendeeCard({ attendee }: { attendee: AttendeeDTO }) {
   const { colors, typography, spacing, borderRadius } = useTheme();
+  const { t } = useI18n();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -311,14 +314,14 @@ function AttendeeCard({ attendee }: { attendee: AttendeeDTO }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
           <Calendar size={16} color={colors.text.secondary} />
           <Text style={{ color: colors.text.secondary }}>
-            Registered: {new Date(attendee.registrationDate).toLocaleDateString()}
+            {t('Registered')} {new Date(attendee.registrationDate).toLocaleDateString()}
           </Text>
         </View>
         {attendee.checkInTime && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
             <CheckCircle size={16} color={colors.semantic.success} />
             <Text style={{ color: colors.semantic.success }}>
-              Checked in: {new Date(attendee.checkInTime).toLocaleString()}
+              {t('CheckedIn')} {new Date(attendee.checkInTime).toLocaleString()}
             </Text>
           </View>
         )}
@@ -334,17 +337,17 @@ function AttendeeCard({ attendee }: { attendee: AttendeeDTO }) {
         }}>
           {attendee.dietaryRestrictions && (
             <Text style={{ color: colors.text.secondary, fontSize: 14 }}>
-              <Text style={{ fontWeight: '600' }}>Dietary:</Text> {attendee.dietaryRestrictions}
+              <Text style={{ fontWeight: '600' }}>{t('Dietary')}</Text> {attendee.dietaryRestrictions}
             </Text>
           )}
           {attendee.emergencyContact && (
             <Text style={{ color: colors.text.secondary, fontSize: 14 }}>
-              <Text style={{ fontWeight: '600' }}>Emergency:</Text> {attendee.emergencyContact}
+              <Text style={{ fontWeight: '600' }}>{t('Emergency')}</Text> {attendee.emergencyContact}
             </Text>
           )}
           {attendee.notes && (
             <Text style={{ color: colors.text.secondary, fontSize: 14 }}>
-              <Text style={{ fontWeight: '600' }}>Notes:</Text> {attendee.notes}
+              <Text style={{ fontWeight: '600' }}>{t('Notes')}</Text> {attendee.notes}
             </Text>
           )}
         </View>

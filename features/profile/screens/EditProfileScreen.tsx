@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 import { User } from '../../auth/types/auth';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 
 type Props = {
   user: User;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function EditProfileScreen({ user, onBack, onSave }: Props) {
+  const { t } = useI18n();
   const [tab, setTab] = useState<'basic' | 'professional' | 'privacy'>('basic');
   const [name, setName] = useState(user.name || '');
   const [username, setUsername] = useState((user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-'));
@@ -26,28 +28,28 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
           <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
             <ArrowLeft size={20} color="#111827" />
           </TouchableOpacity>
-          <Text style={{ color: '#111827', fontWeight: '700' }}>Edit Profile</Text>
+          <Text style={{ color: '#111827', fontWeight: '700' }}>{t('EditProfile')}</Text>
           <TouchableOpacity
             onPress={() => onSave?.({ name, username, bio, website, location })}
             style={{ backgroundColor: '#111827', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}
           >
-            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>Save</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{t('Save')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Tabs */}
         <View style={{ flexDirection: 'row', gap: 12, padding: 12 }}>
           {[
-            { key: 'basic', label: 'Basic' },
-            { key: 'professional', label: 'Professional' },
-            { key: 'privacy', label: 'Privacy' },
-          ].map(t => (
+            { key: 'basic', label: t('Basic') },
+            { key: 'professional', label: t('Professional') },
+            { key: 'privacy', label: t('Privacy') },
+          ].map(tabOption => (
             <TouchableOpacity
-              key={t.key}
-              onPress={() => setTab(t.key as any)}
-              style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: tab === (t.key as any) ? '#111827' : '#F3F4F6' }}
+              key={tabOption.key}
+              onPress={() => setTab(tabOption.key as any)}
+              style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: tab === (tabOption.key as any) ? '#111827' : '#F3F4F6' }}
             >
-              <Text style={{ color: tab === (t.key as any) ? '#FFFFFF' : '#111827', fontWeight: '600' }}>{t.label}</Text>
+              <Text style={{ color: tab === (tabOption.key as any) ? '#FFFFFF' : '#111827', fontWeight: '600' }}>{tabOption.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -55,23 +57,23 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
         <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
           {tab === 'basic' ? (
             <View style={{ paddingHorizontal: 16, gap: 12 }}>
-              <LabeledInput label="Full Name" value={name} onChangeText={setName} />
-              <LabeledInput label="Username" value={username} onChangeText={setUsername} prefix="#" />
-              <LabeledTextArea label="Bio" value={bio} onChangeText={setBio} maxLength={150} />
-              <LabeledInput label="Website" value={website} onChangeText={setWebsite} placeholder="yourwebsite.com" />
-              <LabeledInput label="Location" value={location} onChangeText={setLocation} placeholder="City, Country" />
+              <LabeledInput label={t('FullName')} value={name} onChangeText={setName} />
+              <LabeledInput label={t('Username')} value={username} onChangeText={setUsername} prefix="#" />
+              <LabeledTextArea label={t('Bio')} value={bio} onChangeText={setBio} maxLength={150} />
+              <LabeledInput label={t('Website')} value={website} onChangeText={setWebsite} placeholder="yourwebsite.com" />
+              <LabeledInput label={t('Location')} value={location} onChangeText={setLocation} placeholder={t('CityCountry')} />
             </View>
           ) : null}
 
           {tab === 'professional' ? (
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={{ color: '#6B7280' }}>Professional settings coming soon.</Text>
+              <Text style={{ color: '#6B7280' }}>{t('ProfessionalSettingsComingSoon')}</Text>
             </View>
           ) : null}
 
           {tab === 'privacy' ? (
             <View style={{ paddingHorizontal: 16 }}>
-              <Text style={{ color: '#6B7280' }}>Privacy controls will live here.</Text>
+              <Text style={{ color: '#6B7280' }}>{t('PrivacyControlsWillLiveHere')}</Text>
             </View>
           ) : null}
         </ScrollView>
@@ -93,6 +95,7 @@ function LabeledInput({ label, prefix, ...rest }: any) {
 }
 
 function LabeledTextArea({ label, maxLength = 150, value, onChangeText }: any) {
+  const { t } = useI18n();
   return (
     <View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -107,7 +110,7 @@ function LabeledTextArea({ label, maxLength = 150, value, onChangeText }: any) {
           numberOfLines={4}
           maxLength={maxLength}
           style={{ color: '#111827', minHeight: 80 }}
-          placeholder="Tell people about yourself..."
+          placeholder={t('TellPeopleAboutYourself')}
           placeholderTextColor="#9CA3AF"
         />
       </View>

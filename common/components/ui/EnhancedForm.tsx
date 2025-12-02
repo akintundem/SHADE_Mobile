@@ -5,6 +5,7 @@ import { Check, AlertCircle, Loader } from 'lucide-react-native';
 import SmartInput from './SmartInput';
 import KeyboardAwareContainer from './KeyboardAwareContainer';
 import Button from './Button';
+import { useI18n } from '../../i18n/I18nProvider';
 
 type FormField = {
   name: string;
@@ -43,6 +44,7 @@ export default function EnhancedForm({
   style,
 }: EnhancedFormProps) {
   const { colors, typography, spacing, borderRadius } = useTheme();
+  const { t } = useI18n();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -74,21 +76,21 @@ export default function EnhancedForm({
 
     // Required validation
     if (field.required && !value.trim()) {
-      error = `${field.label} is required`;
+      error = t('FieldRequired', { field: field.label });
     }
 
     // Length validation
     if (value && field.validation?.minLength && value.length < field.validation.minLength) {
-      error = `${field.label} must be at least ${field.validation.minLength} characters`;
+      error = t('FieldMinLength', { field: field.label, min: field.validation.minLength });
     }
 
     if (value && field.validation?.maxLength && value.length > field.validation.maxLength) {
-      error = `${field.label} must be no more than ${field.validation.maxLength} characters`;
+      error = t('FieldMaxLength', { field: field.label, max: field.validation.maxLength });
     }
 
     // Pattern validation
     if (value && field.validation?.pattern && !field.validation.pattern.test(value)) {
-      error = `${field.label} format is invalid`;
+      error = t('FieldInvalidFormat', { field: field.label });
     }
 
     // Custom validation
@@ -113,16 +115,16 @@ export default function EnhancedForm({
       let error = '';
 
       if (field.required && !value.trim()) {
-        error = `${field.label} is required`;
+        error = t('FieldRequired', { field: field.label });
         isValid = false;
       } else if (value && field.validation?.minLength && value.length < field.validation.minLength) {
-        error = `${field.label} must be at least ${field.validation.minLength} characters`;
+        error = t('FieldMinLength', { field: field.label, min: field.validation.minLength });
         isValid = false;
       } else if (value && field.validation?.maxLength && value.length > field.validation.maxLength) {
-        error = `${field.label} must be no more than ${field.validation.maxLength} characters`;
+        error = t('FieldMaxLength', { field: field.label, max: field.validation.maxLength });
         isValid = false;
       } else if (value && field.validation?.pattern && !field.validation.pattern.test(value)) {
-        error = `${field.label} format is invalid`;
+        error = t('FieldInvalidFormat', { field: field.label });
         isValid = false;
       } else if (value && field.validation?.custom) {
         const customError = field.validation.custom(value);
@@ -142,7 +144,7 @@ export default function EnhancedForm({
   // Handle form submission
   const handleSubmit = async () => {
     if (!validateForm()) {
-      Alert.alert('Validation Error', 'Please fix the errors before submitting');
+      Alert.alert(t('ValidationError'), t('FixErrorsBeforeSubmitting'));
       return;
     }
 
@@ -150,7 +152,7 @@ export default function EnhancedForm({
     try {
       await onSubmit(formData);
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit form. Please try again.');
+      Alert.alert(t('Error'), t('FailedToSubmitForm'));
     } finally {
       setIsSubmitting(false);
     }
@@ -183,13 +185,13 @@ export default function EnhancedForm({
             <View key={field.name}>
               <SmartInput
                 label={field.label}
-                placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                placeholder={field.placeholder || t('EnterField', { field: field.label.toLowerCase() })}
                 value={fieldValue}
                 onChangeText={(value) => handleFieldChange(field.name, value)}
                 onBlur={() => handleFieldBlur(field.name)}
                 inputType={field.type}
                 error={status === 'error' ? errors[field.name] : undefined}
-                success={status === 'success' ? `${field.label} looks good!` : undefined}
+                success={status === 'success' ? t('FieldLooksGood', { field: field.label }) : undefined}
                 contextData={contextData}
                 validationRules={{
                   required: field.required,
@@ -211,7 +213,7 @@ export default function EnhancedForm({
           fullWidth
           style={{ marginTop: spacing.lg }}
         >
-          {isSubmitting ? 'Submitting...' : submitButtonText}
+          {isSubmitting ? t('Submitting') : submitButtonText}
         </Button>
       </View>
     </KeyboardAwareContainer>

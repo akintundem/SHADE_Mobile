@@ -287,9 +287,9 @@ export const EventProfileRoute = () => {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
         <View style={{ flex: 1, paddingBottom: bottomGutter }}>
           <EmptyState
-            title="Event not found"
-            subtitle="We could not determine which event to open."
-            action={{ label: 'Go back', onPress: () => navigation.goBack() }}
+            title={t('EventNotFound')}
+            subtitle={t('WeCouldNotDetermineEvent')}
+            action={{ label: t('GoBack'), onPress: () => navigation.goBack() }}
           />
         </View>
       </SafeAreaView>
@@ -298,7 +298,7 @@ export const EventProfileRoute = () => {
 
   // Show loading state
   if (isLoading) {
-    return <LoadingOverlay visible={true} message="Loading event..." />;
+    return <LoadingOverlay visible={true} message={t('LoadingEvent')} />;
   }
 
   // If event is FEED scope (GUEST), show feeds screen ONLY - no dashboard access
@@ -306,7 +306,7 @@ export const EventProfileRoute = () => {
     return (
       <EventFeedsScreen
         eventId={eventId}
-        eventName={feedEventName || 'Event'}
+        eventName={feedEventName || t('Event')}
         coverImageUrl={event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE}
         onBack={() => navigation.goBack()}
       />
@@ -333,7 +333,7 @@ export const EventProfileRoute = () => {
     return (
       <EventFeedsScreen
         eventId={eventId}
-        eventName={event?.name ?? params.title ?? 'Event'}
+        eventName={event?.name ?? params.title ?? t('Event')}
         coverImageUrl={event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE}
         onBack={() => setActiveScreen(null)}
       />
@@ -349,9 +349,9 @@ export const EventProfileRoute = () => {
       {showEmpty ? (
         <View style={{ flex: 1, paddingBottom: bottomGutter }}>
           <EmptyState
-            title="Unable to load event"
-            subtitle={error || 'Something went wrong while loading this event.'}
-            action={{ label: 'Try again', onPress: fetchEvent }}
+            title={t('UnableToLoadEvent')}
+            subtitle={error || t('SomethingWentWrong')}
+            action={{ label: t('TryAgain'), onPress: fetchEvent }}
           />
         </View>
       ) : (
@@ -500,7 +500,7 @@ export const EventProfileRoute = () => {
                     marginBottom: spacing.xs,
                   }}
                 >
-                  {event?.name ?? params.title ?? 'Event Name'}
+                  {event?.name ?? params.title ?? t('EventName')}
                 </Text>
                 
                 {/* Swipe up indicator */}
@@ -805,8 +805,8 @@ export const EventProfileRoute = () => {
                     onPress={() => {
                       const eventDate = formattedStart || (event?.startDateTime 
                         ? dateUtils.formatDate(event.startDateTime, DATE_FORMATS.DISPLAY_DATETIME)
-                        : 'Date TBD');
-                      const eventLocation = event?.venueId || 'Location TBD';
+                        : t('DateTBD'));
+                      const eventLocation = event?.venueId || t('LocationTBD');
                       navigation.navigate('EventManage', {
                         id: eventId || '',
                         title: event?.name ?? params.title ?? 'Event',
@@ -1035,7 +1035,7 @@ export const EventProfileRoute = () => {
         </>
       )}
 
-      <LoadingOverlay visible={isLoading && !refreshing} message="Loading event..." transparent />
+      <LoadingOverlay visible={isLoading && !refreshing} message={t('LoadingEvent')} transparent />
     </SafeAreaView>
   );
 };

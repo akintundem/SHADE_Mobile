@@ -83,7 +83,7 @@ export default function LoadingState({ message }: Props) {
           marginBottom: spacing.lg,
           textAlign: 'center',
         }}>
-          Shade
+          {t('Shade')}
         </Text>
 
         <Text style={{
@@ -94,7 +94,7 @@ export default function LoadingState({ message }: Props) {
           textAlign: 'center',
           marginBottom: spacing.xl,
         }}>
-          {message || 'Your Private Event Experience'}
+          {message || t('WelcomeShade')}
         </Text>
 
         <ActivityIndicator size="small" color={colors.text.tertiary} />

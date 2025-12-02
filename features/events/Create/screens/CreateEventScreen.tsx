@@ -10,6 +10,7 @@ import { ErrorHandler } from '../../../../common/utils/errorHandler';
 import { generateUUID } from '../../../../common/utils/uuid';
 import { STEPS } from '../constants';
 import { useCreateEventForm } from '../hooks/useCreateEventForm';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 import {
   EventBasicsStep,
   CategorizeStep,
@@ -29,6 +30,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<Asset | null>(null);
   const { colors, spacing } = useTheme();
+  const { t } = useI18n();
   
   // Generate idempotency key once when component mounts
   // This ensures the same key is used for all create attempts (prevents duplicate events)
@@ -195,25 +197,25 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
             contentType: coverImage.type || 'image/jpeg',
             category: 'cover',
             isPublic: true,
-            description: 'Event cover image',
+            description: t('EventCoverImage'),
           };
           await eventService.uploadCoverImage(createdEvent.id, uploadRequest, coverImage);
         } catch (imageError) {
           console.warn('Failed to upload cover image:', imageError);
           Alert.alert(
-            'Image Upload Failed',
-            'Your event was created successfully, but the cover image could not be uploaded. You can add it later from the event settings.',
-            [{ text: 'OK' }],
+            t('ImageUploadFailed'),
+            t('ImageUploadFailedMessage'),
+            [{ text: t('OK') }],
           );
         }
       }
 
       Alert.alert(
-        'Success!',
-        `Event "${createdEvent.name}" has been created successfully.`,
+        t('Success'),
+        t('EventCreatedSuccessfully', { name: createdEvent.name }),
         [
           {
-            text: 'OK',
+            text: t('OK'),
             onPress: () => {
               onCreate?.();
               onClose();
@@ -421,7 +423,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
           />
         </View>
 
-        <LoadingOverlay visible={isLoading} message="Creating event..." />
+        <LoadingOverlay visible={isLoading} message={t('CreatingEvent')} />
       </KeyboardAvoidingView>
     </SafeAreaWrapper>
   );

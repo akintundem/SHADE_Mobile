@@ -19,6 +19,7 @@ import { assistantService } from '../../services/assistantService';
 import StructuredMessageRenderer from './StructuredMessageRenderer';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../../common/components/common/ErrorModal';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -39,11 +40,12 @@ interface EnhancedChatScreenProps {
 export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScreenProps) {
   const { colors, spacing, typography, borderRadius, shadows } = useTheme();
   const { error, handleError, hideError } = useErrorHandler();
+  const { t } = useI18n();
   
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hey there! 👋 I'm Shade, your AI event planning assistant. I can help you with venues, budgets, timelines, approvals, and so much more! What would you like to plan today?",
+      text: t('ChatWelcomeMessage'),
       isUser: false,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
@@ -114,12 +116,12 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
         setMessages(prev => [...prev, aiMessage]);
       }
     } catch (err) {
-      handleError(err, 'Sending message');
+      handleError(err, t('SendingMessage'));
       
       // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I encountered an error. Please try again.",
+        text: t('ChatError'),
         isUser: false,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
@@ -321,13 +323,13 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
                 fontSize: typography.size.base,
                 fontWeight: typography.weight.bold,
               }}>
-                Shade
+                {t('Shade')}
               </Text>
               <Text style={{
                 color: colors.text.secondary,
                 fontSize: typography.size.xs,
               }}>
-                Your AI Event Planner
+                {t('YourAIEventPlanner')}
               </Text>
             </View>
           </View>
@@ -374,7 +376,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
                   fontSize: typography.size.base,
                   fontStyle: 'italic',
                 }}>
-                  Thinking...
+                  {t('Thinking')}
                 </Text>
               </View>
             </View>
@@ -409,7 +411,7 @@ export default function EnhancedChatScreen({ onClose, eventId }: EnhancedChatScr
               ref={inputRef}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Tell me about your event..."
+              placeholder={t('TellMeAboutYourEvent')}
               placeholderTextColor={colors.text.tertiary}
               style={{
                 flex: 1,

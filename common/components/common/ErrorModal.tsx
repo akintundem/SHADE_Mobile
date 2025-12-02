@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, Alert } from 'react-native';
 import { X, AlertTriangle, RefreshCw } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useI18n } from '../../i18n/I18nProvider';
 
 export interface ErrorInfo {
   title: string;
@@ -21,6 +22,7 @@ interface ErrorModalProps {
 
 export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorModalProps) {
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
+  const { t } = useI18n();
 
   if (!error) return null;
 
@@ -101,7 +103,7 @@ export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorMo
                 fontSize: typography.size.sm,
                 fontFamily: 'monospace'
               }}>
-                Error Code: {error.code}
+                {t('ErrorCode')} {error.code}
               </Text>
             </View>
           )}
@@ -144,7 +146,7 @@ export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorMo
                 color: colors.text.primary,
                 fontWeight: '600'
               }}>
-                Close
+                {t('Close')}
               </Text>
             </TouchableOpacity>
             
@@ -166,7 +168,7 @@ export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorMo
                   color: colors.text.inverse,
                   fontWeight: '600'
                 }}>
-                  Retry
+                  {t('Retry')}
                 </Text>
               </TouchableOpacity>
             )}

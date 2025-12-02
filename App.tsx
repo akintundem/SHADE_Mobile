@@ -136,7 +136,7 @@ function App() {
         <ThemeProvider>
           <NavigationContainer>
               {isLoading ? (
-                <LoadingState message="Welcome to Shade..." />
+                <LoadingState />
               ) : !user ? (
                 <Auth
                   onLogin={handleLogin}
