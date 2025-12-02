@@ -1,4 +1,3 @@
-export * from './providers/AgentProvider';
 export * from './components/AgentBanner';
 export * from './components/AgentSuggestionChips';
 export * from './services/agentService';

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
 import { I18nProvider } from './common/i18n/I18nProvider';
-import { AgentProvider } from './features/agent/providers/AgentProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Auth from './features/auth/screens/AuthScreen';
@@ -134,9 +133,8 @@ function App() {
   return (
     <SafeAreaProvider>
       <I18nProvider>
-        <AgentProvider>
-          <ThemeProvider>
-            <NavigationContainer>
+        <ThemeProvider>
+          <NavigationContainer>
               {isLoading ? (
                 <LoadingState message="Welcome to Shade..." />
               ) : !user ? (
@@ -237,7 +235,6 @@ function App() {
               )}
             </NavigationContainer>
           </ThemeProvider>
-        </AgentProvider>
       </I18nProvider>
     </SafeAreaProvider>
   );

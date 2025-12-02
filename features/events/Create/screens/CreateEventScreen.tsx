@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Asset } from 'react-native-image-picker';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { useAgent } from '../../../../features/agent/providers/AgentProvider';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { LoadingOverlay } from '../../../../common/components/LoadingStates';
 import { eventService } from '../../services/eventService';
@@ -29,7 +28,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<Asset | null>(null);
   const { colors, spacing } = useTheme();
-  const { setContext, ask } = useAgent();
 
   const form = useCreateEventForm();
   const {
@@ -94,27 +92,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   }, [currentStep, title, description, selectedEventType, startDate, startTime, venue, free, price, validationResult]);
 
   const canCreate = validationResult.isValid && !isLoading;
-
-  // Update agent context with current step
-  useEffect(() => {
-    const ctx = {
-      surface: 'create_event' as const,
-      currentStep,
-      stepName: STEPS[currentStep].id,
-      form: {
-        title,
-        description,
-        access: (free ? 'free' : 'paid') as 'free' | 'paid',
-        price: Number(price) || undefined,
-        capacity: Number(capacity) || undefined,
-      },
-    };
-    setContext(ctx);
-    const id = setTimeout(() => {
-      ask(ctx);
-    }, 450);
-    return () => clearTimeout(id);
-  }, [currentStep, title, description, free, price, capacity, setContext, ask]);
 
   const handleCreateEvent = useCallback(async () => {
     if (!canCreate) return;

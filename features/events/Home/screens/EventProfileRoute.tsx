@@ -18,7 +18,6 @@ import RSVPScreen from '../components/RSVPScreen';
 import { EventFeedsScreen } from './EventFeedsScreen';
 import { shareEvent } from '../../../../common/utils/shareUtils';
 import CollaborationScreen from '../components/CollaborationScreen';
-import { useAgent } from '../../../agent/providers/AgentProvider';
 import EnhancedChatScreen from '../../../agent/components/chat/EnhancedChatScreen';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string; description?: string; status?: EventStatus };
@@ -104,7 +103,6 @@ export const EventProfileRoute = () => {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const carouselTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const { setContext, suggestions } = useAgent();
 
   const handleShare = useCallback(async () => {
     if (!event) return;
@@ -251,27 +249,6 @@ export const EventProfileRoute = () => {
   useEffect(() => {
     fetchEvent();
   }, [fetchEvent]);
-
-  useEffect(() => {
-    if (!eventId || !event) return;
-    setContext({
-      surface: 'manage_event',
-      eventId,
-      metadata: {
-        name: event.name,
-        start: event.startDateTime,
-        end: event.endDateTime,
-      },
-      form: {
-        title: event.name ?? undefined,
-        description: event.description ?? undefined,
-        start: event.startDateTime ?? undefined,
-        end: event.endDateTime ?? undefined,
-        locationName: event.venueRequirements ?? undefined,
-        capacity: event.capacity ?? undefined,
-      },
-    });
-  }, [eventId, event, setContext]);
 
   const onRefresh = useCallback(async () => {
     if (!eventId) return;
@@ -1052,20 +1029,6 @@ export const EventProfileRoute = () => {
                 }}
               >
                 <Stars size={24} color={colors.background} />
-                {suggestions?.length ? (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      width: 10,
-                      height: 10,
-                      borderRadius: 5,
-                      backgroundColor: colors.background,
-                      opacity: 0.85,
-                    }}
-                  />
-                ) : null}
               </TouchableOpacity>
             </View>
           )}

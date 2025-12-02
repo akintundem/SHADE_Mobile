@@ -2,18 +2,19 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { Sparkles, AlertTriangle, Lightbulb } from 'lucide-react-native';
-import { useAgent } from '../providers/AgentProvider';
+import { Suggestion } from '../services/agentService';
 
 export const AgentBanner = ({
   onOpenChat,
   onSelect,
+  suggestions = [],
 }: {
   onOpenChat: () => void;
   onSelect?: (text: string) => void;
+  suggestions?: Suggestion[];
 }) => {
   const { colors, borderRadius, spacing, typography, brand, shadows } =
     useTheme();
-  const { suggestions } = useAgent();
   if (!suggestions?.length) return null;
   const primary = suggestions[0];
   const isRisk = primary.type === 'risk';
