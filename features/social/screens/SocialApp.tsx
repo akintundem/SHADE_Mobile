@@ -3,17 +3,17 @@ import { View } from 'react-native';
 import { User } from '../../../shared/types';
 import { useTheme } from '../../../shared/theme/ThemeProvider';
 import { authService } from '../../../shared/services/authService';
-import HomeScreen from '../../events/home/screens/HomeScreen';
-import DiscoverScreen from '../../events/discover/screens/DiscoverScreen';
+import HomeScreen from '../../events/Home/screens/HomeScreen';
+import DiscoverScreen from '../../events/Discover/screens/DiscoverScreen';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
-const CameraScreen = React.lazy(() => import('../../media/camera/screens/CameraScreen'));
+const CameraScreen = React.lazy(() => import('../../media/Camera/screens/CameraScreen'));
 const VideoEditorScreen = React.lazy(() => import('../../media/editor/screens/VideoEditorScreen'));
 const CreateEventScreen = React.lazy(() => import('../../events/Create/screens/CreateEventScreen'));
 const SettingsScreen = React.lazy(() => import('../../settings/screens/SettingsScreen'));
 const ChatScreen = React.lazy(() => import('../../chat/screens/ChatScreen'));
-const CapturedPhotosScreen = React.lazy(() => import('../../media/camera/screens/CapturedPhotosScreen'));
-import { EventThreadScreen } from '../../events/home/components/EventThreadScreen';
-import type { ThreadPost } from '../../events/home/components/EventThreadModal';
+const CapturedPhotosScreen = React.lazy(() => import('../../media/Camera/screens/CapturedPhotosScreen'));
+import { EventThreadScreen } from '../../events/Home/components/EventThreadScreen';
+import type { ThreadPost } from '../../events/Home/components/EventThreadModal';
 
 type Props = {
   user: User;
