@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, DollarSign, TrendingUp, TrendingDown, Filter, Download, ChevronRight, Zap } from 'lucide-react-native';
+import { ArrowLeft, Plus, DollarSign, Filter, Download } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { BudgetDTO, ExpenseDTO } from '../../budget/types/budget';
 import { dateUtils } from '../../../../common/utils/helpers';
@@ -117,51 +117,33 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
-      {/* Clean Modern Header */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: spacing.xl,
-        paddingVertical: spacing.lg,
-        backgroundColor: colors.background,
+      {/* Header */}
+      <View style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        paddingHorizontal: spacing.lg, 
+        paddingVertical: spacing.md,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+        backgroundColor: colors.surface
       }}>
-        <TouchableOpacity 
-          onPress={onBack} 
-          style={{ 
-            width: 40,
-            height: 40,
-            borderRadius: borderRadius.lg,
-            backgroundColor: colors.surface,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
-          }}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={onBack} style={{ padding: spacing.sm }}>
           <ArrowLeft size={20} color={colors.text.primary} />
         </TouchableOpacity>
-        
-        <Text style={{
-          color: colors.text.primary,
-          fontWeight: typography.weight.bold,
-          fontSize: typography.size.xl,
-          letterSpacing: -0.5,
+        <Text style={{ 
+          color: colors.text.primary, 
+          fontWeight: '700',
+          fontSize: typography.size.lg
         }}>
           Budget
         </Text>
-        
-        <TouchableOpacity
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: borderRadius.lg,
+        <TouchableOpacity 
+          style={{ 
+            padding: spacing.sm,
             backgroundColor: brand.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
+            borderRadius: borderRadius.md
           }}
-          activeOpacity={0.8}
         >
           <Plus size={20} color={colors.text.inverse} />
         </TouchableOpacity>
@@ -171,120 +153,144 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
         contentContainerStyle={{ padding: spacing.xl, gap: spacing.xl }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Clean Budget Overview */}
+        {/* Credit Card Style Total Budget */}
         <View style={{
-          backgroundColor: colors.surface,
+          backgroundColor: '#000000',
           borderRadius: borderRadius.xl,
           padding: spacing.xl,
-          borderWidth: 1,
-          borderColor: colors.border,
+          ...shadows.lg,
+          overflow: 'hidden',
+          position: 'relative',
         }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.lg }}>
-            <View>
-              <Text style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.medium,
-                marginBottom: spacing.xs
-              }}>
-                Total Budget
-              </Text>
-              <Text style={{
-                color: colors.text.primary,
-                fontWeight: typography.weight.bold,
-                fontSize: typography.size['3xl'],
-                letterSpacing: -1
-              }}>
-                ${totalBudget.toLocaleString()}
-              </Text>
-            </View>
-            <View style={{
-              width: 56,
-              height: 56,
-              borderRadius: borderRadius.lg,
-              backgroundColor: brand.primary,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <DollarSign size={28} color={colors.text.inverse} />
-            </View>
-          </View>
-
-          {/* Simple Progress Bar */}
-          <View style={{ 
-            height: 8, 
-            backgroundColor: colors.background, 
-            borderRadius: borderRadius.sm, 
-            overflow: 'hidden',
-            marginBottom: spacing.md,
-          }}>
-            <View style={{
-              width: `${Math.min(spentPercentage, 100)}%`,
-              height: '100%',
-              backgroundColor: spentPercentage > 80 ? colors.semantic.error : brand.primary,
-              borderRadius: borderRadius.sm,
-            }} />
-          </View>
+          {/* Decorative circles for credit card effect */}
+          <View style={{
+            position: 'absolute',
+            top: -50,
+            right: -50,
+            width: 200,
+            height: 200,
+            borderRadius: 100,
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          }} />
+          <View style={{
+            position: 'absolute',
+            bottom: -80,
+            left: -80,
+            width: 250,
+            height: 250,
+            borderRadius: 125,
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          }} />
           
-          <Text style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.xs,
-            textAlign: 'right',
-            marginBottom: spacing.lg,
-          }}>
-            {spentPercentage.toFixed(1)}% spent
-          </Text>
-
-          <View style={{ 
-            flexDirection: 'row', 
-            gap: spacing.md,
-          }}>
-            <View style={{ 
-              flex: 1,
-              paddingVertical: spacing.md,
-              paddingHorizontal: spacing.lg,
-              backgroundColor: colors.background,
-              borderRadius: borderRadius.lg,
-              alignItems: 'center',
-            }}>
-              <Text style={{ 
-                color: colors.text.secondary, 
-                fontSize: typography.size.xs,
-                marginBottom: spacing.xs,
+          <View style={{ position: 'relative', zIndex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xl }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontSize: typography.size.sm,
+                  fontWeight: typography.weight.medium,
+                  marginBottom: spacing.xs,
+                  letterSpacing: 1,
+                }}>
+                  TOTAL BUDGET
+                </Text>
+                <Text style={{
+                  color: '#FFFFFF',
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size['3xl'],
+                  letterSpacing: -1
+                }}>
+                  ${totalBudget.toLocaleString()}
+                </Text>
+              </View>
+              <View style={{
+                width: 56,
+                height: 56,
+                borderRadius: borderRadius.lg,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
-                Spent
-              </Text>
-              <Text style={{
-                color: colors.text.primary,
-                fontWeight: typography.weight.bold,
-                fontSize: typography.size.lg,
-              }}>
-                ${totalSpent.toLocaleString()}
-              </Text>
+                <DollarSign size={28} color="#FFFFFF" />
+              </View>
             </View>
 
+            {/* Progress Bar */}
             <View style={{ 
-              flex: 1,
-              paddingVertical: spacing.md,
-              paddingHorizontal: spacing.lg,
-              backgroundColor: colors.background,
-              borderRadius: borderRadius.lg,
-              alignItems: 'center',
+              height: 8, 
+              backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+              borderRadius: borderRadius.sm, 
+              overflow: 'hidden',
+              marginBottom: spacing.md,
             }}>
-              <Text style={{ 
-                color: colors.text.secondary, 
-                fontSize: typography.size.xs,
-                marginBottom: spacing.xs,
+              <View style={{
+                width: `${Math.min(spentPercentage, 100)}%`,
+                height: '100%',
+                backgroundColor: '#FFFFFF',
+                borderRadius: borderRadius.sm,
+              }} />
+            </View>
+            
+            <Text style={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: typography.size.xs,
+              textAlign: 'right',
+              marginBottom: spacing.lg,
+            }}>
+              {spentPercentage.toFixed(1)}% spent
+            </Text>
+
+            <View style={{ 
+              flexDirection: 'row', 
+              gap: spacing.md,
+            }}>
+              <View style={{ 
+                flex: 1,
+                paddingVertical: spacing.md,
+                paddingHorizontal: spacing.lg,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: borderRadius.lg,
+                alignItems: 'center',
               }}>
-                Remaining
-              </Text>
-              <Text style={{
-                color: remaining > 0 ? colors.semantic.success : colors.semantic.error,
-                fontWeight: typography.weight.bold,
-                fontSize: typography.size.lg,
+                <Text style={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  fontSize: typography.size.xs,
+                  marginBottom: spacing.xs,
+                }}>
+                  Spent
+                </Text>
+                <Text style={{
+                  color: '#FFFFFF',
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size.lg,
+                }}>
+                  ${totalSpent.toLocaleString()}
+                </Text>
+              </View>
+
+              <View style={{ 
+                flex: 1,
+                paddingVertical: spacing.md,
+                paddingHorizontal: spacing.lg,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: borderRadius.lg,
+                alignItems: 'center',
               }}>
-                ${remaining.toLocaleString()}
-              </Text>
+                <Text style={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  fontSize: typography.size.xs,
+                  marginBottom: spacing.xs,
+                }}>
+                  Remaining
+                </Text>
+                <Text style={{
+                  color: '#FFFFFF',
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size.lg,
+                }}>
+                  ${remaining.toLocaleString()}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -340,7 +346,6 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
           <View style={{ gap: spacing.lg }}>
             {budget.categories.map((category) => {
               const categoryPercentage = category.budgeted > 0 ? (category.spent / category.budgeted) * 100 : 0;
-              const isOverBudget = category.spent > category.budgeted;
 
               return (
                 <View key={category.name}>
@@ -370,7 +375,7 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
                     <View style={{
                       width: `${Math.min(categoryPercentage, 100)}%`,
                       height: '100%',
-                      backgroundColor: isOverBudget ? colors.semantic.error : brand.primary,
+                      backgroundColor: brand.primary,
                       borderRadius: borderRadius.sm
                     }} />
                   </View>
@@ -383,7 +388,7 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
                       {categoryPercentage.toFixed(1)}% used
                     </Text>
                     <Text style={{
-                      color: category.remaining > 0 ? colors.semantic.success : colors.semantic.error,
+                      color: colors.text.secondary,
                       fontSize: typography.size.xs,
                       fontWeight: typography.weight.semibold,
                     }}>
@@ -463,16 +468,16 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
 }
 
 function ExpenseCard({ expense }: { expense: ExpenseDTO }) {
-  const { colors, typography, spacing, borderRadius } = useTheme();
+  const { colors, typography, spacing, borderRadius, brand } = useTheme();
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PAID':
-        return colors.semantic.success;
+        return brand.primary;
       case 'PENDING':
-        return colors.semantic.warning;
+        return colors.text.secondary;
       case 'REJECTED':
-        return colors.semantic.error;
+        return colors.text.tertiary;
       default:
         return colors.text.secondary;
     }
