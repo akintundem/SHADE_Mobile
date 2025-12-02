@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { ScrollView, View, Text, RefreshControl, TouchableOpacity, ImageBackground, Animated, Dimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ChevronLeft, CalendarClock, Hash, Users, UsersRound, Wallet, Store, CalendarCheck, Share2, ChevronUp, ChevronRight, MessageSquare, Calendar, Stars } from 'lucide-react-native';
+import { ChevronLeft, CalendarClock, Hash, Users, UsersRound, Wallet, Store, CalendarCheck, Share2, ChevronRight, MessageSquare, Calendar, Stars } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../common/components/LoadingStates';
@@ -19,6 +19,7 @@ import { EventFeedsScreen } from './EventFeedsScreen';
 import { shareEvent } from '../../../../common/utils/shareUtils';
 import CollaborationScreen from '../components/CollaborationScreen';
 import EnhancedChatScreen from '../../../agent/components/chat/EnhancedChatScreen';
+import EventLocationHeader from '../components/EventLocationHeader';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string };
 
@@ -58,8 +59,8 @@ export const EventProfileRoute = () => {
 
   const eventId = params.eventId;
   
-  // Generate static map URL if venue coordinates exist
-  const staticMapUrl = useMemo(() => {
+  // Get venue coordinates for map preview
+  const venueCoordinates = useMemo(() => {
     // Check if event has venue data (from EventResponseWithScope)
     if (eventData && isFullEventResponse(eventData) && eventData.venue) {
       const venue = eventData.venue;
@@ -67,15 +68,24 @@ export const EventProfileRoute = () => {
       const longitude = venue?.longitude;
       
       if (latitude && longitude && typeof latitude === 'number' && typeof longitude === 'number') {
-        const zoom = 13;
-        const width = Math.round(Dimensions.get('window').width);
-        const height = 320;
-        
-        // Using Geoapify's demo API for static maps (same as LocationStep.tsx)
-        const url = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=${width}&height=${height}&center=lonlat:${longitude},${latitude}&zoom=${zoom}&marker=lonlat:${longitude},${latitude};type:material;color:%23F59E0B;size:medium&apiKey=demo`;
-        
-        return url;
+        return { latitude, longitude };
       }
+    }
+    return null;
+  }, [eventData]);
+
+  // Format venue address for display
+  const formattedVenueAddress = useMemo(() => {
+    if (eventData && isFullEventResponse(eventData) && eventData.venue) {
+      const venue = eventData.venue;
+      const parts = [];
+      
+      if (venue.address) parts.push(venue.address);
+      if (venue.city) parts.push(venue.city);
+      if (venue.state) parts.push(venue.state);
+      if (venue.country) parts.push(venue.country);
+      
+      return parts.length > 0 ? parts.join(', ') : null;
     }
     return null;
   }, [eventData]);
@@ -84,7 +94,7 @@ export const EventProfileRoute = () => {
   useEffect(() => {
     // Only auto-rotate if we have both image and map
     const hasImage = !!(event?.coverImageUrl ?? params.imageUrl ?? FALLBACK_IMAGE);
-    const hasMap = !!staticMapUrl;
+    const hasMap = !!venueCoordinates;
     
     if (hasImage && hasMap) {
       carouselTimerRef.current = setInterval(() => {
@@ -97,7 +107,7 @@ export const EventProfileRoute = () => {
         clearInterval(carouselTimerRef.current);
       }
     };
-  }, [event?.coverImageUrl, params.imageUrl, staticMapUrl]);
+  }, [event?.coverImageUrl, params.imageUrl, venueCoordinates]);
 
   // Animate carousel transition
   useEffect(() => {
@@ -294,8 +304,8 @@ export const EventProfileRoute = () => {
         >
           <View>
             {/* Header with Carousel (Image + Map) */}
-            <View style={{ position: 'relative', height: 320, overflow: 'hidden' }}>
-              {staticMapUrl ? (
+            <View style={{ position: 'relative', height: 250, overflow: 'hidden' }}>
+              {venueCoordinates ? (
                 <Animated.View
                   style={{
                     flexDirection: 'row',
@@ -329,28 +339,20 @@ export const EventProfileRoute = () => {
                   </View>
 
                   {/* Map Slide */}
-                  <View style={{ width: Dimensions.get('window').width, height: '100%', backgroundColor: '#1F2937' }}>
-                    <ImageBackground
-                      source={{ uri: staticMapUrl }}
-                      style={{ width: '100%', height: '100%' }}
-                      resizeMode="cover"
-                      onError={() => {
-                        // Map image failed to load
-                      }}
-                      onLoad={() => {
-                        // Map image loaded successfully
-                      }}
-                    >
-                      {/* Dark overlay for text readability */}
-                      <View style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: 120,
-                        backgroundColor: 'rgba(0,0,0,0.4)',
-                      }} />
-                    </ImageBackground>
+                  <View style={{ width: Dimensions.get('window').width, height: '100%' }}>
+                    <EventLocationHeader
+                      latitude={venueCoordinates.latitude}
+                      longitude={venueCoordinates.longitude}
+                    />
+                    {/* Dark overlay for text readability */}
+                    <View style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 120,
+                      backgroundColor: 'rgba(0,0,0,0.4)',
+                    }} />
                   </View>
                 </Animated.View>
               ) : (
@@ -410,7 +412,7 @@ export const EventProfileRoute = () => {
                 </TouchableOpacity>
               </SafeAreaView>
 
-              {/* Event Name */}
+              {/* Event Name and Address */}
               <View style={{
                 position: 'absolute',
                 bottom: spacing.xl,
@@ -424,21 +426,28 @@ export const EventProfileRoute = () => {
                     fontSize: typography.size['3xl'],
                     marginBottom: spacing.xs,
                   }}
+                  numberOfLines={2}
                 >
                   {event?.name ?? params.title ?? t('EventName')}
                 </Text>
                 
-                {/* Swipe up indicator */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm }}>
-                  <Text style={{ color: '#FFFFFF', fontSize: typography.size.xs, opacity: 0.8 }}>
-                    Swipe up
+                {formattedVenueAddress && (
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontSize: typography.size.base,
+                      opacity: 0.9,
+                      marginTop: spacing.xs,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {formattedVenueAddress}
                   </Text>
-                  <ChevronUp size={14} color="#FFFFFF" style={{ opacity: 0.8 }} />
-                </View>
+                )}
               </View>
 
               {/* Carousel Indicators */}
-              {staticMapUrl && (
+              {venueCoordinates && (
                 <View style={{
                   position: 'absolute',
                   bottom: spacing.md,
