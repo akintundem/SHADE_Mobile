@@ -131,11 +131,11 @@ export default function VendorsScreen({ eventId, onBack }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'center', 
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'space-between', 
-        paddingHorizontal: spacing.lg, 
+        paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
         borderColor: colors.border,
@@ -144,7 +144,7 @@ export default function VendorsScreen({ eventId, onBack }: Props) {
         <TouchableOpacity onPress={onBack} style={{ padding: spacing.sm }}>
           <ArrowLeft size={20} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={{ 
+        <Text style={{
           color: colors.text.primary, 
           fontWeight: '700',
           fontSize: typography.size.lg
@@ -239,9 +239,9 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
               fontSize: typography.size.xs,
               color: colors.text.secondary,
               fontWeight: typography.weight.medium,
-            }}>
-              {vendor.category}
-            </Text>
+          }}>
+            {vendor.category}
+          </Text>
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>

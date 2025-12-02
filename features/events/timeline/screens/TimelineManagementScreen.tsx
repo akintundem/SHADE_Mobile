@@ -5,7 +5,6 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { TimelineDTO, TaskDTO } from '../../types/events';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../../common/components/common/ErrorModal';
-import { StatCard } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   eventId: string;
@@ -188,73 +187,146 @@ export default function TimelineManagementScreen({ eventId, onBack, onAddTask }:
         </TouchableOpacity>
       </View>
 
-      {/* Timeline Overview */}
+      {/* Timeline Overview - Compact */}
       <View style={{ 
-        padding: spacing.lg,
-        backgroundColor: colors.surface,
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.lg,
+        backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderColor: colors.border
       }}>
         <Text style={{ 
           color: colors.text.primary,
           fontSize: typography.size.lg,
-          fontWeight: '700',
-          marginBottom: spacing.sm
+          fontWeight: typography.weight.bold,
+          marginBottom: spacing.xs
         }}>
           {timeline.name}
         </Text>
-        <Text style={{ 
-          color: colors.text.secondary,
-          fontSize: 14,
-          marginBottom: spacing.md
-        }}>
-          {timeline.description}
-        </Text>
+        {timeline.description && (
+          <Text style={{ 
+            color: colors.text.secondary,
+            fontSize: typography.size.sm,
+            marginBottom: spacing.md
+          }}>
+            {timeline.description}
+          </Text>
+        )}
         
-        <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-          <StatCard label="Total" value={taskStats.total} color={colors.text.primary} />
-          <StatCard label="Completed" value={taskStats.completed} color={colors.semantic.success} />
-          <StatCard label="In Progress" value={taskStats.inProgress} color={colors.semantic.warning} />
-          <StatCard label="Pending" value={taskStats.pending} color={colors.text.secondary} />
+        <View style={{ 
+          flexDirection: 'row', 
+          gap: spacing.md,
+          marginTop: spacing.sm
+        }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.xs,
+              marginBottom: spacing.xs
+            }}>
+              Total
+            </Text>
+            <Text style={{ 
+              color: colors.text.primary,
+              fontSize: typography.size.xl,
+              fontWeight: typography.weight.bold
+            }}>
+              {taskStats.total}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.xs,
+              marginBottom: spacing.xs
+            }}>
+              Completed
+            </Text>
+            <Text style={{ 
+              color: colors.text.primary,
+              fontSize: typography.size.xl,
+              fontWeight: typography.weight.bold
+            }}>
+              {taskStats.completed}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.xs,
+              marginBottom: spacing.xs
+            }}>
+              In Progress
+            </Text>
+            <Text style={{ 
+              color: colors.text.primary,
+              fontSize: typography.size.xl,
+              fontWeight: typography.weight.bold
+            }}>
+              {taskStats.inProgress}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.xs,
+              marginBottom: spacing.xs
+            }}>
+              Pending
+            </Text>
+            <Text style={{ 
+              color: colors.text.primary,
+              fontSize: typography.size.xl,
+              fontWeight: typography.weight.bold
+            }}>
+              {taskStats.pending}
+            </Text>
+          </View>
         </View>
       </View>
 
-      {/* Filters */}
-      <View style={{ padding: spacing.lg, gap: spacing.md }}>
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          {[
-            { key: 'all', label: 'All' },
-            { key: 'pending', label: 'Pending' },
-            { key: 'in_progress', label: 'In Progress' },
-            { key: 'completed', label: 'Completed' },
-          ].map(option => (
-            <TouchableOpacity
-              key={option.key}
-              onPress={() => setFilterStatus(option.key as any)}
-              style={{
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
-                backgroundColor: filterStatus === option.key ? brand.primary : colors.surface,
-                borderRadius: borderRadius.full,
-                borderWidth: 1,
-                borderColor: filterStatus === option.key ? brand.primary : colors.border
-              }}
-            >
-              <Text style={{
-                color: filterStatus === option.key ? colors.text.inverse : colors.text.primary,
-                fontWeight: '600',
-                fontSize: 14
-              }}>
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+      {/* Filters - Compact */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ 
+          paddingHorizontal: spacing.xl, 
+          paddingVertical: spacing.md,
+          gap: spacing.sm 
+        }}
+      >
+        {[
+          { key: 'all', label: 'All' },
+          { key: 'pending', label: 'Pending' },
+          { key: 'in_progress', label: 'In Progress' },
+          { key: 'completed', label: 'Completed' },
+        ].map(option => (
+          <TouchableOpacity
+            key={option.key}
+            onPress={() => setFilterStatus(option.key as any)}
+            style={{
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.sm,
+              backgroundColor: filterStatus === option.key ? brand.primary : colors.surface,
+              borderRadius: borderRadius.lg,
+              borderWidth: 1,
+              borderColor: filterStatus === option.key ? brand.primary : colors.border
+            }}
+          >
+            <Text style={{
+              color: filterStatus === option.key ? colors.text.inverse : colors.text.primary,
+              fontWeight: typography.weight.semibold,
+              fontSize: typography.size.sm
+            }}>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       {/* Tasks List */}
       <ScrollView 
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
+        contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}
         showsVerticalScrollIndicator={false}
       >
         {filteredTasks.map(task => (
@@ -266,31 +338,18 @@ export default function TimelineManagementScreen({ eventId, onBack, onAddTask }:
 }
 
 function TaskCard({ task }: { task: TaskDTO }) {
-  const { colors, typography, spacing, borderRadius } = useTheme();
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'HIGH':
-        return colors.semantic.error;
-      case 'MEDIUM':
-        return colors.semantic.warning;
-      case 'LOW':
-        return colors.semantic.success;
-      default:
-        return colors.text.secondary;
-    }
-  };
+  const { colors, typography, spacing, borderRadius, brand } = useTheme();
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return <CheckCircle size={16} color={colors.semantic.success} />;
+        return <CheckCircle size={16} color={brand.primary} />;
       case 'IN_PROGRESS':
-        return <Clock size={16} color={colors.semantic.warning} />;
+        return <Clock size={16} color={brand.primary} />;
       case 'PENDING':
-        return <Circle size={16} color={colors.text.secondary} />;
+        return <Circle size={16} color={colors.text.tertiary} />;
       default:
-        return <Circle size={16} color={colors.text.secondary} />;
+        return <Circle size={16} color={colors.text.tertiary} />;
     }
   };
 
@@ -301,116 +360,135 @@ function TaskCard({ task }: { task: TaskDTO }) {
       backgroundColor: colors.surface,
       borderRadius: borderRadius.xl,
       borderWidth: 1,
-      borderColor: isOverdue ? colors.semantic.error : colors.border,
+      borderColor: colors.border,
       padding: spacing.lg,
-      gap: spacing.sm
     }}>
       {/* Header */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm }}>
         <View style={{ flex: 1 }}>
-          <Text style={{ 
-            color: colors.text.primary,
-            fontSize: typography.size.lg,
-            fontWeight: '700'
-          }}>
-            {task.title}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
+            {getStatusIcon(task.status)}
+            <Text style={{ 
+              color: colors.text.primary,
+              fontSize: typography.size.base,
+              fontWeight: typography.weight.semibold
+            }}>
+              {task.title}
+            </Text>
+          </View>
+          {task.description && (
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.sm,
+              lineHeight: 20
+            }}>
+              {task.description}
+            </Text>
+          )}
+        </View>
+        <View style={{
+          paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.xs,
+          backgroundColor: colors.background,
+          borderRadius: borderRadius.sm,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}>
           <Text style={{ 
             color: colors.text.secondary,
-            fontSize: 14
-          }}>
-            {task.description}
-          </Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          {getStatusIcon(task.status)}
-          <Text style={{ 
-            color: getPriorityColor(task.priority),
-            fontWeight: '600',
-            fontSize: 14
+            fontWeight: typography.weight.medium,
+            fontSize: typography.size.xs
           }}>
             {task.priority}
           </Text>
         </View>
       </View>
 
-      {/* Details */}
-      <View style={{ gap: spacing.xs }}>
+      {/* Compact Details Row */}
+      <View style={{ 
+        flexDirection: 'row', 
+        flexWrap: 'wrap',
+        gap: spacing.md,
+        marginBottom: spacing.sm
+      }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          <Calendar size={16} color={colors.text.secondary} />
-          <Text style={{ color: colors.text.secondary }}>
-            Due: {new Date(task.dueDate).toLocaleDateString()}
-          </Text>
-          {isOverdue && (
-            <AlertCircle size={16} color={colors.semantic.error} />
-          )}
-        </View>
-        
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          <Clock size={16} color={colors.text.secondary} />
-          <Text style={{ color: colors.text.secondary }}>
-            {task.actualHours || 0}h / {task.estimatedHours}h
-          </Text>
-        </View>
-        
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          <Text style={{ color: colors.text.secondary }}>
-            Assigned to: {task.assignedTo}
-          </Text>
-        </View>
-      </View>
-
-      {/* Progress Bar */}
-      {task.estimatedHours > 0 && (
-        <View style={{ marginTop: spacing.sm }}>
-          <View style={{
-            height: 6,
-            backgroundColor: colors.border,
-            borderRadius: borderRadius.sm,
-            overflow: 'hidden'
-          }}>
-            <View style={{
-              width: `${Math.min((task.actualHours / task.estimatedHours) * 100, 100)}%`,
-              height: '100%',
-              backgroundColor: task.status === 'COMPLETED' ? colors.semantic.success : colors.brand.primary,
-              borderRadius: borderRadius.sm
-            }} />
-          </View>
+          <Calendar size={14} color={colors.text.tertiary} />
           <Text style={{ 
             color: colors.text.secondary,
-            fontSize: 12,
-            textAlign: 'right',
-            marginTop: spacing.xs
+            fontSize: typography.size.xs
           }}>
-            {Math.round((task.actualHours / task.estimatedHours) * 100)}% complete
+            {new Date(task.dueDate).toLocaleDateString()}
+          </Text>
+        </View>
+        
+        {task.estimatedHours > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <Clock size={14} color={colors.text.tertiary} />
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.xs
+            }}>
+              {task.actualHours || 0}h / {task.estimatedHours}h
+            </Text>
+          </View>
+        )}
+        
+        {task.assignedTo && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <Text style={{ 
+              color: colors.text.secondary,
+              fontSize: typography.size.xs
+            }}>
+              {task.assignedTo}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Time Tracking - Clean Design */}
+      {task.estimatedHours > 0 && (
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          gap: spacing.xs,
+          marginBottom: spacing.xs
+        }}>
+          <Text style={{
+            color: colors.text.tertiary,
+            fontSize: typography.size.xs,
+            fontWeight: typography.weight.regular
+          }}>
+            {task.actualHours || 0}h / {task.estimatedHours}h
           </Text>
         </View>
       )}
 
-        {/* Tags */}
-        {task.tags && task.tags.length > 0 && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm }}>
-            {task.tags.map((tag: string) => (
-              <View
-                key={tag}
-                style={{
-                  paddingHorizontal: spacing.sm,
-                  paddingVertical: spacing.xs,
-                  backgroundColor: colors.brand.primaryLight,
-                  borderRadius: borderRadius.sm
-                }}
-              >
-                <Text style={{ 
-                  color: colors.brand.primary,
-                  fontSize: 12,
-                  fontWeight: '600'
-                }}>
-                  {tag}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
+      {/* Tags - Compact */}
+      {task.tags && task.tags.length > 0 && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+          {task.tags.map((tag: string) => (
+            <View
+              key={tag}
+              style={{
+                paddingHorizontal: spacing.sm,
+                paddingVertical: spacing.xs,
+                backgroundColor: colors.background,
+                borderRadius: borderRadius.sm,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Text style={{ 
+                color: colors.text.secondary,
+                fontSize: typography.size.xs,
+                fontWeight: typography.weight.medium
+              }}>
+                {tag}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }

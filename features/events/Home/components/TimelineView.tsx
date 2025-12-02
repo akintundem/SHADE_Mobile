@@ -12,7 +12,8 @@ type Props = {
 type TaskRowProps = {
   task: TaskDTO;
   isSubtask: boolean;
-  taskDate: string;
+  taskStartDate: string;
+  taskEndDate: string;
   dates: string[];
   dateColumnWidth: number;
   datesTotalWidth: number;
@@ -24,13 +25,15 @@ type TaskRowProps = {
   getTaskProgress: (task: TaskDTO) => number;
   onScrollSync: (scrollX: number) => void;
   rowIndex: number;
+  scrollRef: (ref: ScrollView | null) => void;
 };
 
 // Memoized task row component for better performance
 const TaskRow = React.memo(({
   task,
   isSubtask,
-  taskDate,
+  taskStartDate,
+  taskEndDate,
   dates,
   dateColumnWidth,
   datesTotalWidth,
@@ -41,75 +44,80 @@ const TaskRow = React.memo(({
   getStatusColor,
   getTaskProgress,
   onScrollSync,
+  scrollRef,
 }: TaskRowProps) => {
   const progress = getTaskProgress(task);
   const statusColor = getStatusColor(task.status);
   const isCompleted = task.status === 'COMPLETED';
-  const TASK_COLUMN_WIDTH = 140;
+  const TASK_COLUMN_WIDTH = 180;
+  
+  // Find which date columns this task spans
+  const getDateIndex = (dateStr: string) => {
+    return dates.findIndex(d => d === dateStr);
+  };
+  
+  const startIndex = getDateIndex(taskStartDate);
+  const endIndex = getDateIndex(taskEndDate);
+  const spansMultipleDates = startIndex >= 0 && endIndex >= 0 && endIndex > startIndex;
 
   return (
     <View
       style={{
         flexDirection: 'row',
         borderBottomWidth: 1,
-        borderColor: colors.borderLight,
+        borderColor: colors.border,
         backgroundColor: isSubtask ? colors.surface : colors.background,
-        minHeight: isSubtask ? 48 : 56,
+        minHeight: isSubtask ? 60 : 72,
       }}
     >
-      {/* Fixed Task Name Column - Compact */}
+      {/* Fixed Task Name Column */}
       <View style={{
         width: TASK_COLUMN_WIDTH,
-        paddingVertical: spacing.sm,
-        paddingHorizontal: spacing.sm,
-        borderRightWidth: 1.5,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.md,
+        borderRightWidth: 1,
         borderColor: colors.border,
         justifyContent: 'center',
+        backgroundColor: colors.surface,
       }}>
         {isSubtask && (
           <View style={{ 
-            width: 12, 
-            alignItems: 'center', 
-            paddingTop: 1,
-            marginBottom: 1
-          }}>
-            <View style={{
-              width: 1,
-              height: 12,
-              backgroundColor: colors.border,
-              marginTop: 3
-            }} />
-          </View>
+            position: 'absolute',
+            left: spacing.sm,
+            top: spacing.sm,
+            width: 2,
+            height: '100%',
+            backgroundColor: colors.border,
+          }} />
         )}
-        <View>
+        <View style={{ marginLeft: isSubtask ? spacing.md : 0 }}>
           <Text 
             numberOfLines={2}
             style={{
               color: isCompleted ? colors.text.tertiary : colors.text.primary,
-              fontSize: isSubtask ? 11 : 12,
+              fontSize: isSubtask ? typography.size.sm : typography.size.base,
               fontWeight: isSubtask ? typography.weight.regular : typography.weight.semibold,
-              letterSpacing: -0.1,
-              lineHeight: isSubtask ? 14 : 16,
+              lineHeight: isSubtask ? 18 : 20,
               textDecorationLine: isCompleted ? 'line-through' : 'none',
             }}
           >
             {task.title}
           </Text>
           
-          {/* Compact assignee - only for parent tasks */}
+          {/* Assignee - only for parent tasks */}
           {!isSubtask && task.assignedTo && (
             <View style={{ 
               flexDirection: 'row', 
               alignItems: 'center', 
-              gap: 3,
-              marginTop: 3
+              gap: spacing.xs,
+              marginTop: spacing.xs
             }}>
-              <User size={9} color={colors.text.tertiary} strokeWidth={2} />
+              <User size={12} color={colors.text.tertiary} strokeWidth={2} />
               <Text 
                 numberOfLines={1}
                 style={{
                   color: colors.text.tertiary,
-                  fontSize: 9,
+                  fontSize: typography.size.xs,
                   fontWeight: typography.weight.regular,
                 }}
               >
@@ -122,75 +130,75 @@ const TaskRow = React.memo(({
 
       {/* Scrollable Date Columns */}
       <ScrollView 
+        ref={scrollRef}
         horizontal 
         showsHorizontalScrollIndicator={false}
-        scrollEventThrottle={32}
+        scrollEventThrottle={16}
         onScroll={(e) => {
           onScrollSync(e.nativeEvent.contentOffset.x);
         }}
         style={{ flex: 1 }}
         bounces={false}
       >
-        <View style={{ flexDirection: 'row', width: datesTotalWidth }}>
+        <View style={{ flexDirection: 'row', width: datesTotalWidth, position: 'relative' }}>
+          {/* Task bar that spans multiple dates - Clean Minimal Design */}
+          {spansMultipleDates && startIndex >= 0 && endIndex >= 0 && (
+            <View
+              style={{
+                position: 'absolute',
+                left: startIndex * dateColumnWidth + spacing.sm,
+                width: (endIndex - startIndex + 1) * dateColumnWidth - spacing.sm * 2,
+                top: '50%',
+                marginTop: -6,
+                height: 12,
+                zIndex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <View style={{
+                width: '100%',
+                height: 6,
+                backgroundColor: statusColor,
+                borderRadius: borderRadius.full,
+                opacity: isCompleted ? 0.4 : 1,
+              }} />
+            </View>
+          )}
+          
           {dates.map((dateStr, index) => {
-            const isTaskDate = dateStr === taskDate;
+            const isInTaskRange = spansMultipleDates 
+              ? index >= startIndex && index <= endIndex
+              : dateStr === taskStartDate || dateStr === taskEndDate;
+            const isStartDate = dateStr === taskStartDate;
+            const isEndDate = dateStr === taskEndDate;
 
             return (
               <View
                 key={index}
                 style={{
                   width: dateColumnWidth,
-                  paddingVertical: spacing.sm,
-                  paddingHorizontal: spacing.xs,
+                  paddingVertical: spacing.md,
+                  paddingHorizontal: spacing.sm,
                   borderRightWidth: index < dates.length - 1 ? 1 : 0,
-                  borderColor: colors.borderLight,
+                  borderColor: colors.border,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  minHeight: isSubtask ? 48 : 56,
+                  minHeight: isSubtask ? 56 : 64,
+                  backgroundColor: colors.background,
                 }}
               >
-                {isTaskDate && (
-                  <View style={{ alignItems: 'center', gap: spacing.xs, width: '100%' }}>
-                    {task.subtasks && task.subtasks.length > 0 ? (
-                      <View style={{
-                        width: '100%',
-                        alignItems: 'center',
-                        gap: 3
-                      }}>
-                        <View style={{
-                          width: '100%',
-                          height: 5,
-                          backgroundColor: colors.surface,
-                          borderRadius: borderRadius.full,
-                          overflow: 'hidden',
-                          borderWidth: 0.5,
-                          borderColor: colors.border
-                        }}>
-                          <View style={{
-                            width: `${progress}%`,
-                            height: '100%',
-                            backgroundColor: statusColor,
-                            borderRadius: borderRadius.full
-                          }} />
-                        </View>
-                        <Text style={{
-                          color: colors.text.primary,
-                          fontSize: 10,
-                          fontWeight: typography.weight.semibold,
-                        }}>
-                          {progress}%
-                        </Text>
-                      </View>
-                    ) : (
-                      <View style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 4,
-                        backgroundColor: statusColor,
-                        borderWidth: isCompleted ? 0 : 1,
-                        borderColor: colors.surface
-                      }} />
-                    )}
+                {/* Single date indicator (when task doesn't span) - Clean Minimal Design */}
+                {!spansMultipleDates && isInTaskRange && (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                    <View style={{
+                      width: isCompleted ? 10 : 8,
+                      height: isCompleted ? 10 : 8,
+                      borderRadius: isCompleted ? 5 : 4,
+                      backgroundColor: statusColor,
+                      opacity: isCompleted ? 0.6 : 1,
+                    }} />
                   </View>
                 )}
               </View>
@@ -203,7 +211,7 @@ const TaskRow = React.memo(({
 });
 
 export default function TimelineView({ tasks, eventId }: Props) {
-  const { colors, typography, spacing, borderRadius } = useTheme();
+  const { colors, typography, spacing, borderRadius, brand } = useTheme();
   const headerScrollRef = useRef<ScrollView>(null);
   const rowScrollRefs = useRef<(ScrollView | null)[]>([]);
   const scrollSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -239,6 +247,24 @@ export default function TimelineView({ tasks, eventId }: Props) {
     return `${date.getDate()} ${date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}`;
   }, []);
 
+  // Calculate task start and end dates
+  const getTaskDateRange = useCallback((task: TaskDTO) => {
+    const dueDate = new Date(task.dueDate);
+    const dueDateStr = getTaskDate(task.dueDate);
+    
+    // Calculate start date based on estimated hours (assuming 8 hours per day)
+    // If no estimated hours, start 3 days before due date
+    const daysToSubtract = task.estimatedHours > 0 
+      ? Math.max(1, Math.ceil(task.estimatedHours / 8))
+      : 3;
+    
+    const startDate = new Date(dueDate);
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    const startDateStr = getTaskDate(startDate.toISOString());
+    
+    return { startDateStr, endDateStr: dueDateStr };
+  }, [getTaskDate]);
+
   // Get all tasks and subtasks flattened
   const allTasks = useMemo(() => {
     const flatten = (task: TaskDTO, parent: TaskDTO | undefined = undefined): Array<{ task: TaskDTO; parent: TaskDTO | undefined; isSubtask: boolean }> => {
@@ -258,15 +284,15 @@ export default function TimelineView({ tasks, eventId }: Props) {
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return colors.semantic.success;
+        return brand.primary;
       case 'IN_PROGRESS':
-        return colors.semantic.warning;
+        return brand.primary;
       case 'PENDING':
         return colors.text.tertiary;
       default:
         return colors.text.tertiary;
     }
-  }, [colors]);
+  }, [colors, brand]);
 
   // Calculate progress for tasks with subtasks
   const getTaskProgress = useCallback((task: TaskDTO) => {
@@ -279,19 +305,21 @@ export default function TimelineView({ tasks, eventId }: Props) {
     return Math.round((completed / task.subtasks.length) * 100);
   }, []);
 
-  const DATE_COLUMN_WIDTH = 85;
-  const TASK_COLUMN_WIDTH = 140;
+  const DATE_COLUMN_WIDTH = 100;
+  const TASK_COLUMN_WIDTH = 180;
   const datesTotalWidth = dates.length * DATE_COLUMN_WIDTH;
 
-  // Optimized scroll sync with debouncing
+  const scrollSyncRef = useRef<number | null>(null);
+
+  // Optimized scroll sync with requestAnimationFrame to prevent flickering
   const syncScrolls = useCallback((scrollX: number, skipRef?: ScrollView | null) => {
-    // Clear existing timeout
-    if (scrollSyncTimeoutRef.current) {
-      clearTimeout(scrollSyncTimeoutRef.current);
+    // Cancel any pending sync
+    if (scrollSyncRef.current !== null) {
+      cancelAnimationFrame(scrollSyncRef.current);
     }
 
-    // Debounce the sync operation
-    scrollSyncTimeoutRef.current = setTimeout(() => {
+    // Use requestAnimationFrame for smooth syncing
+    scrollSyncRef.current = requestAnimationFrame(() => {
       // Sync header
       if (headerScrollRef.current && headerScrollRef.current !== skipRef) {
         headerScrollRef.current.scrollTo({ x: scrollX, animated: false });
@@ -303,12 +331,15 @@ export default function TimelineView({ tasks, eventId }: Props) {
           ref.scrollTo({ x: scrollX, animated: false });
         }
       });
-    }, 8); // Small debounce for better performance
+      
+      scrollSyncRef.current = null;
+    });
   }, []);
 
   // Handler for row scroll sync
   const handleRowScroll = useCallback((scrollX: number, rowIndex: number) => {
-    syncScrolls(scrollX, rowScrollRefs.current[rowIndex]);
+    const sourceRef = rowScrollRefs.current[rowIndex];
+    syncScrolls(scrollX, sourceRef);
   }, [syncScrolls]);
 
   // Handler for header scroll sync
@@ -318,35 +349,35 @@ export default function TimelineView({ tasks, eventId }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header Row */}
+      {/* Header Row - Enhanced Design */}
       <View style={{ 
         flexDirection: 'row', 
-        borderBottomWidth: 1.5, 
+        borderBottomWidth: 1, 
         borderColor: colors.border,
         backgroundColor: colors.surface,
-        shadowColor: colors.brand.primary,
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 2,
       }}>
-        {/* Fixed Task Name Column Header - Compact */}
+        {/* Fixed Task Name Column Header */}
         <View style={{ 
           width: TASK_COLUMN_WIDTH, 
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.sm, 
-          borderRightWidth: 1.5, 
+          paddingVertical: spacing.lg,
+          paddingHorizontal: spacing.md, 
+          borderRightWidth: 1, 
           borderColor: colors.border,
-          justifyContent: 'center'
+          justifyContent: 'center',
+          backgroundColor: colors.surface,
         }}>
           <Text style={{ 
-            color: colors.text.tertiary, 
-            fontSize: 9, 
+            color: colors.text.primary, 
+            fontSize: typography.size.sm, 
             fontWeight: typography.weight.bold,
-            textTransform: 'uppercase',
             letterSpacing: 0.3
           }}>
-            TASK
+            Tasks
           </Text>
         </View>
         
@@ -354,11 +385,11 @@ export default function TimelineView({ tasks, eventId }: Props) {
         <ScrollView 
           ref={headerScrollRef}
           horizontal 
-          showsHorizontalScrollIndicator={true}
+          showsHorizontalScrollIndicator={false}
           onScroll={(e) => {
             handleHeaderScroll(e.nativeEvent.contentOffset.x);
           }}
-          scrollEventThrottle={32}
+          scrollEventThrottle={16}
           style={{ flex: 1 }}
           bounces={false}
         >
@@ -370,30 +401,30 @@ export default function TimelineView({ tasks, eventId }: Props) {
                   key={index}
                   style={{
                     width: DATE_COLUMN_WIDTH,
-                    paddingVertical: spacing.md,
-                    paddingHorizontal: spacing.xs,
+                    paddingVertical: spacing.lg,
+                    paddingHorizontal: spacing.sm,
                     borderRightWidth: index < dates.length - 1 ? 1 : 0,
                     borderColor: colors.border,
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    backgroundColor: colors.surface,
                   }}
                 >
                   <Text style={{
                     color: colors.text.primary,
-                    fontSize: 20,
+                    fontSize: typography.size.xl,
                     fontWeight: typography.weight.bold,
-                    letterSpacing: -0.3,
                     lineHeight: 24
                   }}>
                     {day}
                   </Text>
                   <Text style={{
-                    color: colors.text.tertiary,
-                    fontSize: 9,
-                    fontWeight: typography.weight.semibold,
+                    color: colors.text.secondary,
+                    fontSize: typography.size.xs,
+                    fontWeight: typography.weight.medium,
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
-                    marginTop: 1
+                    marginTop: 2
                   }}>
                     {month}
                   </Text>
@@ -408,18 +439,19 @@ export default function TimelineView({ tasks, eventId }: Props) {
       <ScrollView 
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: spacing['3xl'] }}
-        showsVerticalScrollIndicator={true}
+        showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
       >
         {allTasks.map(({ task, parent, isSubtask }, index) => {
-          const taskDate = getTaskDate(task.dueDate);
+          const { startDateStr, endDateStr } = getTaskDateRange(task);
           
           return (
             <TaskRow
               key={task.id}
               task={task}
               isSubtask={isSubtask}
-              taskDate={taskDate}
+              taskStartDate={startDateStr}
+              taskEndDate={endDateStr}
               dates={dates}
               dateColumnWidth={DATE_COLUMN_WIDTH}
               datesTotalWidth={datesTotalWidth}
@@ -431,6 +463,9 @@ export default function TimelineView({ tasks, eventId }: Props) {
               getTaskProgress={getTaskProgress}
               onScrollSync={(scrollX) => handleRowScroll(scrollX, index)}
               rowIndex={index}
+              scrollRef={(ref) => {
+                rowScrollRefs.current[index] = ref;
+              }}
             />
           );
         })}

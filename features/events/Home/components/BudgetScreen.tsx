@@ -118,10 +118,10 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
       {/* Header */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: spacing.lg, 
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
@@ -131,15 +131,15 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
         <TouchableOpacity onPress={onBack} style={{ padding: spacing.sm }}>
           <ArrowLeft size={20} color={colors.text.primary} />
         </TouchableOpacity>
-        <Text style={{ 
-          color: colors.text.primary, 
+        <Text style={{
+          color: colors.text.primary,
           fontWeight: '700',
           fontSize: typography.size.lg
         }}>
           Budget
         </Text>
-        <TouchableOpacity 
-          style={{ 
+        <TouchableOpacity
+          style={{
             padding: spacing.sm,
             backgroundColor: brand.primary,
             borderRadius: borderRadius.md
@@ -185,111 +185,111 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
           <View style={{ position: 'relative', zIndex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xl }}>
               <View style={{ flex: 1 }}>
-                <Text style={{
+              <Text style={{
                   color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: typography.size.sm,
-                  fontWeight: typography.weight.medium,
+                fontSize: typography.size.sm,
+                fontWeight: typography.weight.medium,
                   marginBottom: spacing.xs,
                   letterSpacing: 1,
-                }}>
-                  TOTAL BUDGET
-                </Text>
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontWeight: typography.weight.bold,
-                  fontSize: typography.size['3xl'],
-                  letterSpacing: -1
-                }}>
-                  ${totalBudget.toLocaleString()}
-                </Text>
-              </View>
-              <View style={{
-                width: 56,
-                height: 56,
-                borderRadius: borderRadius.lg,
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}>
-                <DollarSign size={28} color="#FFFFFF" />
-              </View>
+                  TOTAL BUDGET
+              </Text>
+              <Text style={{
+                  color: '#FFFFFF',
+                fontWeight: typography.weight.bold,
+                fontSize: typography.size['3xl'],
+                letterSpacing: -1
+              }}>
+                ${totalBudget.toLocaleString()}
+              </Text>
             </View>
+            <View style={{
+              width: 56,
+              height: 56,
+              borderRadius: borderRadius.lg,
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+                <DollarSign size={28} color="#FFFFFF" />
+            </View>
+          </View>
 
             {/* Progress Bar */}
-            <View style={{ 
-              height: 8, 
+          <View style={{ 
+            height: 8, 
               backgroundColor: 'rgba(255, 255, 255, 0.2)', 
-              borderRadius: borderRadius.sm, 
-              overflow: 'hidden',
-              marginBottom: spacing.md,
-            }}>
-              <View style={{
-                width: `${Math.min(spentPercentage, 100)}%`,
-                height: '100%',
+            borderRadius: borderRadius.sm, 
+            overflow: 'hidden',
+            marginBottom: spacing.md,
+          }}>
+            <View style={{
+              width: `${Math.min(spentPercentage, 100)}%`,
+              height: '100%',
                 backgroundColor: '#FFFFFF',
-                borderRadius: borderRadius.sm,
-              }} />
-            </View>
-            
-            <Text style={{
+              borderRadius: borderRadius.sm,
+            }} />
+          </View>
+          
+          <Text style={{
               color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: typography.size.xs,
-              textAlign: 'right',
-              marginBottom: spacing.lg,
+            fontSize: typography.size.xs,
+            textAlign: 'right',
+            marginBottom: spacing.lg,
+          }}>
+            {spentPercentage.toFixed(1)}% spent
+          </Text>
+
+          <View style={{ 
+            flexDirection: 'row', 
+            gap: spacing.md,
+          }}>
+            <View style={{ 
+              flex: 1,
+              paddingVertical: spacing.md,
+              paddingHorizontal: spacing.lg,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: borderRadius.lg,
+              alignItems: 'center',
             }}>
-              {spentPercentage.toFixed(1)}% spent
-            </Text>
+              <Text style={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                fontSize: typography.size.xs,
+                marginBottom: spacing.xs,
+              }}>
+                Spent
+              </Text>
+              <Text style={{
+                  color: '#FFFFFF',
+                fontWeight: typography.weight.bold,
+                fontSize: typography.size.lg,
+              }}>
+                ${totalSpent.toLocaleString()}
+              </Text>
+            </View>
 
             <View style={{ 
-              flexDirection: 'row', 
-              gap: spacing.md,
+              flex: 1,
+              paddingVertical: spacing.md,
+              paddingHorizontal: spacing.lg,
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              borderRadius: borderRadius.lg,
+              alignItems: 'center',
             }}>
-              <View style={{ 
-                flex: 1,
-                paddingVertical: spacing.md,
-                paddingHorizontal: spacing.lg,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: borderRadius.lg,
-                alignItems: 'center',
-              }}>
-                <Text style={{ 
+              <Text style={{ 
                   color: 'rgba(255, 255, 255, 0.7)', 
-                  fontSize: typography.size.xs,
-                  marginBottom: spacing.xs,
-                }}>
-                  Spent
-                </Text>
-                <Text style={{
-                  color: '#FFFFFF',
-                  fontWeight: typography.weight.bold,
-                  fontSize: typography.size.lg,
-                }}>
-                  ${totalSpent.toLocaleString()}
-                </Text>
-              </View>
-
-              <View style={{ 
-                flex: 1,
-                paddingVertical: spacing.md,
-                paddingHorizontal: spacing.lg,
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: borderRadius.lg,
-                alignItems: 'center',
+                fontSize: typography.size.xs,
+                marginBottom: spacing.xs,
               }}>
-                <Text style={{ 
-                  color: 'rgba(255, 255, 255, 0.7)', 
-                  fontSize: typography.size.xs,
-                  marginBottom: spacing.xs,
-                }}>
-                  Remaining
-                </Text>
-                <Text style={{
+                Remaining
+              </Text>
+              <Text style={{
                   color: '#FFFFFF',
-                  fontWeight: typography.weight.bold,
-                  fontSize: typography.size.lg,
-                }}>
-                  ${remaining.toLocaleString()}
-                </Text>
+                fontWeight: typography.weight.bold,
+                fontSize: typography.size.lg,
+              }}>
+                ${remaining.toLocaleString()}
+              </Text>
               </View>
             </View>
           </View>
