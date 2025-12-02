@@ -4,8 +4,8 @@ import { ArrowLeft, Plus, Calendar, Clock, CheckCircle, Circle, AlertCircle } fr
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { TimelineDTO, TaskDTO } from '../../types/events';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
-import ErrorModal from '../../../../common/components/common/ErrorModal'';
-import { StatCar } from '../../../../common/components/common/FormComponents';
+import ErrorModal from '../../../../common/components/common/ErrorModal';
+import { StatCard } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   eventId: string;

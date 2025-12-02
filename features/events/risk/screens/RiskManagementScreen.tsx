@@ -4,8 +4,8 @@ import { ArrowLeft, AlertTriangle, Shield, Plus, CheckCircle, XCircle, Clock } f
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { RiskDTO, EmergencyPlanDTO } from '../../types/events';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
-import ErrorModal from '../../../../common/components/common/ErrorModal'';
-import { StatCar } from '../../../../common/components/common/FormComponents';
+import ErrorModal from '../../../../common/components/common/ErrorModal';
+import { StatCard } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   eventId: string;

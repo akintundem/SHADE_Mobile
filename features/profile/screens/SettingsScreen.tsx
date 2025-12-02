@@ -34,8 +34,8 @@ import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../common/i18n/I18nProvider';
 import Button from '../../../common/components/ui/Button';
 import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
-import { authService } from '../../features/auth/services/authService';
-import { User as AuthUser } from '../../types/events';
+import { authService } from '../../auth/services/authService';
+import { User as AuthUser } from '../../auth/types/auth';
 
 type Props = {
   user: AuthUser;

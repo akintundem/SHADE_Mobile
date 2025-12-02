@@ -6,13 +6,13 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
 import Button from '../../../common/components/ui/Button';
-import { authService } from '../../features/auth/services/authService';
-import { OnboardingRequest } from '../../types/events';
+import { authService } from '../services/authService';
+import { OnboardingRequest } from '../types/auth';
 
 type Props = {
   email?: string;
   onBack?: () => void;
-  onComplete?: (user: import('../../../../shared/types').UserResponse) => void;
+  onComplete?: (user: import('../types/auth').UserResponse) => void;
 };
 
 export const CompleteProfile = ({ email, onBack, onComplete }: Props) => {

@@ -13,7 +13,7 @@ import { SafeAreaWrapper } from '../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { ArrowLeft, Mail, Send } from 'lucide-react-native';
 import VenueDetailModal from '../components/VenueDetailModal';
-import { VenueCardDTO } from '../../types/events';
+import { VenueCardDTO } from '../../../agent/types/assistant';
 import { ChatMessage, Message } from '../components/ChatMessage';
 import { ChatInput } from '../components/ChatInput';
 import { useChat } from '../hooks/useChat';

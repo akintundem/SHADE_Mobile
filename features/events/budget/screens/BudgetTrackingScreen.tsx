@@ -4,7 +4,7 @@ import { ArrowLeft, Plus, DollarSign, Filter, Download } from 'lucide-react-nati
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { BudgetDTO, ExpenseDTO } from '../../types/events';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
-import ErrorModal from '../../../../common/components/common/ErrorModal'';
+import ErrorModal from '../../../../common/components/common/ErrorModal';
 
 type Props = { 
   eventId: string;

@@ -11,7 +11,7 @@ import {
   UserResponse,
   ValidateTokenRequest,
   ValidateTokenResponse
-} from '../types';
+} from '../types/auth';
 
 export const authService = {
   // Health Check

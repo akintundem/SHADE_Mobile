@@ -4,7 +4,7 @@ import {
   ShadeConversationRequest, 
   ShadeConversationResponse,
   AssistantChatResponse 
-} from '../types';
+} from '../types/assistant';
 
 export const assistantService = {
   // Chat with Assistant (BFF)

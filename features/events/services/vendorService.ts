@@ -1,6 +1,6 @@
 import { http } from '../../../common/services/httpClient';
 import { ApiResponse } from '../../auth/types/auth';
-import { Vendor, Location, ContactInfo } from '../types';
+import { Vendor, Location, ContactInfo } from '../types/vendors';
 
 export type CreateVendorRequest = {
   name: string;

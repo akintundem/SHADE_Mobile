@@ -1,5 +1,5 @@
 import { http } from '../../../common/services/httpClient';
-import { ApiResponse } from '../../../auth/types/auth';
+import { ApiResponse } from '../../auth/types/auth';
 import {
   Event,
   EventResponse,
@@ -39,7 +39,7 @@ import {
   EventFeedResponse,
   EventFeedRequest,
   EventResponseWithScope,
-} from '../types';
+} from '../types/events';
 import { ErrorHandler } from '../../../common/utils/errorHandler';
 import { OfflineStorage, offlineUtils } from '../../../common/utils/offlineStorage';
 

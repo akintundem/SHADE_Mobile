@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Settings, Edit3 } from 'lucide-react-native';
-import { User } from '../../types/events';
+import { User } from '../../auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {

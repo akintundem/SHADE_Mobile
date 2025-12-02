@@ -1,6 +1,6 @@
 import { http } from '../../../../common/services/httpClient';
-import { ApiResponse } from '../../../../auth/types/auth';
-import { Attendee, AttendeeEmergencyContact } from '../types';
+import { ApiResponse } from '../../../../features/auth/types/auth';
+import { Attendee, AttendeeEmergencyContact } from '../types/attendees';
 
 export type CreateAttendeeRequest = {
   eventId: string;

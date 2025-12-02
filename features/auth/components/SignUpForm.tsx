@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { RegisterRequest } from '../../types/events';
-import { authService } from '../../features/auth/services/authService';
+import { RegisterRequest } from '../types/auth';
+import { authService } from '../services/authService';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
 import Button from '../../../common/components/ui/Button';
@@ -12,7 +12,7 @@ type Props = {
   onSignedUp?: (payload: {
     email: string;
     requiresProfile: boolean;
-    user: import('../../../../shared/services/authService').UserDTO;
+    user: import('../services/authService').UserDTO;
   }) => void;
   onSwitchToSignIn?: () => void;
 };
@@ -286,7 +286,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
               hasPassword: !!password,
               passwordsMatch: password === confirm,
               passwordLength: password.length,
-              passwordValid: passwordRegex.test(password),
+              passwordValid: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password),
               acceptTerms,
             });
             return;

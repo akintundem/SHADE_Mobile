@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
 import { X, ChevronRight, Lock, Moon, Sun, Mail, MailCheck, LogOut } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
-import { authService } from '../../features/auth/services/authService';
+import { authService } from '../../auth/services/authService';
 import { useCurrentUser } from '../../../common/hooks/useCurrentUser';
 import ChangePasswordScreen from './ChangePasswordScreen';
 import EmailVerificationScreen from '../../auth/screens/EmailVerificationScreen';

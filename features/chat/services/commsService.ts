@@ -1,6 +1,6 @@
 import { http } from '../../../common/services/httpClient';
 import { ApiResponse } from '../../auth/types/auth';
-import { Message } from '../types';
+import { Message } from '../types/communications';
 
 export type CreateMessageRequest = {
   eventId: string;

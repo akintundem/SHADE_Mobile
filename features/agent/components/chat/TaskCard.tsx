@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { CheckCircle, Clock, AlertTriangle, User, Calendar, Tag, Play, Pause } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { TaskCardDTO } from '../../types/events';
+import { TaskCardDTO } from '../../types/assistant';
 
 interface TaskCardProps {
   task: TaskCardDTO;

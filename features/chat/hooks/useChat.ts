@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Message } from '../components/ChatMessage';
-import { VenueCardDTO } from '../../types/events';
+import { VenueCardDTO } from '../../../agent/types/assistant';
 import { sampleVenues } from '../data/chatData';
 import { aiService } from '../../agent/services/aiService';
 

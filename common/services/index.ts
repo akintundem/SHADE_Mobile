@@ -14,7 +14,7 @@ export { aiService } from '../../features/agent/services/aiService';
 
 // Re-export common services
 export { http, httpUnauthenticated, persistTokenFrom } from './httpClient';
-export { geolocationService } from './geolocationService';
+export { GeolocationService } from './geolocationService';
 
 // Re-export types for convenience
 export * from '../../features/auth/types/auth';

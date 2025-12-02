@@ -14,7 +14,7 @@ import {
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { ArrowLeft, Mic, Send } from 'lucide-react-native';
-import { ChatRequest, AssistantChatResponse, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO } from '../../types/events';
+import { ChatRequest, AssistantChatResponse, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO } from '../../types/assistant';
 import { assistantService } from '../../services/assistantService';
 import StructuredMessageRenderer from './StructuredMessageRenderer';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';

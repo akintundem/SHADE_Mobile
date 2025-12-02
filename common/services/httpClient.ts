@@ -126,7 +126,7 @@ const responseErrorHandler = async (error: any) => {
       isRefreshing = true;
 
       try {
-        const { authService } = await import('./authService');
+        const { authService } = await import('../../features/auth/services/authService');
         const refreshResponse = await authService.refreshToken();
         
         // Update token in memory

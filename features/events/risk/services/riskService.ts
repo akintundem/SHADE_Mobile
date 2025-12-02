@@ -1,6 +1,6 @@
 import { http } from '../../../../common/services/httpClient';
-import { ApiResponse } from '../../../../auth/types/auth';
-import { Risk } from '../types';
+import { ApiResponse } from '../../../auth/types/auth';
+import { Risk } from '../types/risk';
 
 export type CreateRiskRequest = {
   eventId: string;

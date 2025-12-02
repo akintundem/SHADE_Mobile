@@ -3,7 +3,7 @@ import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, CheckCircle } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
-import { authService } from '../../features/auth/services/authService';
+import { authService } from '../services/authService';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
 

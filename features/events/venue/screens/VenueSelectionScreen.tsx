@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, Image, TextInput } from 'react-native';
 import { ArrowLeft, Search, MapPin, Users, DollarSign, Star, Plus } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { VenueCardDTO } from '../../types/events';
+import { VenueCardDTO } from '../../../agent/types/assistant';
 
 type Props = { 
   onBack: () => void; 

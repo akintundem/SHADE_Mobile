@@ -1,4 +1,4 @@
-import { VenueCardDTO } from '../../types/events';
+import { VenueCardDTO } from '../../../agent/types/assistant';
 
 export const sampleVenues: VenueCardDTO[] = [
     {

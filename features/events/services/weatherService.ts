@@ -1,6 +1,6 @@
 import { http } from '../../../common/services/httpClient';
 import { ApiResponse } from '../../auth/types/auth';
-import { WeatherData, CurrentWeather, WeatherForecast, WeatherAlert, WeatherThresholds, NotificationSettings, Location } from '../types';
+import { WeatherData, CurrentWeather, WeatherForecast, WeatherAlert, WeatherThresholds, NotificationSettings, Location } from '../types/weather';
 
 export type CreateWeatherAlertRequest = {
   eventId: string;

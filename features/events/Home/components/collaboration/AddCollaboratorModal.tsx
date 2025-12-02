@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
-import { UserResponse } from '../../features/auth/types/auth';
+import { UserResponse } from '../../../../auth/types/auth';
 import { EventUserType } from '../../../types/enums';
 import { UserSearchInput } from './UserSearchInput';
 import { SearchResultsList } from './SearchResultsList';

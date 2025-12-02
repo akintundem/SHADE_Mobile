@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../common/theme/ThemeProvider';
-import { User } from '../../types/events';
+import { User } from '../types/auth';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import {
   Header,

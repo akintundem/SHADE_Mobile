@@ -2,7 +2,7 @@
  * Authentication related types
  */
 
-import { UserType } from '../../../events/types/enums';
+import { UserType } from '../../events/types/enums';
 
 // Base types
 export type User = {

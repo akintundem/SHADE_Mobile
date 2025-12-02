@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Event } from '../../../types/events';
+import { Event } from '../../types/events';
 import { eventService } from '../../services/eventService';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 

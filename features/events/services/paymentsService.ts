@@ -1,6 +1,6 @@
 import { http } from '../../../common/services/httpClient';
 import { ApiResponse } from '../../auth/types/auth';
-import { Payment } from '../types';
+import { Payment } from '../types/payments';
 
 export type CreatePaymentRequest = {
   eventId: string;

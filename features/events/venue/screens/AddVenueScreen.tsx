@@ -4,8 +4,8 @@ import { ArrowLeft, MapPin, Users, DollarSign, Camera, Upload } from 'lucide-rea
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useFormValidation, FormValidator } from '../../../../common/utils/formValidation';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
-import ErrorModal from '../../../../common/components/common/ErrorModal'';
-import { Section, FieldLabel, Inpu } from '../../../../common/components/common/FormComponents';
+import ErrorModal from '../../../../common/components/common/ErrorModal';
+import { Section, FieldLabel, Input } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   onBack: () => void; 

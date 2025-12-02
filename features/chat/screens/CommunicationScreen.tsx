@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { ArrowLeft, Mail, Bell, MessageSquare, Plus } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
-import { CommunicationDTO, NotificationDTO } from '../../types/events';
+import { CommunicationDTO, NotificationDTO } from '../../../features/events/types/events';
 import { useErrorHandler } from '../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../common/components/common/ErrorModal';
 

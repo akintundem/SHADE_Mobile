@@ -5,9 +5,9 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useFormValidation } from '../../../../common/utils/formValidation';
 import { expenseValidator } from '../../../../common/utils/validationSchemas';
 import { ExpenseDTO } from '../../types/events';
-import { useErrorHandle } from '../../../../common/hooks/useErrorHandler';
-import ErrorM from '../../../../common/components/common/ErrorModal';
-import { Section, FieldLabel, Input, SelectIn } from '../../../../common/components/common/FormComponents';
+import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
+import ErrorModal from '../../../../common/components/common/ErrorModal';
+import { Section, FieldLabel, Input, SelectInput } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   budgetId: string;
