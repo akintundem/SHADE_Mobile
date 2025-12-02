@@ -1,5 +1,5 @@
-import { DATE_FORMATS } from '../../shared/utils/constants';
-import { dateUtils } from '../../shared/utils/helpers';
+import { DATE_FORMATS } from '../utils/constants';
+import { dateUtils } from '../utils/helpers';
 
 export type TimeParts = { hour: number; minute: number };
 

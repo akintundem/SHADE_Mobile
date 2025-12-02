@@ -8,10 +8,10 @@ import {
   Modal,
   Dimensions,
 } from 'react-native';
-import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../common/components/SafeAreaWrapper';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 import { MapPin, Users, Heart, Mail, Star, X } from 'lucide-react-native';
-import { VenueCardDTO } from '../../../shared/types';
+import { VenueCardDTO } from '../../types/events';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 

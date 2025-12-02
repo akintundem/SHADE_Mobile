@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, Image, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { MessageCircle, Repeat2, Heart, Share2, CheckCircle2 } from 'lucide-react-native';
 
 type Post = {

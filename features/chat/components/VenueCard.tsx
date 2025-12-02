@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 import { Star, MapPin, Users } from 'lucide-react-native';
 
 interface VenueCardProps {

@@ -12,9 +12,9 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { eventService } from '../../../../shared/services/eventService';
-import { Event } from '../../../../shared/types';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { eventService } from '../../services/eventService';
+import { Event } from '../../types/events';
 
 type RouteParams = { eventId: string };
 

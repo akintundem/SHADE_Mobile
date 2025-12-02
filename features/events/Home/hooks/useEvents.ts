@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Event } from '../../../../shared/types';
-import { eventService } from '../../../../shared/services/eventService';
-import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { Event } from '../../../types/events';
+import { eventService } from '../../services/eventService';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
 
 export const useEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);

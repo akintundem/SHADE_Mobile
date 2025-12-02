@@ -30,12 +30,12 @@ import {
   User,
   XCircle,
 } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../shared/i18n/I18nProvider';
-import Button from '../../../shared/components/ui/Button';
-import KeyboardOptimizedInput from '../../../shared/components/ui/KeyboardOptimizedInput';
-import { authService } from '../../../shared/services/authService';
-import { User as AuthUser } from '../../../shared/types';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../common/i18n/I18nProvider';
+import Button from '../../../common/components/ui/Button';
+import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
+import { authService } from '../../features/auth/services/authService';
+import { User as AuthUser } from '../../types/events';
 
 type Props = {
   user: AuthUser;

@@ -1,4 +1,4 @@
-import { Event, EventStatus } from '../../../../shared/types';
+import { Event, EventStatus } from '../../types/events';
 import { EventItem } from '../components/EventCard';
 
 /**

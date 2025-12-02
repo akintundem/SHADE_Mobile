@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Dimensions } from 'react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { VenueCardDTO } from '../../../shared/types';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { VenueCardDTO } from '../../types/events';
 import { VenueMessageCard } from './VenueMessageCard';
 
 const { width: screenWidth } = Dimensions.get('window');

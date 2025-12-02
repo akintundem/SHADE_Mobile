@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Calendar, User, CheckCircle, Circle, Clock, ChevronRight, ChevronDown, MoreVertical } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { TaskDTO } from '../../../../shared/types/timeline';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { TaskDTO } from '../../timeline/types/timeline';
 
 type Props = {
   tasks: TaskDTO[];

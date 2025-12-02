@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Mail, Send, Clock, CheckCircle, XCircle, Paperclip, Eye, Edit } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { EmailCardDTO } from '../../../../shared/types';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { EmailCardDTO } from '../../types/events';
 
 interface EmailCardProps {
   email: EmailCardDTO;

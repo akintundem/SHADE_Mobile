@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { ArrowLeft, MapPin, Users, DollarSign, Camera, Upload } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useFormValidation, FormValidator } from '../../../../shared/utils/formValidation';
-import { useErrorHandler } from '../../../../shared/hooks/useErrorHandler';
-import ErrorModal from '../../../../shared/components/common/ErrorModal'';
-import { Section, FieldLabel, Inpu } from '../../../../shared/components/common/FormComponents';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useFormValidation, FormValidator } from '../../../../common/utils/formValidation';
+import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
+import ErrorModal from '../../../../common/components/common/ErrorModal'';
+import { Section, FieldLabel, Inpu } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   onBack: () => void; 

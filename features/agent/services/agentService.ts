@@ -1,4 +1,4 @@
-import { validationUtils } from '../../../shared/utils/helpers';
+import { validationUtils } from '../../../common/utils/helpers';
 
 export type AgentMessage = { 
   role: 'user' | 'assistant'; 

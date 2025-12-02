@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { CheckCircle } from 'lucide-react-native';
-import { UserResponse } from '../../../../shared/types/auth';
+import { UserResponse } from '../../features/auth/types/auth';
 
 type Props = {
   searchResults: UserResponse[];

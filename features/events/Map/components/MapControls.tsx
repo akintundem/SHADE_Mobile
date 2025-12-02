@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { Map, Eye, EyeOff } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
 type Props = {
   showEvents: boolean;

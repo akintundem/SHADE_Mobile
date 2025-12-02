@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { View, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Asset } from 'react-native-image-picker';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useAgent } from '../../../../features/agent/providers/AgentProvider';
-import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
-import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
-import { eventService } from '../../../../shared/services/eventService';
-import { CreateEventRequest, EventType, EventStatus } from '../../../../shared/types';
-import { ErrorHandler } from '../../../../shared/utils/errorHandler';
+import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
+import { LoadingOverlay } from '../../../../common/components/LoadingStates';
+import { eventService } from '../../services/eventService';
+import { CreateEventRequest, EventType, EventStatus } from '../../types/events';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
 import { STEPS } from '../constants';
 import { useCreateEventForm } from '../hooks/useCreateEventForm';
 import {

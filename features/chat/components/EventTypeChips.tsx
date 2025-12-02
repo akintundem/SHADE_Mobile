@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 
 interface EventType {
   id: string;

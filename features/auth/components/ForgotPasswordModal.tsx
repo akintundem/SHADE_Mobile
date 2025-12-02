@@ -7,10 +7,10 @@ import {
   Platform,
 } from 'react-native';
 import { Lock } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { authService } from '../../../shared/services/authService';
-import KeyboardOptimizedInput from '../../../shared/components/ui/KeyboardOptimizedInput';
-import Button from '../../../shared/components/ui/Button';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { authService } from '../../features/auth/services/authService';
+import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
+import Button from '../../../common/components/ui/Button';
 
 type Props = {
   visible: boolean;

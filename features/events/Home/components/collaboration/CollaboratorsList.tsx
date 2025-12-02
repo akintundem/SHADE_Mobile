@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { CheckCircle, Clock, XCircle } from 'lucide-react-native';
-import { EventCollaboratorResponse } from '../../../../shared/types';
+import { EventCollaboratorResponse } from '../../../types/events';
 import { CollaboratorCard } from './CollaboratorCard';
 
 type CollaboratorStatus = 'CONFIRMED' | 'PENDING' | 'DECLINED';

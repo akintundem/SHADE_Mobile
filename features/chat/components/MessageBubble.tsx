@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 
 interface MessageBubbleProps {
   message: {

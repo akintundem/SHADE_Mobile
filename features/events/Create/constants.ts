@@ -1,4 +1,4 @@
-import { EventType } from '../../../shared/types';
+import { EventType } from '../types/enums';
 
 export const STEPS = [
   { id: 0, title: 'Event Basics', subtitle: 'Start creating your event' },

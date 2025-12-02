@@ -3,8 +3,8 @@ import { ScrollView, Text, TextInput, TouchableOpacity, View, Alert } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Copy, Archive, RotateCcw } from 'lucide-react-native';
-import { useTheme } from '../../../../../shared/theme/ThemeProvider';
-import { eventService } from '../../../../../shared/services/eventService';
+import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { eventService } from '../../../services/eventService';
 
 type RouteParams = { eventId: string };
 

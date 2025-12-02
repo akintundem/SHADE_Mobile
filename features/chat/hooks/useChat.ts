@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { Message } from '../components/ChatMessage';
-import { VenueCardDTO } from '../../../shared/types';
+import { VenueCardDTO } from '../../types/events';
 import { sampleVenues } from '../data/chatData';
-import { aiService } from '../../../shared/services/aiService';
+import { aiService } from '../../agent/services/aiService';
 
 interface UseChatProps {
     eventId: string;

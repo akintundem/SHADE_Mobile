@@ -22,12 +22,12 @@ import {
   Plus,
 } from 'lucide-react-native';
 import Video from 'react-native-video';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { ThreadPost } from '../components/EventThreadModal';
 import { ComposePostModal } from '../components/ComposePostModal';
-import { useEventFeed } from '../../../../shared/hooks/useEventFeed';
-import { FeedPost } from '../../../../shared/types';
-import { dateUtils } from '../../../../shared/utils/helpers';
+import { useEventFeed } from '../../../../common/hooks/useEventFeed';
+import { FeedPost } from '../../types/events';
+import { dateUtils } from '../../../../common/utils/helpers';
 
 type Props = {
   eventId: string;

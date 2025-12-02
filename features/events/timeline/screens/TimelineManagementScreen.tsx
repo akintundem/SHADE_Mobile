@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ArrowLeft, Plus, Calendar, Clock, CheckCircle, Circle, AlertCircle } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { TimelineDTO, TaskDTO } from '../../../../shared/types';
-import { useErrorHandler } from '../../../../shared/hooks/useErrorHandler';
-import ErrorModal from '../../../../shared/components/common/ErrorModal'';
-import { StatCar } from '../../../../shared/components/common/FormComponents';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { TimelineDTO, TaskDTO } from '../../types/events';
+import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
+import ErrorModal from '../../../../common/components/common/ErrorModal'';
+import { StatCar } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   eventId: string;

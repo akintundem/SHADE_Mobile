@@ -24,13 +24,13 @@ import {
   PlayCircle,
   Settings,
 } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { Event, EventResponse, EventStatus, EventData, isFullEventResponse, isFeedResponse, EventFeedResponse } from '../../../../shared/types';
-import { eventService } from '../../../../shared/services/eventService';
-import { ErrorHandler } from '../../../../shared/utils/errorHandler';
-import { dateUtils } from '../../../../shared/utils/helpers';
-import { DATE_FORMATS } from '../../../../shared/utils/constants';
-import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { Event, EventResponse, EventStatus, EventData, isFullEventResponse, isFeedResponse, EventFeedResponse } from '../../types/events';
+import { eventService } from '../../services/eventService';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
+import { dateUtils } from '../../../../common/utils/helpers';
+import { DATE_FORMATS } from '../../../../common/utils/constants';
+import { LoadingOverlay } from '../../../../common/components/LoadingStates';
 import { EventFeedsScreen } from './EventFeedsScreen';
 
 type EventDetailScreenParams = {

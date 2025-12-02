@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, Image, FlatList, StyleSheet } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, MessageCircle, Repeat2, Heart, Share2, MoreHorizontal, CheckCircle2 } from 'lucide-react-native';
 import Video from 'react-native-video';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 import type { ThreadPost } from './EventThreadModal';
 
 type Props = {

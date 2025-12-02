@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Camera, Sparkles } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 
 type Props = { onPress?: () => void };
 

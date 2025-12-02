@@ -2,8 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, Dimensions, FlatList, Image } from 'react-native';
 import Video from 'react-native-video';
 import { X, ImageIcon, Film, Quote } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
 
 type MediaItem = { id: string; type: 'photo' | 'video' | 'thought'; url?: string; text?: string };
 

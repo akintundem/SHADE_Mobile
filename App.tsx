@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
-import { I18nProvider } from './shared/i18n/I18nProvider';
+import { I18nProvider } from './common/i18n/I18nProvider';
 import { AgentProvider } from './features/agent/providers/AgentProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Auth from './features/auth/screens/AuthScreen';
-import ThemeProvider from './shared/theme/ThemeProvider';
-import LoadingState from './shared/components/LoadingState';
+import ThemeProvider from './common/theme/ThemeProvider';
+import LoadingState from './common/components/LoadingState';
 import SocialApp from './features/social/screens/SocialApp';
-import { User } from './shared/types';
-import { getToken, getUser as getCachedUser } from './shared/storage/authStorage';
+import { User } from './features/auth/types/auth';
+import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
 import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
 import EventManageScreen from './features/events/Home/screens/EventManageScreen';
 import EventAdminScreen from './features/events/Home/screens/EventAdminScreen';
@@ -45,7 +45,7 @@ function App() {
           if (cached) {
             // Validate token on app startup
             try {
-              const { authService } = await import('./shared/services/authService');
+              const { authService } = await import('./features/auth/services/authService');
               const validationResult = await authService.validateToken({ token });
 
               if (validationResult.valid && validationResult.user) {
@@ -59,7 +59,7 @@ function App() {
                 });
               } else {
                 // Token validation returned invalid
-                const { clearAllAuth } = await import('./shared/storage/authStorage');
+                const { clearAllAuth } = await import('./common/storage/authStorage');
                 await clearAllAuth();
               }
             } catch (error: unknown) {
@@ -67,17 +67,17 @@ function App() {
               const status = 'status' in err && typeof err.status === 'number' ? err.status : undefined;
               const hasResponse = error && typeof error === 'object' && 'response' in error;
               if ((status === 401 && hasResponse) || (status === 403 && hasResponse)) {
-                const { clearAllAuth } = await import('./shared/storage/authStorage');
+                const { clearAllAuth } = await import('./common/storage/authStorage');
                 await clearAllAuth();
               }
             }
           } else {
-            const { clearToken } = await import('./shared/storage/authStorage');
+            const { clearToken } = await import('./common/storage/authStorage');
             await clearToken();
           }
         }
       } catch (error: unknown) {
-        const { clearAllAuth } = await import('./shared/storage/authStorage');
+        const { clearAllAuth } = await import('./common/storage/authStorage');
         await clearAllAuth();
       } finally {
         setIsLoading(false);

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { User } from '../../../shared/types';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { authService } from '../../../shared/services/authService';
+import { User } from '../../types/events';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { authService } from '../../features/auth/services/authService';
 import HomeScreen from '../../events/Home/screens/HomeScreen';
 import DiscoverScreen from '../../events/Discover/screens/DiscoverScreen';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));

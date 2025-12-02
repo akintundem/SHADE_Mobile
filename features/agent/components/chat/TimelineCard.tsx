@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Calendar, Clock, CheckCircle, Play, AlertTriangle, User } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { TimelineCardDTO } from '../../../../shared/types';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { TimelineCardDTO } from '../../types/events';
 
 interface TimelineCardProps {
   timeline: TimelineCardDTO;

@@ -6,14 +6,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ManageEventCard } from '../components/ManageEventCard';
 import { TopBar } from '../components/TopBar';
 import { TabBar } from '../../Home/components/TabBar';
-import { User, UserEventRelationshipResponse, EventStatus } from '../../../../shared/types';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../../shared/i18n/I18nProvider';
-import { eventService } from '../../../../shared/services/eventService';
-import { ErrorHandler } from '../../../../shared/utils/errorHandler';
-import { dateUtils } from '../../../../shared/utils/helpers';
-import { DATE_FORMATS } from '../../../../shared/utils/constants';
-import { EmptyState, LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { User, UserEventRelationshipResponse, EventStatus } from '../../types/events';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
+import { eventService } from '../../services/eventService';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
+import { dateUtils } from '../../../../common/utils/helpers';
+import { DATE_FORMATS } from '../../../../common/utils/constants';
+import { EmptyState, LoadingOverlay } from '../../../../common/components/LoadingStates';
 
 type ManageItem = {
   id: string;

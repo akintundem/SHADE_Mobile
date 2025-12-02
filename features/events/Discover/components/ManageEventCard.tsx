@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { CalendarClock, MapPin, Users } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { EventStatus } from '../../../../shared/types';
+import { EventStatus } from '../../types/events';
 
 type Props = {
   eventId: string;

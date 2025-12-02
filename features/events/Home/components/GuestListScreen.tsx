@@ -23,13 +23,13 @@ import {
   Plus,
   X,
 } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { AttendeeDTO } from '../../../../shared/types/attendees';
-import { attendeeService } from '../../../../shared/services/attendeeService';
-import { authService } from '../../../../shared/services/authService';
-import { useDebounce } from '../../../../shared/hooks/useDebounce';
-import { ErrorHandler } from '../../../../shared/utils/errorHandler';
-import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { AttendeeDTO } from '../../attendees/types/attendees';
+import { attendeeService } from '../../attendees/services/attendeeService';
+import { authService } from '../../features/auth/services/authService';
+import { useDebounce } from '../../../../common/hooks/useDebounce';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
+import { LoadingOverlay } from '../../../../common/components/LoadingStates';
 
 type Props = {
   eventId: string;

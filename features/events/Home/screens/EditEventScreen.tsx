@@ -13,11 +13,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X, Save } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { LoadingOverlay } from '../../../../shared/components/LoadingStates';
-import { eventService } from '../../../../shared/services/eventService';
-import { UpdateEventRequest, Event, EventType, EventData, isFullEventResponse } from '../../../../shared/types';
-import { ErrorHandle } from '../../../../shared/utils/errorHandler';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { LoadingOverlay } from '../../../../common/components/LoadingStates';
+import { eventService } from '../../services/eventService';
+import { UpdateEventRequest, Event, EventType, EventData, isFullEventResponse } from '../../types/events';
+import { ErrorHandle } from '../../../../common/utils/errorHandler';
 
 type EditEventScreenParams = {
   eventId: string;

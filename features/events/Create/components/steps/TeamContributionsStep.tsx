@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, ScrollView, Switch, TouchableOpacity } from 'react-native';
 import { DollarSign, Plus } from 'lucide-react-native';
-import { useTheme } from '../../../../../shared/theme/ThemeProvider';
-import Input from '../../../../../shared/components/ui/Input';
+import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import Input from '../../../../../common/components/ui/Input';
 import { Section } from '../Section';
 import { Row } from '../Row';
 

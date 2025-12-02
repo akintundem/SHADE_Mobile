@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { useI18n } from '../../../shared/i18n/I18nProvider';
-import BrandLogo from '../../../shared/components/brand/BrandLogo';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../common/i18n/I18nProvider';
+import BrandLogo from '../../../common/components/brand/BrandLogo';
 
 export const Header = () => {
   const { colors, typography, spacing, shadows } = useTheme();

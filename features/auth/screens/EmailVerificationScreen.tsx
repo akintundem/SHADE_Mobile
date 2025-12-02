@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Mail, CheckCircle, AlertCircle, Loader } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { authService } from '../../../shared/services/authService';
-import Button from '../../../shared/components/ui/Button';
-import Input from '../../../shared/components/ui/Input';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { authService } from '../../features/auth/services/authService';
+import Button from '../../../common/components/ui/Button';
+import Input from '../../../common/components/ui/Input';
 
 type Props = {
   // For verifying with token (from email link)

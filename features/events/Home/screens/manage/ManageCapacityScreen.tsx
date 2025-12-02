@@ -3,12 +3,12 @@ import { ScrollView, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Users, CalendarClock, Unlock, Lock, Plus, Minus, RefreshCcw } from 'lucide-react-native';
-import { useTheme } from '../../../../../shared/theme/ThemeProvider';
-import { eventService } from '../../../../../shared/services/eventService';
-import { EventCapacityResponse } from '../../../../../shared/types';
+import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { eventService } from '../../../services/eventService';
+import { EventCapacityResponse } from '../../../../../common/types';
 import { DateTimePickerModal } from '../../../../../common/datetime';
-import { dateUtils } from '../../../../../shared/utils/helpers';
-import { DATE_FORMAT } from '../../../../../shared/utils/constants';
+import { dateUtils } from '../../../../../common/utils/helpers';
+import { DATE_FORMAT } from '../../../../../common/utils/constants';
 
 type RouteParams = { eventId: string };
 

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, PanResponder, Keyboard } from 'react-native';
 import { Mic, Send } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 import { eventTypes } from '../data/chatData';
 
 interface ChatInputProps {

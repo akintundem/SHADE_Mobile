@@ -3,16 +3,16 @@ import { ScrollView, Text, TextInput, TouchableOpacity, View, Alert, ActivityInd
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Send, Mail, MessageSquare, Smartphone, RefreshCcw, Clock, Bell, CalendarClock, PlusCircle, Trash2, X, List } from 'lucide-react-native';
-import { useTheme } from '../../../../../shared/theme/ThemeProvider';
-import { eventService } from '../../../../../shared/services/eventService';
+import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { eventService } from '../../../services/eventService';
 import { EventNotificationRequest,
   EventNotificationChannel,
   EventReminderRequest,
   EventReminderResponse,
-  EventReminderUpdateRequest, } from '../../../../../shared/types';
+  EventReminderUpdateRequest, } from '../../../../../common/types';
 import { DateTimePickerModal } from '../../../../../common/datetime';
-import { dateUtils } from '../../../../../shared/utils/helpers';
-import { DATE_FORMAT } from '../../../../../shared/utils/constants';
+import { dateUtils } from '../../../../../common/utils/helpers';
+import { DATE_FORMAT } from '../../../../../common/utils/constants';
 
 type RouteParams = { eventId: string };
 

@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useTheme } from '../../shared/theme/ThemeProvider';
+import { useTheme } from '../theme/ThemeProvider';
 
 type Props = {
   visible: boolean;

@@ -1,8 +1,8 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { User } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { TaskDTO } from '../../../../shared/types/timeline';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { TaskDTO } from '../../timeline/types/timeline';
 
 type Props = {
   tasks: TaskDTO[];

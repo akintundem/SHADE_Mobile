@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, ScrollView, Image, StyleSheet, Pressable, Text, Dimensions } from 'react-native';
 import { X } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 
 type CapturedPhoto = {
   path: string;

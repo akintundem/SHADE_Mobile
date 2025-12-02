@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
 import { ArrowLeft, DollarSign, Calendar, FileText, User, CreditCard } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { useFormValidation } from '../../../../shared/utils/formValidation';
-import { expenseValidator } from '../../../../shared/utils/validationSchemas';
-import { ExpenseDTO } from '../../../../shared/types';
-import { useErrorHandle } from '../../../../shared/hooks/useErrorHandler';
-import ErrorM from '../../../../shared/components/common/ErrorModal';
-import { Section, FieldLabel, Input, SelectIn } from '../../../../shared/components/common/FormComponents';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useFormValidation } from '../../../../common/utils/formValidation';
+import { expenseValidator } from '../../../../common/utils/validationSchemas';
+import { ExpenseDTO } from '../../types/events';
+import { useErrorHandle } from '../../../../common/hooks/useErrorHandler';
+import ErrorM from '../../../../common/components/common/ErrorModal';
+import { Section, FieldLabel, Input, SelectIn } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   budgetId: string;

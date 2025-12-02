@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { ArrowLeft, Mail, Bell, MessageSquare, Plus } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { CommunicationDTO, NotificationDTO } from '../../../shared/types';
-import { useErrorHandler } from '../../../shared/hooks/useErrorHandler';
-import ErrorModal from '../../../shared/components/common/ErrorModal';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { CommunicationDTO, NotificationDTO } from '../../types/events';
+import { useErrorHandler } from '../../../common/hooks/useErrorHandler';
+import ErrorModal from '../../../common/components/common/ErrorModal';
 
 type Props = { 
   eventId: string;

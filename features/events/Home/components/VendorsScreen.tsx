@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Search, Plus, Store, MapPin, Phone, Mail, Globe, Star, Filter, Sparkles, Award } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { Vendor } from '../../../../shared/types/vendors';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { Vendor } from '../../types/vendors';
 
 type Props = {
   eventId: string;

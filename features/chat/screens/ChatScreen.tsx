@@ -9,15 +9,15 @@ import {
   Keyboard,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { SafeAreaWrapper } from '../../../shared/components/SafeAreaWrapper';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../common/components/SafeAreaWrapper';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 import { ArrowLeft, Mail, Send } from 'lucide-react-native';
 import VenueDetailModal from '../components/VenueDetailModal';
-import { VenueCardDTO } from '../../../shared/types';
+import { VenueCardDTO } from '../../types/events';
 import { ChatMessage, Message } from '../components/ChatMessage';
 import { ChatInput } from '../components/ChatInput';
 import { useChat } from '../hooks/useChat';
-import { getUser } from '../../../shared/storage/authStorage';
+import { getUser } from '../../../common/storage/authStorage';
 
 type ChatScreenRouteProp = RouteProp<{ params: { eventId?: string } }, 'params'>;
 

@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, List, BarChart3, MessageCircle } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import TimelineView from '../components/TimelineView';
 import ListView from '../components/ListView';
-import { TaskDTO } from '../../../../shared/types/timeline';
+import { TaskDTO } from '../../timeline/types/timeline';
 
 type RouteParams = {
   id: string;

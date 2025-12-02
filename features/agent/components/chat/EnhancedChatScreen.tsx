@@ -11,14 +11,14 @@ import {
   Keyboard,
   PanResponder,
 } from 'react-native';
-import { SafeAreaWrapper } from '../../../../shared/components/SafeAreaWrapper';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { ArrowLeft, Mic, Send } from 'lucide-react-native';
-import { ChatRequest, AssistantChatResponse, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO } from '../../../../shared/types';
-import { assistantService } from '../../../../shared/services/assistantService';
+import { ChatRequest, AssistantChatResponse, VenueCardDTO, EmailCardDTO, ApprovalCardDTO, TaskCardDTO, BudgetCardDTO, TimelineCardDTO } from '../../types/events';
+import { assistantService } from '../../services/assistantService';
 import StructuredMessageRenderer from './StructuredMessageRenderer';
-import { useErrorHandler } from '../../../../shared/hooks/useErrorHandler';
-import ErrorModal from '../../../../shared/components/common/ErrorModal';
+import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
+import ErrorModal from '../../../../common/components/common/ErrorModal';
 
 const { width: screenWidth } = Dimensions.get('window');
 

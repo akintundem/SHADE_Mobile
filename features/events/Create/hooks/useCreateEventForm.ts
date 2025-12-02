@@ -1,10 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
-import { EventType } from '../../../../shared/types';
+import { EventType } from '../../types/events';
 import { Venue } from '../components/types';
 import {
   createEventValidator,
   useFormValidation,
-} from '../../../../shared/utils/formValidation';
+} from '../../../../common/utils/formValidation';
 
 export function useCreateEventForm() {
   // Form state

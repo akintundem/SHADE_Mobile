@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { EventCard, EventItem } from './EventCard';
-import { EventListSkeleton, EmptyState } from '../../../../shared/components/LoadingStates';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { EventListSkeleton, EmptyState } from '../../../../common/components/LoadingStates';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { Calendar } from 'lucide-react-native';
 
 type Props = {

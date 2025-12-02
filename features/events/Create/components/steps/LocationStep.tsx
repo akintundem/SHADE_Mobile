@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { MapPin, X } from 'lucide-react-native';
-import { useTheme } from '../../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../../common/theme/ThemeProvider';
 import { Venue } from '../types';
 
 type Props = {

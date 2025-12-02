@@ -6,8 +6,8 @@ import { EventMiniCard } from '../components/EventMiniCard';
 import { TabBar } from '../../events/Home/components/TabBar';
 import SettingsScreen from './SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
-import { User } from '../../../shared/types';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
+import { User } from '../../types/events';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void; onOpenCompose?: () => void };
 

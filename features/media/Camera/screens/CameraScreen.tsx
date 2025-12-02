@@ -24,12 +24,12 @@ import {
   SunDim,
 } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import SwipeToDismiss from '../../../../shared/gestures/SwipeToDismiss';
+import SwipeToDismiss from '../../../../common/gestures/SwipeToDismiss';
 import RoundIcon from '../components/RoundIcon';
 import SideToolButton from '../components/SideToolButton';
 import ClipProgressBar from '../components/ClipProgressBar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { addCaptureClip, clearCaptureClips, getCaptureClips, removeLastClip as sessionRemoveLastClip } from '../../../../shared/storage/captureSession';
+import { addCaptureClip, clearCaptureClips, getCaptureClips, removeLastClip as sessionRemoveLastClip } from '../../../../common/storage/captureSession';
 
 type Props = {
   onClose: () => void;

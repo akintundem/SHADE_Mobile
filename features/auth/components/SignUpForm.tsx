@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { RegisterRequest } from '../../../shared/types';
-import { authService } from '../../../shared/services/authService';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import KeyboardOptimizedInput from '../../../shared/components/ui/KeyboardOptimizedInput';
-import Button from '../../../shared/components/ui/Button';
-import { useI18n } from '../../../shared/i18n/I18nProvider';
-import NotificationModal, { NotificationInfo } from '../../../shared/components/common/NotificationModal';
+import { RegisterRequest } from '../../types/events';
+import { authService } from '../../features/auth/services/authService';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
+import Button from '../../../common/components/ui/Button';
+import { useI18n } from '../../../common/i18n/I18nProvider';
+import NotificationModal, { NotificationInfo } from '../../../common/components/common/NotificationModal';
 
 type Props = {
   onSignedUp?: (payload: {

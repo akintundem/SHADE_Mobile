@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { ArrowLeft, Search, UserPlus, Phone, Calendar, CheckCircle, XCircle, Clock, Filter } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { AttendeeDTO } from '../../../../shared/types';
-import { StatCard } from '../../../../shared/components/common/FormComponents';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { AttendeeDTO } from '../../types/events';
+import { StatCard } from '../../../../common/components/common/FormComponents';
 
 type Props = { 
   eventId: string;

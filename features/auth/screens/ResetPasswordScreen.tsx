@@ -2,10 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Lock, CheckCircle } from 'lucide-react-native';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { authService } from '../../../shared/services/authService';
-import Input from '../../../shared/components/ui/Input';
-import Button from '../../../shared/components/ui/Button';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { authService } from '../../features/auth/services/authService';
+import Input from '../../../common/components/ui/Input';
+import Button from '../../../common/components/ui/Button';
 
 type Props = {
   token: string;

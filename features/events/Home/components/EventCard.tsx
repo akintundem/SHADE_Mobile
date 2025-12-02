@@ -1,9 +1,9 @@
 import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { MapPin, Clock } from 'lucide-react-native';
 import React, { useMemo } from 'react';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
-import { EventStatus } from '../../../../shared/types';
+import { EventStatus } from '../../types/events';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop';
 

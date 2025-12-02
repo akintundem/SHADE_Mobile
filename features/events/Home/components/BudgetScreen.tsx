@@ -2,10 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, DollarSign, TrendingUp, TrendingDown, Filter, Download, ChevronRight, Zap } from 'lucide-react-native';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
-import { BudgetDTO, ExpenseDTO } from '../../../../shared/types/budget';
-import { dateUtils } from '../../../../shared/utils/helpers';
-import { DATE_FORMATS } from '../../../../shared/utils/constants';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { BudgetDTO, ExpenseDTO } from '../../budget/types/budget';
+import { dateUtils } from '../../../../common/utils/helpers';
+import { DATE_FORMATS } from '../../../../common/utils/constants';
 
 type Props = {
   eventId: string;

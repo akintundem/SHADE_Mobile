@@ -3,11 +3,11 @@ import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, User as UserIcon } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import KeyboardOptimizedInput from '../../../shared/components/ui/KeyboardOptimizedInput';
-import Button from '../../../shared/components/ui/Button';
-import { authService } from '../../../shared/services/authService';
-import { OnboardingRequest } from '../../../shared/types';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
+import Button from '../../../common/components/ui/Button';
+import { authService } from '../../features/auth/services/authService';
+import { OnboardingRequest } from '../../types/events';
 
 type Props = {
   email?: string;

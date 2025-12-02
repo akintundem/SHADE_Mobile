@@ -3,9 +3,9 @@ import { ScrollView, Text, TextInput, TouchableOpacity, View, Alert } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, UserPlus, Users, Trash2 } from 'lucide-react-native';
-import { useTheme } from '../../../../../shared/theme/ThemeProvider';
-import { eventService } from '../../../../../shared/services/eventService';
-import { EventCollaboratorRequest, EventCollaboratorResponse } from '../../../../../shared/types';
+import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { eventService } from '../../../services/eventService';
+import { EventCollaboratorRequest, EventCollaboratorResponse } from '../../../../../common/types';
 
 type RouteParams = { eventId: string };
 

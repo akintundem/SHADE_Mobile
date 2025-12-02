@@ -15,7 +15,7 @@ import {
   Video as VideoIcon,
 } from 'lucide-react-native';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
-import { useTheme } from '../../../../shared/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { ThreadPost } from './EventThreadModal';
 
 type Props = {

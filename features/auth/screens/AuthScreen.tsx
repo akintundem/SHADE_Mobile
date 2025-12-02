@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '../../../shared/theme/ThemeProvider';
-import { User } from '../../../shared/types';
-import KeyboardAwareContainer from '../../../shared/components/ui/KeyboardAwareContainer';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { User } from '../../types/events';
+import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import {
   Header,
   Footer,
@@ -96,7 +96,7 @@ export default function Auth({ onLogin, initialScreen = AUTH_MODES.SIGN_IN, rese
         email={pendingEmail || ''} 
         onComplete={async (user) => {
           // Onboarding complete - proceed to app
-          const { getUser } = await import('../../../shared/storage/authStorage');
+          const { getUser } = await import('../../../common/storage/authStorage');
           const cached = await getUser<{ userId?: string; email?: string; username?: string }>();
           if (cached) {
             onLogin?.({
