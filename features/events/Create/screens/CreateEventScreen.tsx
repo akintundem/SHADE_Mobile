@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { View, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Asset } from 'react-native-image-picker';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
@@ -7,6 +7,7 @@ import { LoadingOverlay } from '../../../../common/components/LoadingStates';
 import { eventService } from '../../services/eventService';
 import { CreateEventRequest, EventType, EventStatus } from '../../types/events';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
+import { generateUUID } from '../../../../common/utils/uuid';
 import { STEPS } from '../constants';
 import { useCreateEventForm } from '../hooks/useCreateEventForm';
 import {
@@ -28,6 +29,10 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [coverImage, setCoverImage] = useState<Asset | null>(null);
   const { colors, spacing } = useTheme();
+  
+  // Generate idempotency key once when component mounts
+  // This ensures the same key is used for all create attempts (prevents duplicate events)
+  const idempotencyKeyRef = useRef<string>(generateUUID());
 
   const form = useCreateEventForm();
   const {
@@ -98,19 +103,45 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
 
     setIsLoading(true);
     try {
+      // Use the same idempotency key for all create attempts
+      // This prevents duplicate events if user clicks create multiple times or request is retried
+      const idempotencyKey = idempotencyKeyRef.current;
+
       const startDateTime = `${startDate}T${startTime}:00.000Z`;
       const endDateTime = endDate && endTime ? `${endDate}T${endTime}:00.000Z` : startDateTime;
       const parsedPrice = !free && price ? Number(price) : undefined;
       const parsedContribution =
         enableContrib && contributionAmount ? Number(contributionAmount) : undefined;
-      const sanitizedVenue =
-        venue && Object.values(venue).some((value) => value !== undefined && value !== null && value !== '')
-          ? Object.fromEntries(
-              Object.entries(venue).filter(
-                ([, value]) => value !== undefined && value !== null && value !== '',
-              ),
-            )
-          : undefined;
+      
+      // Sanitize venue for top-level venue field (not metadata)
+      // Build venue object with only defined, non-empty fields
+      let cleanedVenue: CreateEventRequest['venue'] = undefined;
+      if (venue) {
+        const venueFields: CreateEventRequest['venue'] = {
+          address: venue.address,
+          city: venue.city,
+          state: venue.state,
+          country: venue.country,
+          zipCode: venue.zipCode,
+          latitude: venue.latitude,
+          longitude: venue.longitude,
+          googlePlaceId: venue.googlePlaceId,
+          googlePlaceData: venue.googlePlaceData,
+        };
+        
+        // Remove undefined/null/empty fields
+        const filtered = Object.fromEntries(
+          Object.entries(venueFields).filter(
+            ([, value]) => value !== undefined && value !== null && value !== '',
+          ),
+        );
+        
+        // Only set venue if there are actual fields
+        if (Object.keys(filtered).length > 0) {
+          cleanedVenue = filtered as CreateEventRequest['venue'];
+        }
+      }
+
       const metadataPayload: Record<string, unknown> = {};
 
       if (tags.length) {
@@ -129,9 +160,7 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
               : undefined,
         };
       }
-      if (sanitizedVenue && Object.keys(sanitizedVenue).length > 0) {
-        metadataPayload.venue = sanitizedVenue;
-      }
+      // Note: venue is now in top-level field, not metadata
       if (locationSearchQuery.trim().length > 0) {
         metadataPayload.locationQuery = locationSearchQuery.trim();
       }
@@ -149,10 +178,15 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         isPublic,
         requiresApproval: !isPublic,
         qrCodeEnabled: true,
+        venue: cleanedVenue,
         metadata: metadataKeys.length ? JSON.stringify(metadataPayload) : undefined,
       };
 
-      const createdEvent = await eventService.createEvent(eventData);
+      const createdEvent = await eventService.createEvent(eventData, idempotencyKey);
+
+      // Reset idempotency key after successful creation
+      // This ensures each new event creation gets a unique key
+      idempotencyKeyRef.current = generateUUID();
 
       if (coverImage?.uri) {
         try {

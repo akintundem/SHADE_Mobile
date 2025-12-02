@@ -89,6 +89,17 @@ export type CreateEventRequest = {
   metadata?: string | null;
   ownerId?: string;
   venueId?: string | null;
+  venue?: {
+    address?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
+    latitude?: number;
+    longitude?: number;
+    googlePlaceId?: string;
+    googlePlaceData?: string;
+  } | null;
 };
 
 export type UpdateEventRequest = {

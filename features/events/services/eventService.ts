@@ -163,7 +163,10 @@ export const eventService = {
     return res.data;
   },
 
-  async createEvent(request: CreateEventRequest): Promise<Event> {
+  async createEvent(
+    request: CreateEventRequest,
+    idempotencyKey?: string,
+  ): Promise<Event> {
     try {
       const isOnline = await OfflineStorage.isOnline();
 
@@ -172,7 +175,22 @@ export const eventService = {
         throw new Error("Event will be created when you're back online");
       }
 
-      const res = await http.post<Event>('/api/v1/events', request);
+      const headers: Record<string, string> = {};
+      if (idempotencyKey) {
+        headers['Idempotency-Key'] = idempotencyKey;
+      }
+
+      const res = await http.post<Event>('/api/v1/events', request, { headers });
+
+      // Check for idempotency replay - event was already created
+      // Axios normalizes headers to lowercase, so check both cases
+      const replayHeader = res.headers['x-idempotency-replay'] || res.headers['X-Idempotency-Replay'];
+      if (replayHeader === 'true') {
+        // Event already exists, return the existing event
+        // The response should contain the existing event data
+        console.log('[EventService] Idempotency replay detected - returning existing event');
+      }
+
       return res.data;
     } catch (error) {
       ErrorHandler.handle(error, 'createEvent');
