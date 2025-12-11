@@ -143,10 +143,6 @@ export type DuplicateEventRequest = {
   copySettings?: boolean;
 };
 
-export type EventCapacityUpdateRequest = {
-  capacity: number;
-};
-
 export type EventRegistrationDeadlineRequest = {
   deadline: string;
 };

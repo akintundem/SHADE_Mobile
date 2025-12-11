@@ -9,8 +9,6 @@ import {
   DuplicateEventRequest,
   UserEventRelationshipResponse,
   EventSummaryResponse,
-  EventCapacityResponse,
-  EventCapacityUpdateRequest,
   EventRegistrationDeadlineRequest,
   EventQRCodeResponse,
   EventVisibilityResponse,
@@ -429,30 +427,6 @@ export const eventService = {
     return res.data;
   },
 
-  async getEventCapacity(eventId: string): Promise<EventCapacityResponse> {
-    const res = await http.get<EventCapacityResponse>(
-      `/api/v1/events/${eventId}/capacity`,
-    );
-    return res.data;
-  },
-
-  async updateEventCapacity(
-    eventId: string,
-    payload: EventCapacityUpdateRequest,
-  ): Promise<Event> {
-    const res = await http.put<Event>(
-      `/api/v1/events/${eventId}/capacity`,
-      payload,
-    );
-    return res.data;
-  },
-
-  async getAvailableCapacity(eventId: string): Promise<number> {
-    const res = await http.get<number>(
-      `/api/v1/events/${eventId}/capacity/available`,
-    );
-    return res.data;
-  },
 
   async updateRegistrationDeadline(
     eventId: string,

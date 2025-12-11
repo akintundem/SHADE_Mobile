@@ -1,16 +1,36 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View, Alert, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { ArrowLeft, Users, CalendarClock, Unlock, Lock, Plus, Minus, RefreshCcw } from 'lucide-react-native';
+import { ArrowLeft, Users, CalendarClock, CheckCircle, Plus, Minus, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
 import { eventService } from '../../../services/eventService';
 import { EventCapacityResponse } from '../../../../../common/types';
 import { DateTimePickerModal } from '../../../../../common/datetime';
 import { dateUtils } from '../../../../../common/utils/helpers';
-import { DATE_FORMAT } from '../../../../../common/utils/constants';
+import { DATE_FORMATS } from '../../../../../common/utils/constants';
+import { ErrorHandler } from '../../../../../common/utils/errorHandler';
+import { isFullEventResponse, Event, EventStatus } from '../../../types/events';
 
 type RouteParams = { eventId: string };
+
+// Helper function to create EventCapacityResponse from Event data
+const createCapacityResponse = (event: Event): EventCapacityResponse => {
+  const capacity = event.capacity ?? 0;
+  const currentAttendeeCount = event.currentAttendeeCount ?? 0;
+  const availableSpots = Math.max(0, capacity - currentAttendeeCount);
+  const utilizationPercentage = capacity > 0 ? (currentAttendeeCount / capacity) * 100 : 0;
+  const isRegistrationOpen = event.eventStatus === EventStatus.REGISTRATION_OPEN;
+
+  return {
+    eventId: event.id,
+    capacity,
+    currentAttendeeCount,
+    availableSpots,
+    utilizationPercentage,
+    isRegistrationOpen,
+  };
+};
 
 // Number Input Component
 const NumberInput = ({
@@ -337,97 +357,224 @@ const ActionButton = ({
 const ManageCapacityScreen = () => {
   const { params } = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const navigation = useNavigation<any>();
-  const { colors, spacing, typography, borderRadius } = useTheme();
+  const { colors, spacing, typography, borderRadius, brand } = useTheme();
 
   const [capacityInfo, setCapacityInfo] = useState<EventCapacityResponse | null>(null);
   const [deadline, setDeadline] = useState<Date | null>(null);
   const [capacity, setCapacity] = useState<number>(0);
+  const [originalCapacity, setOriginalCapacity] = useState<number>(0);
+  const [originalDeadline, setOriginalDeadline] = useState<Date | null>(null);
+  const [registrationStatus, setRegistrationStatus] = useState<'open' | 'closed'>('closed');
+  const [originalRegistrationStatus, setOriginalRegistrationStatus] = useState<'open' | 'closed'>('closed');
   const [busy, setBusy] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const [info, event] = await Promise.all([
-        eventService.getEventCapacity(params.eventId),
-        eventService.getEvent(params.eventId),
-      ]);
-      setCapacityInfo(info);
-      setCapacity(info.capacity || 0);
-      if (event.registrationDeadline) {
-        setDeadline(new Date(event.registrationDeadline));
-      } else {
-        setDeadline(null);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Unable to load capacity details.');
+  const load = useCallback(async (isRefresh = false) => {
+    if (!params?.eventId) {
+      Alert.alert('Error', 'Event ID is missing. Please try again.');
+      navigation.goBack();
+      return;
     }
-  }, [params.eventId]);
+
+    try {
+      if (!isRefresh) setLoading(true);
+      const eventData = await eventService.getEvent(params.eventId);
+
+      // Only process if we have full event data (not feed response)
+      if (!isFullEventResponse(eventData)) {
+        Alert.alert('Error', 'Unable to load full event details. Capacity management requires full access.');
+        return;
+      }
+
+      const event = eventData as Event;
+
+      // Create capacity response from event data
+      const capacityResponse = createCapacityResponse(event);
+      setCapacityInfo(capacityResponse);
+      setCapacity(capacityResponse.capacity || 0);
+      setOriginalCapacity(capacityResponse.capacity || 0);
+
+      // Set registration status
+      const newStatus = event.eventStatus === EventStatus.REGISTRATION_OPEN ? 'open' : 'closed';
+      setRegistrationStatus(newStatus);
+      setOriginalRegistrationStatus(newStatus);
+
+      // Set registration deadline
+      const newDeadline = event.registrationDeadline ? new Date(event.registrationDeadline) : null;
+      setDeadline(newDeadline);
+      setOriginalDeadline(newDeadline);
+      
+      setHasChanges(false);
+    } catch (error) {
+      const errorMessage = (error as { message?: string })?.message || 'Unable to load capacity details.';
+      ErrorHandler.handle(error, 'loadCapacityDetails');
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [params?.eventId, navigation]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  // Track changes
+  useEffect(() => {
+    const capacityChanged = capacity !== originalCapacity;
+    const deadlineChanged = deadline?.getTime() !== originalDeadline?.getTime();
+    const statusChanged = registrationStatus !== originalRegistrationStatus;
+    setHasChanges(capacityChanged || deadlineChanged || statusChanged);
+  }, [capacity, deadline, registrationStatus, originalCapacity, originalDeadline, originalRegistrationStatus]);
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await load();
+    await load(true);
     setRefreshing(false);
   }, [load]);
 
-  const handleUpdateCapacity = useCallback(async () => {
-    if (capacity <= 0) {
-      Alert.alert('Invalid capacity', 'Capacity must be greater than 0.');
+  const handleSaveChanges = useCallback(async () => {
+    if (!params?.eventId) {
+      Alert.alert('Error', 'Event ID is missing.');
       return;
     }
+    if (capacity <= 0) {
+      Alert.alert('Invalid Input', 'Capacity must be greater than 0.');
+      return;
+    }
+    
     setBusy(true);
     try {
-      await eventService.updateEventCapacity(params.eventId, { capacity });
-      await load();
-      Alert.alert('Success', 'Capacity updated successfully.');
-    } catch (error) {
-      Alert.alert('Error', (error as { message?: string })?.message ?? 'Failed to update capacity.');
-    } finally {
-      setBusy(false);
-    }
-  }, [capacity, load, params.eventId]);
-
-  const handleUpdateDeadline = useCallback(
-    async (date: Date, _time: { hour: number; minute: number }) => {
-      setDeadline(date);
-      setBusy(true);
-      try {
-        await eventService.updateRegistrationDeadline(params.eventId, { deadline: date.toISOString() });
-        Alert.alert('Success', 'Registration deadline updated successfully.');
-      } catch (error) {
-        Alert.alert('Error', (error as { message?: string })?.message ?? 'Failed to update deadline.');
-      } finally {
-        setBusy(false);
-      }
-    },
-    [params.eventId],
-  );
-
-  const handleRegistrationToggle = useCallback(
-    async (action: 'open' | 'close') => {
-      setBusy(true);
-      try {
-        if (action === 'open') {
+      // Handle registration status change
+      if (registrationStatus !== originalRegistrationStatus) {
+        if (registrationStatus === 'open') {
           await eventService.openRegistration(params.eventId);
         } else {
           await eventService.closeRegistration(params.eventId);
         }
-        await load();
-        Alert.alert('Success', `Registration ${action === 'open' ? 'opened' : 'closed'} successfully.`);
-      } catch (error) {
-        Alert.alert('Error', (error as { message?: string })?.message ?? 'Action failed.');
-      } finally {
-        setBusy(false);
+      }
+
+      const updates: Partial<Event> = {};
+      
+      // Add capacity if changed
+      if (capacity !== originalCapacity) {
+        updates.capacity = capacity;
+      }
+      
+      // Add deadline if changed
+      if (deadline?.getTime() !== originalDeadline?.getTime()) {
+        updates.registrationDeadline = deadline?.toISOString() || null;
+      }
+
+      // Update event if there are other changes
+      if (Object.keys(updates).length > 0) {
+        await eventService.updateEvent(params.eventId, updates);
+      }
+
+      // Reload to get fresh data
+      await load(true);
+      Alert.alert('Success', 'Changes saved successfully.');
+    } catch (error) {
+      ErrorHandler.handle(error, 'saveChanges');
+      Alert.alert('Error', (error as { message?: string })?.message ?? 'Failed to save changes.');
+    } finally {
+      setBusy(false);
+    }
+  }, [capacity, deadline, registrationStatus, load, originalCapacity, originalDeadline, originalRegistrationStatus, params?.eventId]);
+
+  const handleDeadlineChange = useCallback((date: Date, _time: { hour: number; minute: number }) => {
+    setDeadline(date);
+  }, []);
+
+  const handleRegistrationToggle = useCallback(
+    (action: 'open' | 'close') => {
+      // Update state immediately for responsive UI
+      if (action === 'open') {
+        setRegistrationStatus('open');
+      } else {
+        setRegistrationStatus('closed');
       }
     },
-    [load, params.eventId],
+    [],
   );
+
+  // Handle back navigation with unsaved changes
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+      if (!hasChanges) {
+        return;
+      }
+
+      e.preventDefault();
+
+      Alert.alert(
+        'Unsaved Changes',
+        'You have unsaved changes. Do you want to save them before leaving?',
+        [
+          {
+            text: "Don't Save",
+            style: 'destructive',
+            onPress: () => navigation.dispatch(e.data.action),
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Save',
+            onPress: () => {
+              handleSaveChanges().then(() => {
+                navigation.dispatch(e.data.action);
+              }).catch(() => {
+                // If save fails, still allow navigation
+                navigation.dispatch(e.data.action);
+              });
+            },
+          },
+        ]
+      );
+    });
+
+    return unsubscribe;
+  }, [hasChanges, navigation, handleSaveChanges]);
+
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.md,
+            borderBottomWidth: 1,
+            borderColor: colors.border,
+          }}
+        >
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: spacing.xs, marginRight: spacing.sm }}>
+            <ArrowLeft size={22} color={colors.text.primary} />
+          </TouchableOpacity>
+          <Text
+            style={{
+              color: colors.text.primary,
+              fontWeight: typography.weight.semibold,
+              fontSize: typography.size.lg,
+            }}
+          >
+            Capacity & Registration
+          </Text>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color={brand.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
+      {/* Header */}
       <View
         style={{
           flexDirection: 'row',
@@ -448,14 +595,33 @@ const ManageCapacityScreen = () => {
               color: colors.text.primary,
               fontWeight: typography.weight.semibold,
               fontSize: typography.size.lg,
-              textTransform: 'uppercase',
             }}
           >
             Capacity & Registration
           </Text>
         </View>
-        <TouchableOpacity onPress={handleRefresh} disabled={refreshing} style={{ padding: spacing.xs }}>
-          <RefreshCcw size={18} color={colors.text.secondary} />
+        
+        {/* Save Button */}
+        <TouchableOpacity 
+          onPress={handleSaveChanges} 
+          disabled={!hasChanges || busy}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: borderRadius.lg,
+            backgroundColor: hasChanges && !busy ? '#000' : colors.background,
+            borderWidth: 1,
+            borderColor: colors.border,
+            opacity: (!hasChanges || busy) ? 0.5 : 1,
+          }}
+        >
+          {busy ? (
+            <ActivityIndicator size="small" color={colors.text.inverse} />
+          ) : (
+            <CheckCircle2 size={20} color={hasChanges ? colors.text.inverse : colors.text.secondary} />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -466,6 +632,14 @@ const ManageCapacityScreen = () => {
           gap: spacing.xl,
         }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={brand.primary}
+            colors={[brand.primary]}
+          />
+        }
       >
         {/* Stats Overview */}
         <StatsCard capacityInfo={capacityInfo} />
@@ -473,16 +647,9 @@ const ManageCapacityScreen = () => {
         {/* Capacity Settings */}
         <View style={{ gap: spacing.lg }}>
           <Text style={{ color: colors.text.primary, fontSize: typography.size.base, fontWeight: typography.weight.semibold }}>
-            Capacity Settings
+            Maximum Capacity
           </Text>
-          <NumberInput value={capacity} onChange={setCapacity} label="Maximum Capacity" icon={Users} />
-          <ActionButton
-            icon={Users}
-            label="Update Capacity"
-            onPress={handleUpdateCapacity}
-            disabled={busy || capacity <= 0}
-            variant="primary"
-          />
+          <NumberInput value={capacity} onChange={setCapacity} label="Capacity" icon={Users} />
         </View>
 
         {/* Registration Deadline */}
@@ -490,33 +657,80 @@ const ManageCapacityScreen = () => {
           <Text style={{ color: colors.text.primary, fontSize: typography.size.base, fontWeight: typography.weight.semibold }}>
             Registration Deadline
           </Text>
-          <DatePickerButton value={deadline} onSelect={handleUpdateDeadline} label="Deadline" icon={CalendarClock} />
+          <DatePickerButton value={deadline} onSelect={handleDeadlineChange} label="Deadline" icon={CalendarClock} />
         </View>
 
-        {/* Registration Controls */}
+        {/* Registration Status Toggle */}
         <View style={{ gap: spacing.lg }}>
           <Text style={{ color: colors.text.primary, fontSize: typography.size.base, fontWeight: typography.weight.semibold }}>
             Registration Status
           </Text>
           <View style={{ flexDirection: 'row', gap: spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <ActionButton
-                icon={Unlock}
-                label="Open"
-                onPress={() => handleRegistrationToggle('open')}
-                disabled={busy}
-                variant="primary"
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <ActionButton
-                icon={Lock}
-                label="Close"
-                onPress={() => handleRegistrationToggle('close')}
-                disabled={busy}
-                variant="destructive"
-              />
-            </View>
+            <TouchableOpacity
+              onPress={() => handleRegistrationToggle('open')}
+              disabled={busy}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.sm,
+                paddingVertical: spacing.md,
+                borderRadius: borderRadius.xl,
+                borderWidth: 2,
+                borderColor: registrationStatus === 'open' 
+                  ? '#000' 
+                  : registrationStatus === 'closed' 
+                    ? colors.semantic.success 
+                    : colors.border,
+                backgroundColor: registrationStatus === 'open' ? '#000' : colors.background,
+                opacity: busy ? 0.5 : 1,
+              }}
+            >
+              {registrationStatus === 'open' && <CheckCircle size={18} color={colors.text.inverse} />}
+              <Text 
+                style={{ 
+                  color: registrationStatus === 'open' ? colors.text.inverse : colors.text.primary,
+                  fontWeight: typography.weight.semibold,
+                  fontSize: typography.size.sm,
+                }}
+              >
+                Open
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleRegistrationToggle('close')}
+              disabled={busy}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.sm,
+                paddingVertical: spacing.md,
+                borderRadius: borderRadius.xl,
+                borderWidth: 2,
+                borderColor: registrationStatus === 'closed' 
+                  ? '#000' 
+                  : registrationStatus === 'open' 
+                    ? colors.semantic.error 
+                    : colors.border,
+                backgroundColor: registrationStatus === 'closed' ? '#000' : colors.background,
+                opacity: busy ? 0.5 : 1,
+              }}
+            >
+              {registrationStatus === 'closed' && <CheckCircle size={18} color={colors.text.inverse} />}
+              <Text 
+                style={{ 
+                  color: registrationStatus === 'closed' ? colors.text.inverse : colors.text.primary,
+                  fontWeight: typography.weight.semibold,
+                  fontSize: typography.size.sm,
+                }}
+              >
+                Closed
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
