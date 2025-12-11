@@ -17,7 +17,6 @@ import {
   Users,
   Edit,
   Share2,
-  BarChart3,
   Clock,
   CheckCircle2,
   XCircle,
@@ -140,10 +139,6 @@ export default function EventDetailScreen() {
 
   const handleEdit = () => {
     navigation.navigate('EditEvent', { eventId: event?.id });
-  };
-
-  const handleViewAnalytics = () => {
-    Alert.alert('Analytics', 'Analytics dashboard coming soon!');
   };
 
   const handlePublish = async () => {
@@ -406,30 +401,6 @@ export default function EventDetailScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handleViewAnalytics}
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: spacing.xs,
-                  paddingVertical: spacing.md,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  borderRadius: borderRadius.lg,
-                }}
-              >
-                <BarChart3 size={18} color={colors.text.primary} />
-                <Text style={{ 
-                  color: colors.text.primary, 
-                  fontWeight: typography.weight.medium,
-                  fontSize: typography.size.sm,
-                }}>
-                  Stats
-                </Text>
-              </TouchableOpacity>
             </View>
 
             <TouchableOpacity

@@ -13,7 +13,6 @@ import {
   EventQRCodeResponse,
   EventVisibilityResponse,
   EventVisibilityUpdateRequest,
-  EventAnalyticsResponse,
   EventValidationResponse,
   EventHealthCheckResponse,
   EventCollaboratorResponse,
@@ -555,13 +554,6 @@ export const eventService = {
     collaboratorId: string,
   ): Promise<void> {
     await http.delete(`/api/v1/events/${eventId}/collaborators/${collaboratorId}`);
-  },
-
-  async getEventAnalytics(eventId: string): Promise<EventAnalyticsResponse> {
-    const res = await http.get<EventAnalyticsResponse>(
-      `/api/v1/events/${eventId}/analytics`,
-    );
-    return res.data;
   },
 
   async duplicateEvent(

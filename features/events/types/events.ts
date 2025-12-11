@@ -242,18 +242,6 @@ export type EventVisibilityResponse = {
   updatedAt: string | null;
 };
 
-export type EventAnalyticsResponse = {
-  eventId: string;
-  totalViews: number;
-  uniqueVisitors: number;
-  registrationRate: number;
-  attendanceRate: number;
-  engagementMetrics: Record<string, unknown>;
-  socialMetrics: Record<string, unknown>;
-  geographicDistribution: Record<string, unknown>;
-  analyticsPeriod: string;
-};
-
 export type EventValidationResponse = {
   eventId: string;
   isValid: boolean;

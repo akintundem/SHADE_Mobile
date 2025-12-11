@@ -15,7 +15,6 @@ import EventManageScreen from './features/events/Home/screens/EventManageScreen'
 import EventAdminScreen from './features/events/Home/screens/EventAdminScreen';
 import ManageCapacityScreen from './features/events/Home/screens/manage/ManageCapacityScreen';
 import ManageVisibilityScreen from './features/events/Home/screens/manage/ManageVisibilityScreen';
-import ManageAnalyticsScreen from './features/events/Home/screens/manage/ManageAnalyticsScreen';
 import ManageNotificationsScreen from './features/events/Home/screens/manage/ManageNotificationsScreen';
 import ManageCollaboratorsScreen from './features/events/Home/screens/manage/ManageCollaboratorsScreen';
 import ManageLifecycleScreen from './features/events/Home/screens/manage/ManageLifecycleScreen';
@@ -199,11 +198,6 @@ function App() {
                   <Stack.Screen
                     name="EventManageVisibility"
                     component={ManageVisibilityScreen}
-                    options={{ headerShown: false, animation: 'slide_from_right' }}
-                  />
-                  <Stack.Screen
-                    name="EventManageAnalytics"
-                    component={ManageAnalyticsScreen}
                     options={{ headerShown: false, animation: 'slide_from_right' }}
                   />
                   <Stack.Screen

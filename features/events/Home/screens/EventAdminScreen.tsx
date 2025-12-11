@@ -2,16 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import {
-  ArrowLeft,
-  BarChart3,
-  Bell,
-  ImageIcon,
-  Layers,
-  ShieldCheck,
-  UserPlus,
-  Users,
-} from 'lucide-react-native';
+import { ArrowLeft, Bell, ImageIcon, Layers, ShieldCheck, UserPlus, Users } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { eventService } from '../../services/eventService';
 import { Event } from '../../types/events';
@@ -29,7 +20,6 @@ type ManageFeature = {
 const FEATURES: ManageFeature[] = [
   { key: 'capacity', title: 'Capacity', description: 'Seats, limits, registration window', icon: Users, screen: 'EventManageCapacity' },
   { key: 'visibility', title: 'Visibility & Status', description: 'Public/private & lifecycle actions', icon: ShieldCheck, screen: 'EventManageVisibility' },
-  { key: 'analytics', title: 'Analytics', description: 'Performance & engagement metrics', icon: BarChart3, screen: 'EventManageAnalytics' },
   { key: 'notifications', title: 'Notifications & Reminders', description: 'Broadcasts, updates & scheduled reminders', icon: Bell, screen: 'EventManageNotifications' },
   { key: 'collaborators', title: 'Collaborators', description: 'Team roles & permissions', icon: UserPlus, screen: 'EventManageCollaborators' },
   { key: 'lifecycle', title: 'Duplicate & Archive', description: 'Copies, archive, restore', icon: Layers, screen: 'EventManageLifecycle' },
