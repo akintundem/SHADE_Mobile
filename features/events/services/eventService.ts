@@ -6,7 +6,6 @@ import {
   EventListResponse,
   CreateEventRequest,
   UpdateEventRequest,
-  DuplicateEventRequest,
   UserEventRelationshipResponse,
   EventSummaryResponse,
   EventRegistrationDeadlineRequest,
@@ -219,27 +218,14 @@ export const eventService = {
     }
   },
 
-  async archiveEvent(eventId: string, reason?: string): Promise<Event> {
+  async archiveEvent(eventId: string): Promise<Event> {
     try {
-      const query = reason
-        ? `?reason=${encodeURIComponent(reason)}`
-        : '';
       const res = await http.post<Event>(
-        `/api/v1/events/${eventId}/archive${query}`,
+        `/api/v1/events/${eventId}/archive`,
       );
       return res.data;
     } catch (error) {
       ErrorHandler.handle(error, 'archiveEvent');
-      throw error;
-    }
-  },
-
-  async restoreEvent(eventId: string): Promise<Event> {
-    try {
-      const res = await http.post<Event>(`/api/v1/events/${eventId}/restore`);
-      return res.data;
-    } catch (error) {
-      ErrorHandler.handle(error, 'restoreEvent');
       throw error;
     }
   },
@@ -544,17 +530,6 @@ export const eventService = {
     collaboratorId: string,
   ): Promise<void> {
     await http.delete(`/api/v1/events/${eventId}/collaborators/${collaboratorId}`);
-  },
-
-  async duplicateEvent(
-    eventId: string,
-    request: DuplicateEventRequest,
-  ): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/duplicate`,
-      request,
-    );
-    return res.data;
   },
 
   async validateEvent(eventId: string): Promise<EventValidationResponse> {

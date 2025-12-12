@@ -136,13 +136,6 @@ export type UpdateEventRequest = {
   venueCleared?: boolean;
 };
 
-export type DuplicateEventRequest = {
-  newEventName?: string;
-  copyAttendees?: boolean;
-  copyMedia?: boolean;
-  copySettings?: boolean;
-};
-
 export type EventRegistrationDeadlineRequest = {
   deadline: string;
 };

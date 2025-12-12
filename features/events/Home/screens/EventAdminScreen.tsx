@@ -22,7 +22,7 @@ const FEATURES: ManageFeature[] = [
   { key: 'visibility', title: 'Visibility & Status', description: 'Public/private & lifecycle actions', icon: ShieldCheck, screen: 'EventManageVisibility' },
   { key: 'notifications', title: 'Notifications & Reminders', description: 'Broadcasts, updates & scheduled reminders', icon: Bell, screen: 'EventManageNotifications' },
   { key: 'collaborators', title: 'Collaborators', description: 'Team roles & permissions', icon: UserPlus, screen: 'EventManageCollaborators' },
-  { key: 'lifecycle', title: 'Duplicate & Archive', description: 'Copies, archive, restore', icon: Layers, screen: 'EventManageLifecycle' },
+  { key: 'lifecycle', title: 'Archive', description: 'Archive event', icon: Layers, screen: 'EventManageLifecycle' },
 ];
 
 const EventAdminScreen = () => {
