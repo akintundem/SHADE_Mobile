@@ -6,8 +6,6 @@ import {
   EventListResponse,
   CreateEventRequest,
   UpdateEventRequest,
-  UserEventRelationshipResponse,
-  EventSummaryResponse,
   EventRegistrationDeadlineRequest,
   EventQRCodeResponse,
   EventVisibilityResponse,
@@ -51,6 +49,28 @@ type SearchEventsParams = PaginationParams & {
   status?: string;
   dateFrom?: string;
   dateTo?: string;
+};
+
+type MyEventsTimeframe = 'UPCOMING' | 'PAST';
+
+type PageResponse<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size?: number;
+  number?: number;
+  pageable?: Record<string, unknown>;
+};
+
+type EventsSortBy = 'startDateTime' | 'createdAt' | 'name' | 'currentAttendeeCount';
+type SortDirection = 'ASC' | 'DESC';
+
+type MyEventsParams = {
+  page?: number;
+  size?: number;
+  timeframe?: MyEventsTimeframe;
+  sortBy?: EventsSortBy;
+  sortDirection?: SortDirection;
 };
 
 const buildQueryString = (params?: Record<string, unknown>) => {
@@ -291,66 +311,26 @@ export const eventService = {
     return fetchEventList('/api/v1/events/search', query, 'events_search');
   },
 
-  async getEventsForUser(
-    userId: string,
-  ): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      `/api/v1/events/user/${userId}`,
-    );
-    return res.data;
-  },
-
-  async getEventsOwnedByUser(
-    userId: string,
-  ): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      `/api/v1/events/user/${userId}/owned`,
-    );
-    return res.data;
-  },
-
-  async getUpcomingEventsForUser(
-    userId: string,
-  ): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      `/api/v1/events/user/${userId}/upcoming`,
-    );
-    return res.data;
-  },
-
-  async getPastEventsForUser(
-    userId: string,
-  ): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      `/api/v1/events/user/${userId}/past`,
-    );
-    return res.data;
-  },
-
-  async getMyEventsSummary(): Promise<EventSummaryResponse> {
-    const res = await http.get<EventSummaryResponse>(
-      '/api/v1/events/my-events',
-    );
-    return res.data;
-  },
-
-  async getMyOwnedEvents(): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      '/api/v1/events/my-events/owned',
-    );
-    return res.data;
-  },
-
-  async getMyUpcomingEvents(): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      '/api/v1/events/my-events/upcoming',
-    );
-    return res.data;
-  },
-
-  async getMyPastEvents(): Promise<UserEventRelationshipResponse[]> {
-    const res = await http.get<UserEventRelationshipResponse[]>(
-      '/api/v1/events/my-events/past',
+  /**
+   * Consolidated "my events" list endpoint.
+   * Examples:
+   * - GET /api/v1/events?mine=true
+   * - GET /api/v1/events?mine=true&timeframe=UPCOMING
+   * - GET /api/v1/events?mine=true&timeframe=PAST
+   */
+  async getMyEvents(
+    params?: MyEventsParams,
+  ): Promise<PageResponse<EventResponse>> {
+    const queryString = buildQueryString({
+      mine: true,
+      timeframe: params?.timeframe,
+      page: params?.page ?? 0,
+      size: params?.size ?? 100,
+      sortBy: params?.sortBy,
+      sortDirection: params?.sortDirection,
+    });
+    const res = await http.get<PageResponse<EventResponse>>(
+      `/api/v1/events${queryString}`,
     );
     return res.data;
   },
@@ -388,20 +368,15 @@ export const eventService = {
     return res.data;
   },
 
-  async openRegistration(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/open-registration`,
+  async updateRegistration(
+    eventId: string,
+    action: 'open' | 'close',
+  ): Promise<EventResponse> {
+    const res = await http.post<EventResponse>(
+      `/api/v1/events/${eventId}/registration?action=${action}`,
     );
     return res.data;
   },
-
-  async closeRegistration(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/close-registration`,
-    );
-    return res.data;
-  },
-
 
   async updateRegistrationDeadline(
     eventId: string,

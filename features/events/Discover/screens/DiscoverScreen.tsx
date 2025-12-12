@@ -6,7 +6,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ManageEventCard } from '../components/ManageEventCard';
 import { TopBar } from '../components/TopBar';
 import { TabBar } from '../../Home/components/TabBar';
-import { User, UserEventRelationshipResponse, EventStatus } from '../../types/events';
+import { User } from '../../../auth/types/auth';
+import { EventResponse, EventStatus } from '../../types/events';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { eventService } from '../../services/eventService';
@@ -36,19 +37,28 @@ type Props = {
   onCreateEvent?: () => void;
 };
 
-const convertEvent = (evt: UserEventRelationshipResponse): ManageItem => ({
-  id: evt.eventId,
-  title: evt.eventName,
-  date: evt.startDateTime ? dateUtils.formatDate(evt.startDateTime, DATE_FORMATS.DISPLAY_DATETIME) : 'TBD',
-  location: evt.eventWebsiteUrl ?? (evt.isPublic ? 'Public event' : 'Private event'),
+const convertEvent = (evt: EventResponse): ManageItem => ({
+  id: evt.id,
+  title: evt.name,
+  date: evt.startDateTime
+    ? dateUtils.formatDate(evt.startDateTime, DATE_FORMATS.DISPLAY_DATETIME)
+    : 'TBD',
+  location:
+    evt.eventWebsiteUrl ??
+    (evt.isPublic ? 'Public event' : 'Private event'),
   imageUrl: evt.coverImageUrl ?? FALLBACK_IMAGE,
-  description: evt.eventDescription ?? undefined,
+  description: evt.description ?? undefined,
   status: evt.eventStatus,
-  capacity: (evt.currentAttendeeCount !== null && evt.currentAttendeeCount !== undefined &&
-    evt.capacity !== null && evt.capacity !== undefined) ? {
-    current: evt.currentAttendeeCount,
-    total: evt.capacity
-  } : undefined,
+  capacity:
+    evt.currentAttendeeCount !== null &&
+    evt.currentAttendeeCount !== undefined &&
+    evt.capacity !== null &&
+    evt.capacity !== undefined
+      ? {
+          current: evt.currentAttendeeCount,
+          total: evt.capacity,
+        }
+      : undefined,
 });
 
 export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Props) {
@@ -93,15 +103,23 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
   const loadEvents = useCallback(async () => {
     try {
       setError(null);
-      const [summary, owned, upcoming, past] = await Promise.all([
-        eventService.getMyEventsSummary(),
-        eventService.getMyOwnedEvents(),
-        eventService.getMyUpcomingEvents(),
-        eventService.getMyPastEvents(),
+      const [mineAllPage, upcomingPage, pastPage] = await Promise.all([
+        eventService.getMyEvents({ size: 100 }),
+        eventService.getMyEvents({ timeframe: 'UPCOMING', size: 100 }),
+        eventService.getMyEvents({ timeframe: 'PAST', size: 100 }),
       ]);
 
-      setEventsSummary(summary);
-      setOwnedEvents(owned.map(convertEvent));
+      const mineAll = mineAllPage.content || [];
+      const upcoming = upcomingPage.content || [];
+      const past = pastPage.content || [];
+
+      setEventsSummary({
+        totalEvents: mineAll.length,
+        ownedEvents: mineAll.length,
+        upcomingEvents: upcoming.length,
+        pastEvents: past.length,
+      });
+      setOwnedEvents(mineAll.map(convertEvent));
       setUpcomingEvents(upcoming.map(convertEvent));
       setPastEvents(past.map(convertEvent));
     } catch (err) {

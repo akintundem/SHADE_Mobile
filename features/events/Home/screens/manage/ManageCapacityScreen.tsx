@@ -448,11 +448,10 @@ const ManageCapacityScreen = () => {
     try {
       // Handle registration status change
       if (registrationStatus !== originalRegistrationStatus) {
-        if (registrationStatus === 'open') {
-          await eventService.openRegistration(params.eventId);
-        } else {
-          await eventService.closeRegistration(params.eventId);
-        }
+        await eventService.updateRegistration(
+          params.eventId,
+          registrationStatus === 'open' ? 'open' : 'close',
+        );
       }
 
       const updates: Partial<Event> = {};
