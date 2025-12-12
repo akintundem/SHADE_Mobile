@@ -363,8 +363,8 @@ export const eventService = {
   async updateEventStatus(
     eventId: string,
     eventStatus: EventStatus,
-  ): Promise<Event> {
-    const res = await http.put<Event>(`/api/v1/events/${eventId}/status`, {
+  ): Promise<EventResponse> {
+    const res = await http.put<EventResponse>(`/api/v1/events/${eventId}/status`, {
       eventStatus,
     });
     return res.data;

@@ -1,12 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View, Alert, Modal, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   ArrowLeft,
   ShieldCheck,
-  Globe,
-  EyeOff,
   Upload,
   CheckCircle2,
   XCircle,
@@ -14,7 +12,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
 import { eventService } from '../../../services/eventService';
-import { Event, EventVisibilityResponse, EventStatus } from '../../../../../common/types';
+import { EventStatus } from '../../../../../common/types';
 
 type RouteParams = { eventId: string };
 
@@ -25,22 +23,17 @@ const ManageVisibilityScreen = () => {
 
   const eventId = params?.eventId;
 
-  const [event, setEvent] = useState<Event | null>(null);
-  const [visibility, setVisibility] = useState<EventVisibilityResponse | null>(null);
   const [currentStatus, setCurrentStatus] = useState<EventStatus | null>(null);
   const [isPublic, setIsPublic] = useState(true);
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [initialIsPublic, setInitialIsPublic] = useState<boolean | null>(null);
-  const [initialRequiresApproval, setInitialRequiresApproval] = useState<boolean | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<EventStatus | null>(null);
+  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
+  const [selectedIsPublic, setSelectedIsPublic] = useState<boolean | null>(null);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [selectedRequiresApproval, setSelectedRequiresApproval] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const hasVisibilityChanges =
-    initialIsPublic !== null &&
-    initialRequiresApproval !== null &&
-    (isPublic !== initialIsPublic || requiresApproval !== initialRequiresApproval);
 
   const load = useCallback(async () => {
     if (!eventId) {
@@ -54,24 +47,19 @@ const ManageVisibilityScreen = () => {
       const [eventData, visibilityData, statusData] = await Promise.all([
         eventService.getEvent(eventId),
         eventService.getEventVisibility(eventId),
-        eventService.getEventStatus(eventId).catch(() => null),
+        eventService.getEventStatus(eventId),
       ]);
-      setEvent(eventData);
-      setVisibility(visibilityData);
-      setCurrentStatus(statusData || eventData.eventStatus);
+      const eventAny = eventData as any;
+      setCurrentStatus(statusData ?? (eventData as any)?.eventStatus ?? null);
       setIsPublic(
-        visibilityData?.isPublic ?? (typeof eventData.isPublic === 'boolean' ? eventData.isPublic : true),
-      );
-      setInitialIsPublic(
-        visibilityData?.isPublic ?? (typeof eventData.isPublic === 'boolean' ? eventData.isPublic : true),
+        visibilityData?.isPublic ??
+          (typeof eventAny?.isPublic === 'boolean' ? eventAny.isPublic : true),
       );
       setRequiresApproval(
         visibilityData?.requiresApproval ??
-          (typeof eventData.requiresApproval === 'boolean' ? eventData.requiresApproval : false),
-      );
-      setInitialRequiresApproval(
-        visibilityData?.requiresApproval ??
-          (typeof eventData.requiresApproval === 'boolean' ? eventData.requiresApproval : false),
+          (typeof eventAny?.requiresApproval === 'boolean'
+            ? eventAny.requiresApproval
+            : false),
       );
     } catch (error) {
       const msg = (error as { message?: string })?.message || 'Unable to load event data.';
@@ -84,25 +72,6 @@ const ManageVisibilityScreen = () => {
   useEffect(() => {
     load();
   }, [load]);
-
-  const handleSaveVisibility = useCallback(async () => {
-    if (!eventId) return;
-    setBusy(true);
-    try {
-      await eventService.updateEventVisibility(eventId, {
-        isPublic,
-        requiresApproval,
-      });
-      await load();
-      setInitialIsPublic(isPublic);
-      setInitialRequiresApproval(requiresApproval);
-      Alert.alert('Success', 'Visibility settings updated successfully.');
-    } catch (error) {
-      Alert.alert('Error', (error as { message?: string })?.message ?? 'Update failed.');
-    } finally {
-      setBusy(false);
-    }
-  }, [isPublic, load, params.eventId, requiresApproval]);
 
   const handleUpdateStatus = useCallback(async () => {
     if (!eventId) return;
@@ -120,79 +89,95 @@ const ManageVisibilityScreen = () => {
     }
   }, [selectedStatus, load, params.eventId]);
 
-  const handleQuickAction = useCallback(
-    async (
-      action:
-        | 'public'
-        | 'private'
-        | 'publish'
-        | 'cancel'
-        | 'complete',
-    ) => {
-      if (!eventId) {
-        Alert.alert('Error', 'Event ID is missing. Please reopen from the event details.');
+  const handleUpdateVisibility = useCallback(async () => {
+    if (!eventId) return;
+    if (selectedIsPublic === null) return;
+    setBusy(true);
+    try {
+      await eventService.updateEventVisibility(eventId, {
+        isPublic: selectedIsPublic,
+        requiresApproval,
+      });
+      setShowVisibilityModal(false);
+      await load();
+      Alert.alert('Success', 'Visibility updated successfully.');
+    } catch (error) {
+      Alert.alert('Error', (error as { message?: string })?.message ?? 'Visibility update failed.');
+    } finally {
+      setBusy(false);
+    }
+  }, [eventId, load, requiresApproval, selectedIsPublic]);
+
+  const handleUpdateApproval = useCallback(async () => {
+    if (!eventId) return;
+    if (selectedRequiresApproval === null) return;
+    setBusy(true);
+    try {
+      await eventService.updateEventVisibility(eventId, {
+        isPublic,
+        requiresApproval: selectedRequiresApproval,
+      });
+      setShowApprovalModal(false);
+      await load();
+      Alert.alert('Success', 'Approval requirement updated successfully.');
+    } catch (error) {
+      Alert.alert('Error', (error as { message?: string })?.message ?? 'Approval update failed.');
+    } finally {
+      setBusy(false);
+    }
+  }, [eventId, isPublic, load, selectedRequiresApproval]);
+
+  const handleQuickStatusAction = useCallback(
+    async (action: 'publish' | 'complete' | 'cancel') => {
+      if (!eventId) return;
+
+      if (action === 'cancel') {
+        Alert.alert(
+          'Cancel Event',
+          'Are you sure you want to cancel this event?',
+          [
+            { text: 'No', style: 'cancel' },
+            {
+              text: 'Yes, Cancel',
+              style: 'destructive',
+              onPress: async () => {
+                setBusy(true);
+                try {
+                  await eventService.updateEventStatus(eventId, EventStatus.CANCELLED);
+                  await load();
+                  Alert.alert('Success', 'Event status updated successfully.');
+                } catch (error) {
+                  Alert.alert(
+                    'Error',
+                    (error as { message?: string })?.message ?? 'Status update failed.',
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              },
+            },
+          ],
+        );
         return;
       }
-      setBusy(true);
-      try {
-        if (action === 'public') {
-          await eventService.makeEventPublic(eventId);
-        } else if (action === 'private') {
-          await eventService.makeEventPrivate(eventId);
-        } else if (action === 'publish') {
-          await eventService.publishEvent(eventId);
-        } else if (action === 'cancel') {
-          Alert.alert(
-            'Cancel Event',
-            'Are you sure you want to cancel this event?',
-            [
-              { text: 'No', style: 'cancel' },
-              {
-                text: 'Yes, Cancel',
-                style: 'destructive',
-                onPress: async () => {
-                  await eventService.cancelEvent(eventId, 'Cancelled by organizer');
-                  await load();
-                  Alert.alert('Success', 'Event has been cancelled.');
-                },
-              },
-            ],
-          );
-          setBusy(false);
-          return;
-        } else if (action === 'complete') {
-          await eventService.completeEvent(eventId);
-        }
-        await load();
-        Alert.alert('Success', 'Action completed successfully.');
-      } catch (error) {
-        Alert.alert('Error', (error as { message?: string })?.message ?? 'Action failed.');
-      } finally {
-        setBusy(false);
-      }
-    },
-    [load, eventId],
-  );
 
-  const updateVisibility = useCallback(
-    async (nextIsPublic: boolean, nextRequiresApproval: boolean, revert: () => void) => {
-      if (!eventId) return;
       setBusy(true);
       try {
-        await eventService.updateEventVisibility(eventId, {
-          isPublic: nextIsPublic,
-          requiresApproval: nextRequiresApproval,
-        });
-        setInitialIsPublic(nextIsPublic);
-        setInitialRequiresApproval(nextRequiresApproval);
+        const nextStatus =
+          action === 'publish' ? EventStatus.PUBLISHED : EventStatus.COMPLETED;
+        await eventService.updateEventStatus(eventId, nextStatus);
+        await load();
+        Alert.alert('Success', 'Event status updated successfully.');
       } catch (error) {
-        Alert.alert('Error', (error as { message?: string })?.message ?? 'Update failed.');
-        revert();
+        Alert.alert(
+          'Error',
+          (error as { message?: string })?.message ?? 'Status update failed.',
+        );
       } finally {
         setBusy(false);
       }
     },
-    [eventId],
+    [eventId, load],
   );
 
   const allStatuses = Object.values(EventStatus);
@@ -226,32 +211,6 @@ const ManageVisibilityScreen = () => {
             Visibility & Status
           </Text>
         </View>
-
-        <TouchableOpacity
-          onPress={handleSaveVisibility}
-          disabled={busy || !hasVisibilityChanges}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: borderRadius.md,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: busy || !hasVisibilityChanges ? colors.background : colors.text.primary,
-            opacity: busy ? 0.5 : 1,
-          }}
-        >
-          {busy ? (
-            <ActivityIndicator size="small" color={colors.text.inverse} />
-          ) : (
-            <CheckCircle2
-              size={20}
-              color={busy || !hasVisibilityChanges ? colors.text.secondary : colors.text.inverse}
-            />
-          )}
-        </TouchableOpacity>
-
       </View>
 
       <ScrollView
@@ -290,93 +249,48 @@ const ManageVisibilityScreen = () => {
             </Text>
           </View>
 
-          {currentStatus && (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: spacing.md,
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: spacing.md,
+            }}
+          >
+            <RowWithChange
+              label="Event Status"
+              value={statusLabel(currentStatus ?? undefined)}
+              onPress={() => {
+                setSelectedStatus(currentStatus ?? EventStatus.DRAFT);
+                setShowStatusModal(true);
               }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.sm,
-                    marginBottom: spacing.xs,
-                  }}
-                >
-                  Event Status
-                </Text>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: spacing.sm,
-                  }}
-                >
-                  <View
-                    style={{
-                      paddingHorizontal: spacing.md,
-                      paddingVertical: spacing.sm,
-                      borderRadius: borderRadius.md,
-                  borderWidth: 1,
-                  borderColor: colors.text.primary,
-                    }}
-                  >
-                    <Text
-                      style={{
-                    color: colors.text.primary,
-                        fontWeight: typography.weight.semibold,
-                        fontSize: typography.size.base,
-                      }}
-                    >
-                      {statusLabel(currentStatus)}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedStatus(currentStatus);
-                  setShowStatusModal(true);
-                }}
-                disabled={busy}
-                style={{
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  borderRadius: borderRadius.md,
-                  borderWidth: 1,
-                  borderColor: colors.text.primary,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.xs,
-                }}
-              >
-                <Text style={{ color: colors.text.primary, fontSize: typography.size.sm }}>Change</Text>
-                <ChevronDown size={16} color={colors.text.primary} />
-              </TouchableOpacity>
-            </View>
-          )}
+              disabled={busy}
+            />
+          </View>
 
           <View style={{ gap: spacing.sm }}>
-            <InfoRow
+            <RowWithChange
               label="Visibility"
               value={isPublic ? 'Public' : 'Private'}
-              icon={isPublic ? Globe : EyeOff}
-              iconColor={colors.text.primary}
+              onPress={() => {
+                setSelectedIsPublic(isPublic);
+                setShowVisibilityModal(true);
+              }}
+              disabled={busy}
             />
-            <InfoRow
+            <RowWithChange
               label="Approval Required"
               value={requiresApproval ? 'Yes' : 'No'}
-              icon={ShieldCheck}
-              iconColor={colors.text.primary}
+              onPress={() => {
+                setSelectedRequiresApproval(requiresApproval);
+                setShowApprovalModal(true);
+              }}
+              disabled={busy}
             />
           </View>
         </View>
 
-        {/* Event Status Management */}
+        {/* Status Management */}
         <View
           style={{
             backgroundColor: colors.background,
@@ -402,78 +316,25 @@ const ManageVisibilityScreen = () => {
               icon={Upload}
               label="Publish Event"
               description="Make event visible to the public"
-              onPress={() => handleQuickAction('publish')}
+              onPress={() => handleQuickStatusAction('publish')}
               disabled={busy || currentStatus === EventStatus.PUBLISHED}
             />
             <ActionRow
               icon={CheckCircle2}
               label="Mark as Complete"
               description="Mark this event as completed"
-              onPress={() => handleQuickAction('complete')}
+              onPress={() => handleQuickStatusAction('complete')}
               disabled={busy || currentStatus === EventStatus.COMPLETED}
             />
             <ActionRow
               icon={XCircle}
               label="Cancel Event"
               description="Cancel this event permanently"
-              onPress={() => handleQuickAction('cancel')}
+              onPress={() => handleQuickStatusAction('cancel')}
               disabled={busy || currentStatus === EventStatus.CANCELLED}
               destructive
             />
           </View>
-        </View>
-
-        {/* Registration Management */}
-        <View
-          style={{
-            backgroundColor: colors.background,
-            borderRadius: borderRadius.xl,
-            padding: spacing.xl,
-            borderWidth: 1,
-            borderColor: colors.text.primary,
-          }}
-        >
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontWeight: typography.weight.bold,
-              fontSize: typography.size.lg,
-              marginBottom: spacing.lg,
-            }}
-          >
-            Visibility Settings
-          </Text>
-
-          <View style={{ gap: spacing.md, marginBottom: spacing.lg }}>
-            <ToggleRow
-              label="Public Event"
-              description="Event is visible to everyone"
-              active={isPublic}
-              disabled={busy}
-              onToggle={() => {
-                const prev = isPublic;
-                const next = !prev;
-                setIsPublic(next);
-                updateVisibility(next, requiresApproval, () => setIsPublic(prev));
-              }}
-              icon={Globe}
-            />
-            <ToggleRow
-              label="Require Approval"
-              description="New attendees need approval to join"
-              active={requiresApproval}
-              disabled={busy}
-              onToggle={() => {
-                const prev = requiresApproval;
-                const next = !prev;
-                setRequiresApproval(next);
-                updateVisibility(isPublic, next, () => setRequiresApproval(prev));
-              }}
-              icon={ShieldCheck}
-            />
-          </View>
-
-          {/* Make Public/Private removed to avoid duplication with toggles */}
         </View>
       </ScrollView>
 
@@ -599,94 +460,329 @@ const ManageVisibilityScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Visibility Selection Modal */}
+      <Modal
+        visible={showVisibilityModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowVisibilityModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: borderRadius.xl,
+              borderTopRightRadius: borderRadius.xl,
+              padding: spacing.xl,
+              maxHeight: '70%',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: spacing.lg,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size.lg,
+                }}
+              >
+                Select Visibility
+              </Text>
+              <TouchableOpacity onPress={() => setShowVisibilityModal(false)}>
+                <XCircle size={24} color={colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ gap: spacing.sm }}>
+              {[
+                { label: 'Public', value: true },
+                { label: 'Private', value: false },
+              ].map(option => (
+                <TouchableOpacity
+                  key={option.label}
+                  onPress={() => setSelectedIsPublic(option.value)}
+                  style={{
+                    padding: spacing.md,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor:
+                      selectedIsPublic === option.value ? colors.text.primary : colors.border,
+                    backgroundColor:
+                      selectedIsPublic === option.value ? colors.text.primary : colors.background,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        selectedIsPublic === option.value
+                          ? colors.text.inverse
+                          : colors.text.primary,
+                      fontWeight:
+                        selectedIsPublic === option.value
+                          ? typography.weight.semibold
+                          : typography.weight.regular,
+                      fontSize: typography.size.base,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
+              <TouchableOpacity
+                onPress={() => setShowVisibilityModal(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: spacing.md,
+                  borderRadius: borderRadius.lg,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text.primary,
+                    fontWeight: typography.weight.semibold,
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleUpdateVisibility}
+                disabled={busy || selectedIsPublic === null}
+                style={{
+                  flex: 1,
+                  paddingVertical: spacing.md,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: colors.text.primary,
+                  alignItems: 'center',
+                  opacity: busy || selectedIsPublic === null ? 0.5 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text.inverse,
+                    fontWeight: typography.weight.bold,
+                  }}
+                >
+                  Update
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Approval Selection Modal */}
+      <Modal
+        visible={showApprovalModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowApprovalModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: borderRadius.xl,
+              borderTopRightRadius: borderRadius.xl,
+              padding: spacing.xl,
+              maxHeight: '70%',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: spacing.lg,
+              }}
+            >
+              <Text
+                style={{
+                  color: colors.text.primary,
+                  fontWeight: typography.weight.bold,
+                  fontSize: typography.size.lg,
+                }}
+              >
+                Require Approval?
+              </Text>
+              <TouchableOpacity onPress={() => setShowApprovalModal(false)}>
+                <XCircle size={24} color={colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ gap: spacing.sm }}>
+              {[
+                { label: 'Yes', value: true },
+                { label: 'No', value: false },
+              ].map(option => (
+                <TouchableOpacity
+                  key={option.label}
+                  onPress={() => setSelectedRequiresApproval(option.value)}
+                  style={{
+                    padding: spacing.md,
+                    borderRadius: borderRadius.md,
+                    borderWidth: 1,
+                    borderColor:
+                      selectedRequiresApproval === option.value
+                        ? colors.text.primary
+                        : colors.border,
+                    backgroundColor:
+                      selectedRequiresApproval === option.value
+                        ? colors.text.primary
+                        : colors.background,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        selectedRequiresApproval === option.value
+                          ? colors.text.inverse
+                          : colors.text.primary,
+                      fontWeight:
+                        selectedRequiresApproval === option.value
+                          ? typography.weight.semibold
+                          : typography.weight.regular,
+                      fontSize: typography.size.base,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg }}>
+              <TouchableOpacity
+                onPress={() => setShowApprovalModal(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: spacing.md,
+                  borderRadius: borderRadius.lg,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text.primary,
+                    fontWeight: typography.weight.semibold,
+                  }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleUpdateApproval}
+                disabled={busy || selectedRequiresApproval === null}
+                style={{
+                  flex: 1,
+                  paddingVertical: spacing.md,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: colors.text.primary,
+                  alignItems: 'center',
+                  opacity: busy || selectedRequiresApproval === null ? 0.5 : 1,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text.inverse,
+                    fontWeight: typography.weight.bold,
+                  }}
+                >
+                  Update
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
 
-const ToggleRow = ({
+const RowWithChange = ({
   label,
-  description,
-  active,
-  onToggle,
-  icon: Icon,
+  value,
+  onPress,
   disabled,
 }: {
   label: string;
-  description?: string;
-  active: boolean;
-  onToggle: () => void;
-  icon?: React.ComponentType<{ size?: number; color?: string }>;
+  value: string;
+  onPress: () => void;
   disabled?: boolean;
 }) => {
   const { colors, spacing, borderRadius, typography } = useTheme();
   return (
-    <TouchableOpacity
-      onPress={() => {
-        if (disabled) return;
-        onToggle();
-      }}
+    <View
       style={{
         flexDirection: 'row',
         alignItems: 'center',
+        paddingVertical: spacing.sm,
         justifyContent: 'space-between',
-        padding: spacing.md,
-        borderWidth: 1,
-        borderColor: colors.text.primary,
-        borderRadius: borderRadius.lg,
-        backgroundColor: colors.background,
-        opacity: disabled ? 0.5 : 1,
       }}
-      disabled={disabled}
     >
-      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        {Icon && <Icon size={20} color={colors.text.primary} />}
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontSize: typography.size.base,
-              fontWeight: typography.weight.semibold,
-            }}
-          >
-            {label}
-          </Text>
-          {description && (
-            <Text
-              style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.xs,
-                marginTop: spacing.xs,
-              }}
-            >
-              {description}
-            </Text>
-          )}
-        </View>
-      </View>
-      <View
+      <Text
         style={{
-          width: 44,
-          height: 24,
-          borderRadius: 12,
-          borderWidth: 2,
-          borderColor: colors.text.primary,
-          padding: 2,
-          justifyContent: 'center',
-          backgroundColor: colors.background,
+          color: colors.text.secondary,
+          fontSize: typography.size.sm,
+          flex: 1,
         }}
       >
-        <View
+        {label}
+      </Text>
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={disabled}
+        style={{
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+          borderRadius: borderRadius.md,
+          borderWidth: 1,
+          borderColor: colors.text.primary,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.xs,
+          opacity: disabled ? 0.5 : 1,
+        }}
+      >
+        <Text
           style={{
-            width: 16,
-            height: 16,
-            borderRadius: 8,
-            backgroundColor: colors.text.primary,
-            opacity: active ? 1 : 0.3,
-            alignSelf: active ? 'flex-end' : 'flex-start',
+            color: colors.text.primary,
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.semibold,
           }}
-        />
-      </View>
-    </TouchableOpacity>
+        >
+          {value}
+        </Text>
+        <ChevronDown size={16} color={colors.text.primary} />
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -706,7 +802,7 @@ const ActionRow = ({
   destructive?: boolean;
 }) => {
   const { colors, spacing, borderRadius, typography } = useTheme();
-  const color = destructive ? colors.error?.text ?? '#ef4444' : colors.text.primary;
+  const color = destructive ? colors.semantic.error : colors.text.primary;
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -733,7 +829,7 @@ const ActionRow = ({
         >
           {label}
         </Text>
-        {description && (
+        {description ? (
           <Text
             style={{
               color: colors.text.secondary,
@@ -743,53 +839,9 @@ const ActionRow = ({
           >
             {description}
           </Text>
-        )}
+        ) : null}
       </View>
     </TouchableOpacity>
-  );
-};
-
-const InfoRow = ({
-  label,
-  value,
-  icon: Icon,
-  iconColor,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-  iconColor: string;
-}) => {
-  const { colors, spacing, typography } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.sm,
-        paddingVertical: spacing.sm,
-      }}
-    >
-      <Icon size={18} color={iconColor} />
-      <Text
-        style={{
-          color: colors.text.secondary,
-          fontSize: typography.size.sm,
-          flex: 1,
-        }}
-      >
-        {label}:
-      </Text>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontSize: typography.size.sm,
-          fontWeight: typography.weight.semibold,
-        }}
-      >
-        {value}
-      </Text>
-    </View>
   );
 };
 
