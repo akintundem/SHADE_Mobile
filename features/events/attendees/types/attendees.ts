@@ -52,3 +52,15 @@ export type InvitationDTO = {
   reminderSent: boolean;
   reminderSentAt: string | null;
 };
+
+export type InvitationResponse = {
+  invitationId: string;
+  attendeeId?: string;
+  userId?: string;
+  name: string;
+  email: string;
+  status: 'QUEUED' | 'SENT' | 'DELIVERED' | 'FAILED';
+  channels?: string[];
+  invitedAt?: string;
+  deliveredAt?: string;
+};

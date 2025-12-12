@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   Search,
   UserPlus,
-  Phone,
   Mail,
   CheckCircle,
   Clock,
@@ -24,7 +23,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { AttendeeDTO } from '../../attendees/types/attendees';
+import { InvitationResponse } from '../../attendees/types/attendees';
 import { attendeeService } from '../../attendees/services/attendeeService';
 import { authService } from '../../../auth/services/authService';
 import { useDebounce } from '../../../../common/hooks/useDebounce';
@@ -39,31 +38,63 @@ type Props = {
 type SearchUser = {
   id: string;
   name: string;
-  email: string;
+  maskedEmail: string;
   profileImageUrl?: string | null;
-  isAttendee: boolean;
+  isInvited: boolean;
 };
-
-const FALLBACK_AVATAR = 'https://ui-avatars.com/api/?name=';
 
 export default function GuestListScreen({ eventId, onBack }: Props) {
   const { colors, spacing, typography, borderRadius, brand, shadows } =
     useTheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [attendees, setAttendees] = useState<AttendeeDTO[]>([]);
+  const [invitations, setInvitations] = useState<InvitationResponse[]>([]);
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Load attendees
+  const loadInvitations = useCallback(
+    async (pageToLoad: number = 0, append = false) => {
+      try {
+        if (append) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const response = await attendeeService.getEventInvitations(eventId, {
+          page: pageToLoad,
+          size: 20,
+          sort: 'invitedAt,desc',
+        });
+
+        const content = response.content || [];
+        setInvitations(prev =>
+          append ? [...prev, ...content] : content,
+        );
+        setPage(response.number ?? pageToLoad);
+        setTotalPages(response.totalPages ?? 1);
+      } catch (err) {
+        ErrorHandler.handle(err, 'loadInvitations');
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [eventId],
+  );
+
+  // Load invitations
   useEffect(() => {
-    loadAttendees();
-  }, [eventId]);
+    loadInvitations(0, false);
+  }, [loadInvitations]);
 
   // Search for users when query changes
   useEffect(() => {
@@ -74,28 +105,19 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
     }
   }, [debouncedSearchQuery]);
 
-  const loadAttendees = async () => {
-    try {
-      setLoading(true);
-      const response = await attendeeService.getEventAttendees(eventId);
-      setAttendees(response.attendees || []);
-    } catch (err) {
-      ErrorHandler.handle(err, 'loadAttendees');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const searchUsers = async (query: string) => {
     try {
       setSearching(true);
-      const response = await authService.searchUsers(query, { size: 10 });
-      const results: SearchUser[] = (response.users || []).map(user => ({
+      const response = await authService.searchDirectory(query, { size: 10 });
+      const invitedUserIds = new Set(
+        invitations.map(inv => inv.userId).filter(Boolean) as string[],
+      );
+      const results: SearchUser[] = (response.content || []).map(user => ({
         id: user.id,
         name: user.name,
-        email: user.email,
+        maskedEmail: user.maskedEmail,
         profileImageUrl: user.profileImageUrl,
-        isAttendee: attendees.some(a => a.email === user.email),
+        isInvited: invitedUserIds.has(user.id),
       }));
       setSearchResults(results);
     } catch (err) {
@@ -107,15 +129,21 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
     }
   };
 
+  const isMaskedEmail = (email?: string) => {
+    if (!email) return false;
+    // directory endpoint returns masked emails like "m***@g***.com"
+    return /[*•]/.test(email);
+  };
+
   const handleInviteUser = async (user: SearchUser) => {
     try {
       await attendeeService.registerForEvent(eventId, {
         userId: user.id,
-        firstName: user.name.split(' ')[0] || '',
-        lastName: user.name.split(' ').slice(1).join(' ') || '',
-        email: user.email,
+        name: user.name?.trim() || 'Guest',
+        // Never send masked emails to backend validators
+        ...(isMaskedEmail(user.maskedEmail) ? {} : { email: user.maskedEmail }),
       });
-      await loadAttendees();
+      await loadInvitations(0, false);
       setSearchQuery('');
       setSearchResults([]);
     } catch (err) {
@@ -127,14 +155,11 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
     if (!inviteEmail.trim()) return;
 
     try {
-      const nameParts = inviteName.trim().split(' ') || ['', ''];
       await attendeeService.registerForEvent(eventId, {
-        userId: `email_${inviteEmail}`,
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        email: inviteEmail.trim(),
+        name: inviteName.trim() || inviteEmail.trim(),
+        email: inviteEmail.trim().toLowerCase(),
       });
-      await loadAttendees();
+      await loadInvitations(0, false);
       setShowInviteModal(false);
       setInviteEmail('');
       setInviteName('');
@@ -143,40 +168,31 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
     }
   };
 
-  const filteredAttendees = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return attendees.sort((a, b) =>
-        `${a.firstName} ${a.lastName}`.localeCompare(
-          `${b.firstName} ${b.lastName}`,
-        ),
-      );
-    }
-    return attendees
-      .filter(
-        attendee =>
-          attendee.firstName
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          attendee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          attendee.email.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-      .sort((a, b) =>
-        `${a.firstName} ${a.lastName}`.localeCompare(
-          `${b.firstName} ${b.lastName}`,
-        ),
-      );
-  }, [attendees, searchQuery]);
+  const filteredInvitations = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = query
+      ? invitations.filter(
+          invite =>
+            invite.name.toLowerCase().includes(query) ||
+            invite.email.toLowerCase().includes(query),
+        )
+      : invitations;
+
+    return [...filtered].sort((a, b) =>
+      (a.name || a.email).localeCompare(b.name || b.email),
+    );
+  }, [invitations, searchQuery]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
+      case 'DELIVERED':
         return '#22c55e';
-      case 'PENDING':
-        return '#f59e0b';
-      case 'CANCELLED':
-        return '#ef4444';
-      case 'ATTENDED':
+      case 'SENT':
         return '#3b82f6';
+      case 'QUEUED':
+        return '#f59e0b';
+      case 'FAILED':
+        return '#ef4444';
       default:
         return colors.text.secondary;
     }
@@ -184,19 +200,26 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
+      case 'DELIVERED':
         return <CheckCircle size={14} color="#22c55e" />;
-      case 'PENDING':
+      case 'SENT':
+        return <Clock size={14} color="#3b82f6" />;
+      case 'QUEUED':
         return <Clock size={14} color="#f59e0b" />;
-      case 'CANCELLED':
+      case 'FAILED':
         return <XCircle size={14} color="#ef4444" />;
       default:
         return null;
     }
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (fullName: string) => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    if (parts.length === 1) {
+      return parts[0].charAt(0).toUpperCase();
+    }
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
   };
 
   if (loading) {
@@ -242,7 +265,8 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                 marginTop: 2,
               }}
             >
-              {attendees.length} {attendees.length === 1 ? 'guest' : 'guests'}
+              {invitations.length}{' '}
+              {invitations.length === 1 ? 'guest' : 'guests'}
             </Text>
           </View>
         </View>
@@ -343,21 +367,21 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
             {searchResults.map(user => (
               <TouchableOpacity
                 key={user.id}
-                onPress={() => !user.isAttendee && handleInviteUser(user)}
-                disabled={user.isAttendee}
+                onPress={() => !user.isInvited && handleInviteUser(user)}
+                disabled={user.isInvited}
                 style={{
                   width: 140,
-                  backgroundColor: user.isAttendee
+                  backgroundColor: user.isInvited
                     ? colors.surface
                     : colors.background,
                   borderRadius: borderRadius.xl,
                   padding: spacing.md,
                   alignItems: 'center',
                   borderWidth: 1,
-                  borderColor: user.isAttendee
+                  borderColor: user.isInvited
                     ? colors.border
                     : brand.primary,
-                  opacity: user.isAttendee ? 0.6 : 1,
+                  opacity: user.isInvited ? 0.6 : 1,
                 }}
               >
                 <View
@@ -368,7 +392,7 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                     overflow: 'hidden',
                     marginBottom: spacing.sm,
                     borderWidth: 2,
-                    borderColor: user.isAttendee
+                    borderColor: user.isInvited
                       ? colors.border
                       : brand.primary,
                   }}
@@ -422,9 +446,9 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                   }}
                   numberOfLines={1}
                 >
-                  {user.email}
+                  {user.maskedEmail}
                 </Text>
-                {user.isAttendee ? (
+                {user.isInvited ? (
                   <View
                     style={{
                       flexDirection: 'row',
@@ -479,8 +503,8 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
 
       {/* Guests List */}
       <FlatList
-        data={filteredAttendees}
-        keyExtractor={item => item.id}
+        data={filteredInvitations}
+        keyExtractor={item => item.invitationId || item.attendeeId || item.email}
         contentContainerStyle={{
           padding: spacing.lg,
           gap: spacing.md,
@@ -516,9 +540,25 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
             </Text>
           </View>
         }
-        renderItem={({ item: attendee }) => (
+        onEndReachedThreshold={0.5}
+        onEndReached={() => {
+          const nextPage = page + 1;
+          if (nextPage < totalPages && !loadingMore) {
+            loadInvitations(nextPage, true);
+          }
+        }}
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator
+              style={{ marginVertical: spacing.md }}
+              size="small"
+              color={brand.primary}
+            />
+          ) : null
+        }
+        renderItem={({ item: invitation }) => (
           <AttendeeCard
-            attendee={attendee}
+            invitation={invitation}
             getStatusColor={getStatusColor}
             getStatusIcon={getStatusIcon}
             getInitials={getInitials}
@@ -546,17 +586,18 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
 }
 
 function AttendeeCard({
-  attendee,
+  invitation,
   getStatusColor,
   getStatusIcon,
   getInitials,
 }: {
-  attendee: AttendeeDTO;
+  invitation: InvitationResponse;
   getStatusColor: (status: string) => string;
   getStatusIcon: (status: string) => React.ReactNode;
-  getInitials: (firstName: string, lastName: string) => string;
+  getInitials: (fullName: string) => string;
 }) {
-  const { colors, typography, spacing, borderRadius, shadows } = useTheme();
+  const { colors, typography, spacing, borderRadius, shadows, brand } = useTheme();
+  const displayName = invitation.name || invitation.email;
 
   return (
     <TouchableOpacity
@@ -585,7 +626,6 @@ function AttendeeCard({
           borderColor: colors.border,
         }}
       >
-        {/* TODO: Add profileImageUrl to AttendeeDTO type and use it here */}
         <View
           style={{
             width: '100%',
@@ -602,7 +642,7 @@ function AttendeeCard({
               color: brand.primary,
             }}
           >
-            {getInitials(attendee.firstName, attendee.lastName)}
+            {getInitials(displayName)}
           </Text>
         </View>
       </View>
@@ -616,7 +656,7 @@ function AttendeeCard({
             color: colors.text.primary,
           }}
         >
-          {attendee.firstName} {attendee.lastName}
+          {displayName}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
           <Mail size={12} color={colors.text.tertiary} />
@@ -627,19 +667,20 @@ function AttendeeCard({
             }}
             numberOfLines={1}
           >
-            {attendee.email}
+            {invitation.email}
           </Text>
         </View>
-        {attendee.phoneNumber && (
+        {invitation.invitedAt && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Phone size={12} color={colors.text.tertiary} />
+            <Clock size={12} color={colors.text.tertiary} />
             <Text
               style={{
-                fontSize: typography.size.sm,
-                color: colors.text.secondary,
+                fontSize: typography.size.xs,
+                color: colors.text.tertiary,
               }}
+              numberOfLines={1}
             >
-              {attendee.phoneNumber}
+              Invited {new Date(invitation.invitedAt).toLocaleString()}
             </Text>
           </View>
         )}
@@ -653,22 +694,22 @@ function AttendeeCard({
           gap: spacing.xs,
           paddingHorizontal: spacing.sm,
           paddingVertical: spacing.xs,
-          backgroundColor: getStatusColor(attendee.status) + '20',
+          backgroundColor: getStatusColor(invitation.status) + '20',
           borderRadius: borderRadius.full,
           borderWidth: 1,
-          borderColor: getStatusColor(attendee.status),
+          borderColor: getStatusColor(invitation.status),
         }}
       >
-        {getStatusIcon(attendee.status)}
+        {getStatusIcon(invitation.status)}
         <Text
           style={{
             fontSize: typography.size.xs,
             fontWeight: typography.weight.medium,
-            color: getStatusColor(attendee.status),
+            color: getStatusColor(invitation.status),
             textTransform: 'capitalize',
           }}
         >
-          {attendee.status.toLowerCase()}
+          {invitation.status.toLowerCase()}
         </Text>
       </View>
     </TouchableOpacity>

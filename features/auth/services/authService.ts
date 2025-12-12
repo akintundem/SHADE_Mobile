@@ -8,6 +8,8 @@ import {
   RegisterRequest,
   RegisterResponse,
   OnboardingRequest,
+  PaginatedResponse,
+  PublicUserResponse,
   UserResponse,
   ValidateTokenRequest,
   ValidateTokenResponse
@@ -275,6 +277,27 @@ export const authService = {
       return body.data;
     }
     throw new Error(body.message || 'Failed to search users');
+  },
+
+  /**
+   * Directory search for existing members (masked email)
+   */
+  async searchDirectory(
+    searchTerm: string,
+    params?: { page?: number; size?: number },
+  ): Promise<PaginatedResponse<PublicUserResponse>> {
+    const queryParams = new URLSearchParams({ searchTerm });
+    if (params?.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    const res = await http.get<PaginatedResponse<PublicUserResponse>>(
+      `/api/v1/auth/users/directory?${queryParams.toString()}`,
+    );
+    return res.data;
   },
 };
 

@@ -244,16 +244,6 @@ export const eventService = {
     }
   },
 
-  async deleteEvent(eventId: string): Promise<boolean> {
-    try {
-      await http.delete(`/api/v1/events/${eventId}`);
-      return true;
-    } catch (error) {
-      ErrorHandler.handle(error, 'deleteEvent');
-      throw error;
-    }
-  },
-
   async getEvents(
     params?: PaginationParams & { type?: string; status?: string; q?: string },
   ) {

@@ -1,14 +1,16 @@
 import { http } from '../../../../common/services/httpClient';
-import { ApiResponse } from '../../../../features/auth/types/auth';
-import { Attendee, AttendeeEmergencyContact } from '../types/attendees';
+import { ApiResponse, PaginatedResponse } from '../../../../features/auth/types/auth';
+import { Attendee, AttendeeEmergencyContact, InvitationResponse } from '../types/attendees';
 
 export type CreateAttendeeRequest = {
   eventId: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  userId?: string;
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  email?: string;
   phone?: string;
+  attendanceStatus?: 'REGISTERED' | 'CONFIRMED' | 'CANCELLED' | 'ATTENDED';
   dietaryRestrictions?: string[];
   emergencyContact?: AttendeeEmergencyContact;
   ticketType?: string;
@@ -67,12 +69,41 @@ export const attendeeService = {
 
   // Event-specific attendee operations
   async registerForEvent(eventId: string, attendeeData: Omit<CreateAttendeeRequest, 'eventId'>) {
-    const res = await http.post<ApiResponse<Attendee>>(`/api/v1/events/${eventId}/attendees`, attendeeData);
+    const res = await http.post<ApiResponse<Attendee>>(
+      `/api/v1/events/${eventId}/attendances`,
+      attendeeData,
+    );
     const body = res.data;
     if (body.status === 201 && body.data) {
       return body.data;
     }
     throw new Error(body.message || 'Failed to register for event');
+  },
+
+  async getEventInvitations(
+    eventId: string,
+    params?: {
+      page?: number;
+      size?: number;
+      status?: string;
+      search?: string;
+      sort?: string;
+    },
+  ): Promise<PaginatedResponse<InvitationResponse>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.append('page', params.page.toString());
+    if (params?.size !== undefined) searchParams.append('size', params.size.toString());
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.sort) searchParams.append('sort', params.sort);
+
+    const queryString = searchParams.toString();
+    const url = queryString
+      ? `/api/v1/events/${eventId}/invitations?${queryString}`
+      : `/api/v1/events/${eventId}/invitations`;
+
+    const res = await http.get<PaginatedResponse<InvitationResponse>>(url);
+    return res.data;
   },
 
   async getEventAttendees(eventId: string, params?: {

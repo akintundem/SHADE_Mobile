@@ -12,6 +12,22 @@ export type User = {
   provider?: 'password' | 'spotify';
 };
 
+export type PublicUserResponse = {
+  id: string;
+  name: string;
+  profileImageUrl: string | null;
+  maskedEmail: string;
+};
+
+export type PaginatedResponse<T> = {
+  content: T[];
+  pageable?: Record<string, unknown>;
+  totalElements: number;
+  totalPages: number;
+  size?: number;
+  number?: number;
+};
+
 // API Response Types
 export type ApiResponse<T> = {
   status: number;
