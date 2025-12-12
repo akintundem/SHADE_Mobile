@@ -143,7 +143,7 @@ const ManageVisibilityScreen = () => {
               onPress: async () => {
                 setBusy(true);
                 try {
-                  await eventService.updateEventStatus(eventId, EventStatus.CANCELLED);
+                  await eventService.cancelEvent(eventId);
                   await load();
                   Alert.alert('Success', 'Event status updated successfully.');
                 } catch (error) {
@@ -163,9 +163,11 @@ const ManageVisibilityScreen = () => {
 
       setBusy(true);
       try {
-        const nextStatus =
-          action === 'publish' ? EventStatus.PUBLISHED : EventStatus.COMPLETED;
-        await eventService.updateEventStatus(eventId, nextStatus);
+        if (action === 'publish') {
+          await eventService.publishEvent(eventId);
+        } else {
+          await eventService.completeEvent(eventId);
+        }
         await load();
         Alert.alert('Success', 'Event status updated successfully.');
       } catch (error) {

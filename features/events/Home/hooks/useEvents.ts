@@ -11,8 +11,12 @@ export const useEvents = () => {
   const fetchEvents = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      const response = await eventService.getEvents({ page: 1, size: 20 });
-      setEvents(response.events);
+      const response = await eventService.getEvents({
+        page: 0,
+        size: 20,
+        isPublic: true,
+      });
+      setEvents(response.content || []);
     } catch (error) {
       ErrorHandler.handle(error, 'fetchEvents');
     } finally {

@@ -162,10 +162,7 @@ export default function EventDetailScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await eventService.cancelEvent(
-              event.id,
-              'Event cancelled by organizer',
-            );
+            await eventService.cancelEvent(event.id);
             Alert.alert('Success', 'Event cancelled successfully.');
             loadEventDetails();
           } catch (err) {

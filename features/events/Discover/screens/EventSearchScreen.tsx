@@ -23,8 +23,8 @@ import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { EventCard, EventItem } from '../../Home/components/EventCard';
 import { EmptyState } from '../../../../common/components/LoadingStates';
 import { eventService } from '../../services/eventService';
-import { EventResponse, EventType, EventStatu } from '../../types/events';
-import { ErrorHandl } from '../../../../common/utils/errorHandler';
+import { EventResponse, EventType, EventStatus } from '../../types/events';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
 
 type Props = {
   onClose: () => void;
@@ -34,8 +34,8 @@ type Props = {
 type FilterState = {
   type: EventType | '';
   status: EventStatus | '';
-  dateFrom: string;
-  dateTo: string;
+  startDateFrom: string;
+  startDateTo: string;
 };
 
 const EVENT_TYPES = [
@@ -74,8 +74,8 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
   const [filters, setFilters] = useState<FilterState>({
     type: '',
     status: '',
-    dateFrom: '',
-    dateTo: '',
+    startDateFrom: '',
+    startDateTo: '',
   });
   const [showFilters, setShowFilters] = useState(false);
   const [events, setEvents] = useState<EventResponse[]>([]);
@@ -86,30 +86,17 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
     setLoading(true);
     setHasSearched(true);
     try {
-      const params: any = {};
-      
-      if (searchQuery.trim()) {
-        params.q = searchQuery.trim();
-      }
-      
-      if (filters.type) {
-        params.type = filters.type;
-      }
-      
-      if (filters.status) {
-        params.status = filters.status;
-      }
-      
-      if (filters.dateFrom) {
-        params.dateFrom = filters.dateFrom;
-      }
-      
-      if (filters.dateTo) {
-        params.dateTo = filters.dateTo;
-      }
-
-      const response = await eventService.searchEvents(params);
-      setEvents(response.events);
+      const response = await eventService.getEvents({
+        page: 0,
+        size: 50,
+        search: searchQuery.trim() || undefined,
+        eventType: filters.type || undefined,
+        status: filters.status || undefined,
+        startDateFrom: filters.startDateFrom || undefined,
+        startDateTo: filters.startDateTo || undefined,
+        isPublic: true,
+      });
+      setEvents(response.content || []);
     } catch (error) {
       ErrorHandler.handle(error, 'searchEvents');
       Alert.alert('Error', 'Failed to search events');
@@ -122,8 +109,8 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
     setFilters({
       type: '',
       status: '',
-      dateFrom: '',
-      dateTo: '',
+      startDateFrom: '',
+      startDateTo: '',
     });
     setSearchQuery('');
     setEvents([]);
@@ -134,8 +121,8 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
     searchQuery.trim() ||
     filters.type ||
     filters.status ||
-    filters.dateFrom ||
-    filters.dateTo
+    filters.startDateFrom ||
+    filters.startDateTo
   );
 
   const convertToEventItem = (event: EventResponse): EventItem => {
@@ -154,7 +141,7 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
         comments: 0,
         likes: 0
       },
-      status: event.status, // Use the actual EventStatus from the response
+      status: event.eventStatus,
       isPublic: event.isPublic || false,
     };
   };
@@ -441,7 +428,7 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
                   placeholder="YYYY-MM-DD"
                   placeholderTextColor={colors.text.primary.secondary}
                   value={filters.dateFrom}
-                  onChangeText={(value) => setFilters(prev => ({ ...prev, dateFrom: value }))}
+                  onChangeText={(value) => setFilters(prev => ({ ...prev, startDateFrom: value }))}
                 />
               </View>
               
@@ -470,7 +457,7 @@ export default function EventSearchScreen({ onClose, onEventSelect }: Props) {
                   placeholder="YYYY-MM-DD"
                   placeholderTextColor={colors.text.primary.secondary}
                   value={filters.dateTo}
-                  onChangeText={(value) => setFilters(prev => ({ ...prev, dateTo: value }))}
+                  onChangeText={(value) => setFilters(prev => ({ ...prev, startDateTo: value }))}
                 />
               </View>
             </View>

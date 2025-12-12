@@ -3,7 +3,6 @@ import { ApiResponse } from '../../auth/types/auth';
 import {
   Event,
   EventResponse,
-  EventListResponse,
   CreateEventRequest,
   UpdateEventRequest,
   EventRegistrationDeadlineRequest,
@@ -26,6 +25,7 @@ import {
   EventReminderUpdateRequest,
   EventCoverImageResponse,
   EventStatus,
+  EventType,
   EventSharingOptionsResponse,
   EventShareRequest,
   EventShareResponse,
@@ -43,15 +43,7 @@ type PaginationParams = {
   sort?: string;
 };
 
-type SearchEventsParams = PaginationParams & {
-  q?: string;
-  type?: string;
-  status?: string;
-  dateFrom?: string;
-  dateTo?: string;
-};
-
-type MyEventsTimeframe = 'UPCOMING' | 'PAST';
+type EventsTimeframe = 'UPCOMING' | 'PAST';
 
 type PageResponse<T> = {
   content: T[];
@@ -65,10 +57,18 @@ type PageResponse<T> = {
 type EventsSortBy = 'startDateTime' | 'createdAt' | 'name' | 'currentAttendeeCount';
 type SortDirection = 'ASC' | 'DESC';
 
-type MyEventsParams = {
+type EventsQueryParams = {
   page?: number;
   size?: number;
-  timeframe?: MyEventsTimeframe;
+  status?: EventStatus;
+  eventType?: EventType;
+  isPublic?: boolean;
+  mine?: boolean;
+  timeframe?: EventsTimeframe;
+  startDateFrom?: string;
+  startDateTo?: string;
+  isArchived?: boolean;
+  search?: string;
   sortBy?: EventsSortBy;
   sortDirection?: SortDirection;
 };
@@ -96,25 +96,14 @@ const buildQueryString = (params?: Record<string, unknown>) => {
   return query ? `?${query}` : '';
 };
 
-const toListResponse = (
-  events: EventResponse[],
-  params?: PaginationParams,
-): EventListResponse => ({
-  events,
-  total: events.length,
-  page: params?.page ?? 1,
-  size: params?.size ?? events.length,
-});
-
 const makeCacheKey = (prefix: string, params?: Record<string, unknown>) =>
   `${prefix}_${JSON.stringify(params || {})}`;
 
-const fetchEventList = async (
-  endpoint: string,
+const fetchEventsPage = async (
   params?: Record<string, unknown>,
   cachePrefix?: string,
-): Promise<EventListResponse> => {
-  const url = `${endpoint}${buildQueryString(params)}`;
+): Promise<PageResponse<EventResponse>> => {
+  const url = `/api/v1/events${buildQueryString(params)}`;
   const cacheKey = cachePrefix ? makeCacheKey(cachePrefix, params) : undefined;
   const isOnline = await OfflineStorage.isOnline();
 
@@ -126,15 +115,12 @@ const fetchEventList = async (
   }
 
   try {
-    const res = await http.get<EventResponse[]>(url);
-    const list = toListResponse(
-      res.data,
-      params as PaginationParams | undefined,
-    );
+    const res = await http.get<PageResponse<EventResponse>>(url);
+    const page = res.data;
     if (cacheKey) {
-      await OfflineStorage.setCache(cacheKey, list);
+      await OfflineStorage.setCache(cacheKey, page);
     }
-    return list;
+    return page;
   } catch (error) {
     if (cacheKey) {
       const cached = await OfflineStorage.getCache(cacheKey);
@@ -250,65 +236,67 @@ export const eventService = {
     }
   },
 
-  async getEvents(
-    params?: PaginationParams & { type?: string; status?: string; q?: string },
-  ) {
-    const { q, type, status, ...rest } = params || {};
-    if (q || type || status) {
-      return eventService.searchEvents({
-        q,
-        type,
-        status,
-        page: rest.page,
-        size: rest.size,
-        sort: rest.sort,
-      });
-    }
-    return fetchEventList('/api/v1/events/public', rest, 'events_public');
+  async getEvents(params?: EventsQueryParams): Promise<PageResponse<EventResponse>> {
+    const query: Record<string, unknown> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 20,
+      status: params?.status,
+      isPublic: params?.isPublic,
+      mine: params?.mine,
+      timeframe: params?.timeframe,
+      startDateFrom: params?.startDateFrom,
+      startDateTo: params?.startDateTo,
+      isArchived: params?.isArchived,
+      search: params?.search,
+      sortBy: params?.sortBy,
+      sortDirection: params?.sortDirection,
+      eventType: params?.eventType,
+    };
+
+    // cache only public discovery queries (safe + useful offline)
+    const cachePrefix = params?.isPublic ? 'events_public_query' : undefined;
+    return fetchEventsPage(query, cachePrefix);
   },
 
-  async getPublicEvents(params?: PaginationParams) {
-    return fetchEventList('/api/v1/events/public', params, 'events_public');
+  // Convenience wrappers for consolidated discovery presets
+  async getPublicEvents(params?: Omit<EventsQueryParams, 'isPublic'>) {
+    return eventService.getEvents({ ...params, isPublic: true });
   },
 
-  async getFeaturedEvents(params?: PaginationParams) {
-    return fetchEventList('/api/v1/events/featured', params, 'events_featured');
+  async getFeaturedEvents(params?: Omit<EventsQueryParams, 'isPublic' | 'status' | 'sortBy' | 'sortDirection'>) {
+    return eventService.getEvents({
+      ...params,
+      isPublic: true,
+      status: EventStatus.PUBLISHED,
+      sortBy: 'createdAt',
+      sortDirection: 'DESC',
+    });
   },
 
-  async getTrendingEvents(params?: PaginationParams) {
-    return fetchEventList('/api/v1/events/trending', params, 'events_trending');
+  async getTrendingEvents(params?: Omit<EventsQueryParams, 'isPublic' | 'status' | 'sortBy' | 'sortDirection'>) {
+    return eventService.getEvents({
+      ...params,
+      isPublic: true,
+      status: EventStatus.PUBLISHED,
+      sortBy: 'currentAttendeeCount',
+      sortDirection: 'DESC',
+    });
   },
 
-  async getUpcomingPublicEvents(params?: PaginationParams) {
-    return fetchEventList('/api/v1/events/upcoming', params, 'events_upcoming');
+  async getUpcomingPublicEvents(params?: Omit<EventsQueryParams, 'isPublic' | 'timeframe'>) {
+    return eventService.getEvents({
+      ...params,
+      isPublic: true,
+      timeframe: 'UPCOMING',
+    });
   },
 
-  async getEventsByType(type: string, params?: PaginationParams) {
-    return fetchEventList(
-      `/api/v1/events/by-type/${type}`,
-      params,
-      `events_type_${type}`,
-    );
+  async getEventsByType(type: EventType, params?: Omit<EventsQueryParams, 'eventType'>) {
+    return eventService.getEvents({ ...params, eventType: type });
   },
 
-  async getEventsByStatus(status: string, params?: PaginationParams) {
-    return fetchEventList(
-      `/api/v1/events/by-status/${status}`,
-      params,
-      `events_status_${status}`,
-    );
-  },
-
-  async searchEvents(params: SearchEventsParams = {}) {
-    const { q, type, status, dateFrom, dateTo, ...pagination } = params;
-    const query: Record<string, unknown> = { ...pagination };
-    if (q) query.q = q;
-    if (type) query.type = type;
-    if (status) query.status = status;
-    if (dateFrom) query.dateFrom = dateFrom;
-    if (dateTo) query.dateTo = dateTo;
-
-    return fetchEventList('/api/v1/events/search', query, 'events_search');
+  async getEventsByStatus(status: EventStatus, params?: Omit<EventsQueryParams, 'status'>) {
+    return eventService.getEvents({ ...params, status });
   },
 
   /**
@@ -319,7 +307,7 @@ export const eventService = {
    * - GET /api/v1/events?mine=true&timeframe=PAST
    */
   async getMyEvents(
-    params?: MyEventsParams,
+    params?: Pick<EventsQueryParams, 'page' | 'size' | 'timeframe' | 'sortBy' | 'sortDirection'>,
   ): Promise<PageResponse<EventResponse>> {
     const queryString = buildQueryString({
       mine: true,
@@ -355,16 +343,13 @@ export const eventService = {
     return res.data;
   },
 
-  async cancelEvent(eventId: string, reason?: string): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/cancel`,
-      reason ? { reason } : undefined,
-    );
+  async cancelEvent(eventId: string): Promise<EventResponse> {
+    const res = await http.post<EventResponse>(`/api/v1/events/${eventId}/cancel`);
     return res.data;
   },
 
-  async completeEvent(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/complete`);
+  async completeEvent(eventId: string): Promise<EventResponse> {
+    const res = await http.post<EventResponse>(`/api/v1/events/${eventId}/complete`);
     return res.data;
   },
 
