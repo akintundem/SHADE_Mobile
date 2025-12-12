@@ -78,8 +78,6 @@ export default function EventDetailScreen() {
           currentAttendeeCount: null,
           isPublic: null,
           requiresApproval: null,
-          qrCodeEnabled: null,
-          qrCode: null,
           coverImageUrl: null,
           eventWebsiteUrl: null,
           hashtag: null,

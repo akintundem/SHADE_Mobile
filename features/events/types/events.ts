@@ -26,8 +26,6 @@ export type Event = {
   currentAttendeeCount: number | null;
   isPublic: boolean | null;
   requiresApproval: boolean | null;
-  qrCodeEnabled: boolean | null;
-  qrCode: string | null;
   coverImageUrl: string | null;
   eventWebsiteUrl: string | null;
   hashtag: string | null;
@@ -70,8 +68,6 @@ export type CreateEventRequest = {
   currentAttendeeCount?: number | null;
   isPublic?: boolean | null;
   requiresApproval?: boolean | null;
-  qrCodeEnabled?: boolean | null;
-  qrCode?: string | null;
   coverImageUrl?: string | null;
   eventWebsiteUrl?: string | null;
   hashtag?: string | null;
@@ -114,8 +110,6 @@ export type UpdateEventRequest = {
   currentAttendeeCount?: number | null;
   isPublic?: boolean | null;
   requiresApproval?: boolean | null;
-  qrCodeEnabled?: boolean | null;
-  qrCode?: string | null;
   coverImageUrl?: string | null;
   eventWebsiteUrl?: string | null;
   hashtag?: string | null;
@@ -143,42 +137,6 @@ export type EventRegistrationDeadlineRequest = {
 export type EventVisibilityUpdateRequest = {
   isPublic: boolean;
   requiresApproval?: boolean;
-};
-
-export type EventSharingOptionsResponse = {
-  eventId: string;
-  availableChannels: string[];
-  shareLink: string | null;
-  qrCodeAvailable: boolean;
-  isPublic: boolean | null;
-  socialMediaOptions?: string[] | null;
-  emailOptions?: string[] | null;
-  defaultMessage?: string | null;
-};
-
-export type EventShareRequest = {
-  channel: 'EMAIL' | 'LINK' | 'SOCIAL';
-  recipients?: string[];
-  message?: string | null;
-  includeEventDetails?: boolean;
-  includeQRCode?: boolean;
-  expirationDate?: string | null;
-};
-
-export type EventShareResponse = {
-  shareId: string;
-  eventId: string;
-  channel: string;
-  recipientCount: number;
-  successfulRecipients: string[];
-  failedRecipients: string[];
-  status: string;
-  shareLink: string | null;
-  message: string | null;
-  includeEventDetails: boolean | null;
-  includeQRCode: boolean | null;
-  createdAt: string;
-  expirationDate: string | null;
 };
 
 export type UserEventRelationshipResponse = {
@@ -216,15 +174,6 @@ export type EventCapacityResponse = {
   availableSpots: number;
   utilizationPercentage: number;
   isRegistrationOpen: boolean;
-};
-
-export type EventQRCodeResponse = {
-  eventId: string;
-  qrCode: string | null;
-  qrCodeEnabled: boolean | null;
-  qrCodeImageUrl: string | null;
-  qrCodeImageBase64?: string | null;
-  generatedAt: string | null;
 };
 
 export type EventVisibilityResponse = {
@@ -350,7 +299,6 @@ export type EventNotificationRequest = {
   recipientEmails?: string[];
   scheduledAt?: string;
   includeEventDetails?: boolean;
-  includeQRCode?: boolean;
   priority?: EventNotificationPriority;
   templateId?: string;
 };

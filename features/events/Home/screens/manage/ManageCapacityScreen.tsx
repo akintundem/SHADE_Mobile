@@ -14,24 +14,6 @@ import { isFullEventResponse, Event, EventStatus } from '../../../types/events';
 
 type RouteParams = { eventId: string };
 
-// Helper function to create EventCapacityResponse from Event data
-const createCapacityResponse = (event: Event): EventCapacityResponse => {
-  const capacity = event.capacity ?? 0;
-  const currentAttendeeCount = event.currentAttendeeCount ?? 0;
-  const availableSpots = Math.max(0, capacity - currentAttendeeCount);
-  const utilizationPercentage = capacity > 0 ? (currentAttendeeCount / capacity) * 100 : 0;
-  const isRegistrationOpen = event.eventStatus === EventStatus.REGISTRATION_OPEN;
-
-  return {
-    eventId: event.id,
-    capacity,
-    currentAttendeeCount,
-    availableSpots,
-    utilizationPercentage,
-    isRegistrationOpen,
-  };
-};
-
 // Number Input Component
 const NumberInput = ({
   value,
@@ -380,7 +362,10 @@ const ManageCapacityScreen = () => {
 
     try {
       if (!isRefresh) setLoading(true);
-      const eventData = await eventService.getEvent(params.eventId);
+      const [eventData, capacityResponse] = await Promise.all([
+        eventService.getEvent(params.eventId),
+        eventService.getEventCapacity(params.eventId),
+      ]);
 
       // Only process if we have full event data (not feed response)
       if (!isFullEventResponse(eventData)) {
@@ -390,14 +375,12 @@ const ManageCapacityScreen = () => {
 
       const event = eventData as Event;
 
-      // Create capacity response from event data
-      const capacityResponse = createCapacityResponse(event);
       setCapacityInfo(capacityResponse);
       setCapacity(capacityResponse.capacity || 0);
       setOriginalCapacity(capacityResponse.capacity || 0);
 
       // Set registration status
-      const newStatus = event.eventStatus === EventStatus.REGISTRATION_OPEN ? 'open' : 'closed';
+      const newStatus = capacityResponse.isRegistrationOpen ? 'open' : 'closed';
       setRegistrationStatus(newStatus);
       setOriginalRegistrationStatus(newStatus);
 

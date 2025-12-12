@@ -179,7 +179,6 @@ export default function CreateEventScreen({ onClose, onCreate }: Props) {
         capacity: capacity ? Number(capacity) : undefined,
         isPublic,
         requiresApproval: !isPublic,
-        qrCodeEnabled: true,
         venue: cleanedVenue,
         metadata: metadataKeys.length ? JSON.stringify(metadataPayload) : undefined,
       };

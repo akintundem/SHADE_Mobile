@@ -161,8 +161,6 @@ export const EventProfileRoute = () => {
           currentAttendeeCount: null,
           isPublic: null,
           requiresApproval: null,
-          qrCodeEnabled: null,
-          qrCode: null,
           coverImageUrl: data.coverImageUrl || null,
           eventWebsiteUrl: data.eventWebsiteUrl || null,
           hashtag: data.hashtag || null,

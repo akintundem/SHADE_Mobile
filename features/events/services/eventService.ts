@@ -6,7 +6,7 @@ import {
   CreateEventRequest,
   UpdateEventRequest,
   EventRegistrationDeadlineRequest,
-  EventQRCodeResponse,
+  EventCapacityResponse,
   EventVisibilityResponse,
   EventVisibilityUpdateRequest,
   EventValidationResponse,
@@ -26,9 +26,6 @@ import {
   EventCoverImageResponse,
   EventStatus,
   EventType,
-  EventSharingOptionsResponse,
-  EventShareRequest,
-  EventShareResponse,
   EventData,
   EventFeedResponse,
   EventFeedRequest,
@@ -323,6 +320,13 @@ export const eventService = {
     return res.data;
   },
 
+  async getEventCapacity(eventId: string): Promise<EventCapacityResponse> {
+    const res = await http.get<EventCapacityResponse>(
+      `/api/v1/events/${eventId}/capacity`,
+    );
+    return res.data;
+  },
+
   async getEventStatus(eventId: string): Promise<EventStatus> {
     const res = await http.get<EventStatus>(`/api/v1/events/${eventId}/status`);
     return res.data;
@@ -366,37 +370,11 @@ export const eventService = {
   async updateRegistrationDeadline(
     eventId: string,
     payload: EventRegistrationDeadlineRequest,
-  ): Promise<Event> {
-    const res = await http.put<Event>(
+  ): Promise<EventResponse> {
+    const res = await http.put<EventResponse>(
       `/api/v1/events/${eventId}/registration-deadline`,
       payload,
     );
-    return res.data;
-  },
-
-  async getEventQRCode(eventId: string): Promise<EventQRCodeResponse> {
-    const res = await http.get<EventQRCodeResponse>(
-      `/api/v1/events/${eventId}/qr-code`,
-    );
-    return res.data;
-  },
-
-  async generateEventQRCode(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/qr-code/generate`,
-    );
-    return res.data;
-  },
-
-  async regenerateEventQRCode(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/qr-code/regenerate`,
-    );
-    return res.data;
-  },
-
-  async disableEventQRCode(eventId: string): Promise<Event> {
-    const res = await http.delete<Event>(`/api/v1/events/${eventId}/qr-code`);
     return res.data;
   },
 
@@ -410,44 +388,20 @@ export const eventService = {
   async updateEventVisibility(
     eventId: string,
     payload: EventVisibilityUpdateRequest,
-  ): Promise<Event> {
-    const res = await http.put<Event>(
+  ): Promise<EventResponse> {
+    const res = await http.put<EventResponse>(
       `/api/v1/events/${eventId}/visibility`,
       payload,
     );
     return res.data;
   },
 
-  async makeEventPublic(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(`/api/v1/events/${eventId}/make-public`);
-    return res.data;
+  async makeEventPublic(eventId: string): Promise<EventResponse> {
+    return eventService.updateEventVisibility(eventId, { isPublic: true });
   },
 
-  async makeEventPrivate(eventId: string): Promise<Event> {
-    const res = await http.post<Event>(
-      `/api/v1/events/${eventId}/make-private`,
-    );
-    return res.data;
-  },
-
-  async getSharingOptions(
-    eventId: string,
-  ): Promise<EventSharingOptionsResponse> {
-    const res = await http.get<EventSharingOptionsResponse>(
-      `/api/v1/events/${eventId}/share`,
-    );
-    return res.data;
-  },
-
-  async shareEvent(
-    eventId: string,
-    payload: EventShareRequest,
-  ): Promise<EventShareResponse> {
-    const res = await http.post<EventShareResponse>(
-      `/api/v1/events/${eventId}/share`,
-      payload,
-    );
-    return res.data;
+  async makeEventPrivate(eventId: string): Promise<EventResponse> {
+    return eventService.updateEventVisibility(eventId, { isPublic: false });
   },
 
   // Event Collaborators API
