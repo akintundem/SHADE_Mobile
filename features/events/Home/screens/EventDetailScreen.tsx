@@ -232,7 +232,7 @@ export default function EventDetailScreen() {
   // If error or no event (FULL scope only), show error state
   if (error || !event) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
         <View style={{ padding: spacing.xl }}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -264,7 +264,7 @@ export default function EventDetailScreen() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{ flex: 1, backgroundColor: colors.surface }}
       edges={['top', 'bottom']}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -272,22 +272,34 @@ export default function EventDetailScreen() {
         <View style={{ position: 'relative' }}>
           <Image
             source={{ uri: event.coverImageUrl || FALLBACK_IMAGE }}
-            style={{ width: '100%', height: 280 }}
+            style={{ width: '100%', height: 300 }}
             resizeMode="cover"
           />
-          {/* Gradient overlay for better readability */}
+          {/* Gradient-like overlay for text readability */}
+          <View style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 120,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+          }} />
+
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={{
               position: 'absolute',
               top: spacing.lg,
               left: spacing.lg,
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              borderRadius: 22,
-              padding: spacing.sm,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              borderRadius: 18,
+              width: 36,
+              height: 36,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <ArrowLeft size={24} color="#FFFFFF" />
+            <ArrowLeft size={20} color={colors.text.primary} />
           </TouchableOpacity>
 
           {/* Status Badge */}
@@ -298,16 +310,16 @@ export default function EventDetailScreen() {
               right: spacing.lg,
               backgroundColor: getStatusColor(event.eventStatus),
               paddingHorizontal: spacing.md,
-              paddingVertical: spacing.sm,
+              paddingVertical: spacing.xs,
               borderRadius: borderRadius.full,
-              ...shadows.md,
             }}
           >
             <Text
               style={{
                 color: '#FFFFFF',
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.semibold,
+                fontSize: typography.size.xs,
+                fontFamily: typography.family.bold,
+                fontWeight: typography.weight.bold,
                 textTransform: 'uppercase',
                 letterSpacing: 0.5,
               }}
@@ -318,14 +330,16 @@ export default function EventDetailScreen() {
         </View>
 
         {/* Content */}
-        <View style={{ padding: spacing.xl, gap: spacing.xl }}>
+        <View style={{ padding: spacing.lg, gap: spacing.xl }}>
           {/* Title */}
           <View>
             <Text
               style={{
                 color: colors.text.primary,
-                fontSize: typography.size['2xl'],
+                fontSize: typography.size['3xl'],
+                fontFamily: typography.family.bold,
                 fontWeight: typography.weight.bold,
+                letterSpacing: -0.5,
               }}
             >
               {event.name}
@@ -333,9 +347,10 @@ export default function EventDetailScreen() {
             {event.hashtag && (
               <Text
                 style={{
-                  color: brand.primary,
+                  color: colors.text.tertiary,
                   fontSize: typography.size.base,
-                  marginTop: spacing.xs,
+                  marginTop: 2,
+                  fontFamily: typography.family.medium,
                 }}
               >
                 #{event.hashtag}
@@ -347,21 +362,22 @@ export default function EventDetailScreen() {
           <View style={{ gap: spacing.md }}>
             <TouchableOpacity
               onPress={handleEdit}
+              activeOpacity={0.7}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: spacing.sm,
-                backgroundColor: brand.primary,
+                backgroundColor: colors.text.primary,
                 paddingVertical: spacing.md,
-                borderRadius: borderRadius.xl,
-                ...shadows.sm,
+                borderRadius: borderRadius.lg,
               }}
             >
-              <Edit size={20} color="#FFFFFF" />
+              <Edit size={20} color={colors.background} />
               <Text
                 style={{
-                  color: '#FFFFFF',
+                  color: colors.background,
+                  fontFamily: typography.family.semibold,
                   fontWeight: typography.weight.semibold,
                   fontSize: typography.size.base,
                 }}
@@ -370,9 +386,10 @@ export default function EventDetailScreen() {
               </Text>
             </TouchableOpacity>
 
-            <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <View style={{ flexDirection: 'row', gap: spacing.md }}>
               <TouchableOpacity
                 onPress={handleShare}
+                activeOpacity={0.7}
                 style={{
                   flex: 1,
                   flexDirection: 'row',
@@ -380,15 +397,14 @@ export default function EventDetailScreen() {
                   justifyContent: 'center',
                   gap: spacing.xs,
                   paddingVertical: spacing.md,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
+                  backgroundColor: colors.cardElevated,
                   borderRadius: borderRadius.lg,
                 }}
               >
                 <Share2 size={18} color={colors.text.primary} />
                 <Text style={{ 
                   color: colors.text.primary, 
+                  fontFamily: typography.family.medium,
                   fontWeight: typography.weight.medium,
                   fontSize: typography.size.sm,
                 }}>
@@ -396,35 +412,33 @@ export default function EventDetailScreen() {
                 </Text>
               </TouchableOpacity>
 
-            </View>
-
-            <TouchableOpacity
-              onPress={() => event?.id && navigation.navigate('EventAdmin', { eventId: event.id })}
-              style={{
-                marginTop: spacing.sm,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: spacing.xs,
-                paddingVertical: spacing.md,
-                borderRadius: borderRadius.lg,
-                borderWidth: 1.5,
-                borderColor: colors.text.primary,
-                backgroundColor: colors.background,
-              }}
-            >
-              <Settings size={18} color={colors.text.primary} />
-              <Text
+              <TouchableOpacity
+                onPress={() => event?.id && navigation.navigate('EventAdmin', { eventId: event.id })}
+                activeOpacity={0.7}
                 style={{
-                  color: colors.text.primary,
-                  fontWeight: typography.weight.semibold,
-                  fontSize: typography.size.sm,
-                  textTransform: 'uppercase',
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing.xs,
+                  paddingVertical: spacing.md,
+                  borderRadius: borderRadius.lg,
+                  backgroundColor: colors.cardElevated,
                 }}
               >
-                Manage Event
-              </Text>
-            </TouchableOpacity>
+                <Settings size={18} color={colors.text.primary} />
+                <Text
+                  style={{
+                    color: colors.text.primary,
+                    fontFamily: typography.family.medium,
+                    fontWeight: typography.weight.medium,
+                    fontSize: typography.size.sm,
+                  }}
+                >
+                  Manage
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Description */}
@@ -434,8 +448,9 @@ export default function EventDetailScreen() {
                 style={{
                   color: colors.text.primary,
                   fontSize: typography.size.lg,
-                  fontWeight: typography.weight.semibold,
-                  marginBottom: spacing.sm,
+                  fontFamily: typography.family.bold,
+                  fontWeight: typography.weight.bold,
+                  marginBottom: spacing.xs,
                 }}
               >
                 About
@@ -445,6 +460,7 @@ export default function EventDetailScreen() {
                   color: colors.text.secondary,
                   fontSize: typography.size.base,
                   lineHeight: 22,
+                  fontFamily: typography.family.regular,
                 }}
               >
                 {event.description}
@@ -452,23 +468,21 @@ export default function EventDetailScreen() {
             </View>
           )}
 
-          {/* Event Details */}
+          {/* Event Details Section */}
           <View
             style={{
-              backgroundColor: colors.surface,
-              borderRadius: borderRadius.xl,
-              padding: spacing.xl,
+              backgroundColor: colors.cardElevated,
+              borderRadius: borderRadius.lg,
+              padding: spacing.lg,
               gap: spacing.lg,
-              borderWidth: 1,
-              borderColor: colors.border,
-              ...shadows.sm,
             }}
           >
             <Text
               style={{
                 color: colors.text.primary,
                 fontSize: typography.size.lg,
-                fontWeight: typography.weight.semibold,
+                fontFamily: typography.family.bold,
+                fontWeight: typography.weight.bold,
               }}
             >
               Event Details
@@ -483,12 +497,17 @@ export default function EventDetailScreen() {
                   gap: spacing.md,
                 }}
               >
-                <Calendar size={20} color={brand.primary} />
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={18} color={colors.text.primary} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      color: colors.text.secondary,
+                      color: colors.text.tertiary,
                       fontSize: typography.size.xs,
+                      fontFamily: typography.family.medium,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
                     }}
                   >
                     Date & Time
@@ -497,7 +516,9 @@ export default function EventDetailScreen() {
                     style={{
                       color: colors.text.primary,
                       fontSize: typography.size.base,
-                      marginTop: 2,
+                      fontFamily: typography.family.medium,
+                      fontWeight: typography.weight.medium,
+                      marginTop: 1,
                     }}
                   >
                     {dateUtils.formatDate(
@@ -505,21 +526,6 @@ export default function EventDetailScreen() {
                       DATE_FORMATS.DISPLAY_DATETIME,
                     )}
                   </Text>
-                  {event.endDateTime && (
-                    <Text
-                      style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.sm,
-                        marginTop: 2,
-                      }}
-                    >
-                      Until{' '}
-                      {dateUtils.formatDate(
-                        event.endDateTime,
-                        DATE_FORMATS.DISPLAY_DATETIME,
-                      )}
-                    </Text>
-                  )}
                 </View>
               </View>
             )}
@@ -533,12 +539,17 @@ export default function EventDetailScreen() {
                   gap: spacing.md,
                 }}
               >
-                <MapPin size={20} color={brand.primary} />
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  <MapPin size={18} color={colors.text.primary} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      color: colors.text.secondary,
+                      color: colors.text.tertiary,
                       fontSize: typography.size.xs,
+                      fontFamily: typography.family.medium,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
                     }}
                   >
                     Location
@@ -547,7 +558,9 @@ export default function EventDetailScreen() {
                     style={{
                       color: colors.text.primary,
                       fontSize: typography.size.base,
-                      marginTop: 2,
+                      fontFamily: typography.family.medium,
+                      fontWeight: typography.weight.medium,
+                      marginTop: 1,
                     }}
                   >
                     {event.eventWebsiteUrl}
@@ -565,12 +578,17 @@ export default function EventDetailScreen() {
                   gap: spacing.md,
                 }}
               >
-                <Users size={20} color={brand.primary} />
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={18} color={colors.text.primary} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
-                      color: colors.text.secondary,
+                      color: colors.text.tertiary,
                       fontSize: typography.size.xs,
+                      fontFamily: typography.family.medium,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
                     }}
                   >
                     Capacity
@@ -579,111 +597,17 @@ export default function EventDetailScreen() {
                     style={{
                       color: colors.text.primary,
                       fontSize: typography.size.base,
-                      marginTop: 2,
+                      fontFamily: typography.family.medium,
+                      fontWeight: typography.weight.medium,
+                      marginTop: 1,
                     }}
                   >
                     {event.currentAttendeeCount || 0} / {event.capacity}{' '}
                     attendees
                   </Text>
-                  {availableSpots !== null && availableSpots > 0 && (
-                    <Text
-                      style={{
-                        color: colors.text.tertiary,
-                        fontSize: typography.size.sm,
-                        marginTop: 2,
-                      }}
-                    >
-                      {availableSpots} spots available
-                    </Text>
-                  )}
                 </View>
               </View>
             )}
-
-            {/* Registration Deadline */}
-            {event.registrationDeadline && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                }}
-              >
-                <Clock size={20} color={brand.primary} />
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                    }}
-                  >
-                    Registration Deadline
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.base,
-                      marginTop: 2,
-                    }}
-                  >
-                    {dateUtils.formatDate(
-                      event.registrationDeadline,
-                      DATE_FORMATS.DISPLAY_DATETIME,
-                    )}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Visibility */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: spacing.md,
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.xs,
-                  }}
-                >
-                  Visibility
-                </Text>
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.base,
-                    marginTop: 2,
-                  }}
-                >
-                  {event.isPublic ? 'Public Event' : 'Private Event'}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.xs,
-                  }}
-                >
-                  Registration
-                </Text>
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.base,
-                    marginTop: 2,
-                  }}
-                >
-                  {event.requiresApproval
-                    ? 'Requires Approval'
-                    : 'Open Registration'}
-                </Text>
-              </View>
-            </View>
           </View>
 
           {/* Status Actions */}
@@ -694,34 +618,35 @@ export default function EventDetailScreen() {
                   style={{
                     color: colors.text.primary,
                     fontSize: typography.size.lg,
-                    fontWeight: typography.weight.semibold,
+                    fontFamily: typography.family.bold,
+                    fontWeight: typography.weight.bold,
                   }}
                 >
-                  Event Actions
+                  Actions
                 </Text>
 
                 {(event.eventStatus === EventStatus.DRAFT ||
                   event.eventStatus === EventStatus.PLANNING) && (
                   <TouchableOpacity
                     onPress={handlePublish}
+                    activeOpacity={0.7}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: spacing.sm,
-                      backgroundColor: '#10B981',
-                      paddingVertical: spacing.lg,
-                      paddingHorizontal: spacing.xl,
-                      borderRadius: borderRadius.xl,
-                      ...shadows.sm,
+                      backgroundColor: colors.semantic.success,
+                      paddingVertical: spacing.md,
+                      borderRadius: borderRadius.lg,
                     }}
                   >
-                    <PlayCircle size={22} color="#FFFFFF" />
+                    <PlayCircle size={20} color="#FFFFFF" />
                     <Text
                       style={{
                         color: '#FFFFFF',
+                        fontFamily: typography.family.bold,
                         fontWeight: typography.weight.bold,
-                        fontSize: typography.size.lg,
+                        fontSize: typography.size.base,
                       }}
                     >
                       Publish Event
@@ -732,25 +657,24 @@ export default function EventDetailScreen() {
                 {event.eventStatus === EventStatus.PUBLISHED && (
                   <TouchableOpacity
                     onPress={handleComplete}
+                    activeOpacity={0.7}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: spacing.sm,
-                      backgroundColor: colors.surface,
-                      borderWidth: 1.5,
-                      borderColor: colors.border,
-                      paddingVertical: spacing.lg,
-                      paddingHorizontal: spacing.xl,
-                      borderRadius: borderRadius.xl,
+                      backgroundColor: colors.cardElevated,
+                      paddingVertical: spacing.md,
+                      borderRadius: borderRadius.lg,
                     }}
                   >
-                    <CheckCircle2 size={22} color={colors.text.primary} />
+                    <CheckCircle2 size={20} color={colors.text.primary} />
                     <Text
                       style={{
                         color: colors.text.primary,
+                        fontFamily: typography.family.semibold,
                         fontWeight: typography.weight.semibold,
-                        fontSize: typography.size.lg,
+                        fontSize: typography.size.base,
                       }}
                     >
                       Mark as Complete
@@ -760,25 +684,24 @@ export default function EventDetailScreen() {
 
                 <TouchableOpacity
                   onPress={handleCancel}
+                  activeOpacity={0.7}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: spacing.sm,
                     backgroundColor: 'rgba(239, 68, 68, 0.05)',
-                    borderWidth: 1.5,
-                    borderColor: '#EF4444',
-                    paddingVertical: spacing.lg,
-                    paddingHorizontal: spacing.xl,
-                    borderRadius: borderRadius.xl,
+                    paddingVertical: spacing.md,
+                    borderRadius: borderRadius.lg,
                   }}
                 >
-                  <XCircle size={22} color="#EF4444" />
+                  <XCircle size={20} color={colors.semantic.error} />
                   <Text
                     style={{
-                      color: '#EF4444',
+                      color: colors.semantic.error,
+                      fontFamily: typography.family.semibold,
                       fontWeight: typography.weight.semibold,
-                      fontSize: typography.size.lg,
+                      fontSize: typography.size.base,
                     }}
                   >
                     Cancel Event
@@ -789,15 +712,16 @@ export default function EventDetailScreen() {
 
           {/* Additional Info */}
           {(event.targetAudience || event.objectives) && (
-            <View style={{ gap: spacing.md }}>
+            <View style={{ gap: spacing.xl, marginTop: spacing.md }}>
               {event.targetAudience && (
                 <View>
                   <Text
                     style={{
                       color: colors.text.primary,
                       fontSize: typography.size.lg,
-                      fontWeight: typography.weight.semibold,
-                      marginBottom: spacing.sm,
+                      fontFamily: typography.family.bold,
+                      fontWeight: typography.weight.bold,
+                      marginBottom: spacing.xs,
                     }}
                   >
                     Target Audience
@@ -806,6 +730,7 @@ export default function EventDetailScreen() {
                     style={{
                       color: colors.text.secondary,
                       fontSize: typography.size.base,
+                      fontFamily: typography.family.regular,
                     }}
                   >
                     {event.targetAudience}
@@ -819,8 +744,9 @@ export default function EventDetailScreen() {
                     style={{
                       color: colors.text.primary,
                       fontSize: typography.size.lg,
-                      fontWeight: typography.weight.semibold,
-                      marginBottom: spacing.sm,
+                      fontFamily: typography.family.bold,
+                      fontWeight: typography.weight.bold,
+                      marginBottom: spacing.xs,
                     }}
                   >
                     Objectives
@@ -829,6 +755,7 @@ export default function EventDetailScreen() {
                     style={{
                       color: colors.text.secondary,
                       fontSize: typography.size.base,
+                      fontFamily: typography.family.regular,
                     }}
                   >
                     {event.objectives}

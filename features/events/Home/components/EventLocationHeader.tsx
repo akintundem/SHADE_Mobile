@@ -45,8 +45,6 @@ const styles = StyleSheet.create({
     height: 250,
     width: '100%',
     overflow: 'hidden',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
   },
   map: {
     ...StyleSheet.absoluteFillObject,

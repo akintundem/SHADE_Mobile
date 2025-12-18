@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, DollarSign, Filter, Download } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { BudgetDTO, ExpenseDTO } from '../../budget/types/budget';
+import { budgetService } from '../../budget/services/budgetService';
 import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
 
 type Props = {
   eventId: string;
@@ -15,98 +17,77 @@ type Props = {
 export default function BudgetScreen({ eventId, onBack }: Props) {
   const { colors, spacing, typography, borderRadius, brand, shadows } = useTheme();
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [budget, setBudget] = useState<BudgetDTO | null>(null);
+  const [expenses, setExpenses] = useState<ExpenseDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Sample budget data
-  const budget: BudgetDTO = useMemo(() => ({
-    id: '1',
-    eventId,
-    totalBudget: 10000,
-    spentAmount: 6500,
-    remainingAmount: 3500,
-    currency: 'USD',
-    categories: [
-      { name: 'Venue', budgeted: 3000, spent: 3000, remaining: 0 },
-      { name: 'Catering', budgeted: 2500, spent: 1800, remaining: 700 },
-      { name: 'Marketing', budgeted: 1500, spent: 1200, remaining: 300 },
-      { name: 'Equipment', budgeted: 2000, spent: 500, remaining: 1500 },
-      { name: 'Miscellaneous', budgeted: 1000, spent: 0, remaining: 1000 }
-    ],
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
-  }), [eventId]);
-
-  // Sample expenses
-  const expenses: ExpenseDTO[] = useMemo(() => [
-    {
-      id: '1',
-      budgetId: '1',
-      category: 'Venue',
-      description: 'Grand Ballroom rental',
-      amount: 3000,
-      currency: 'USD',
-      date: '2024-01-10T00:00:00Z',
-      vendor: 'Grand Ballroom Inc.',
-      paymentMethod: 'CREDIT_CARD',
-      status: 'PAID',
-      receiptUrl: 'https://example.com/receipt1.pdf',
-      notes: 'Deposit paid'
-    },
-    {
-      id: '2',
-      budgetId: '1',
-      category: 'Catering',
-      description: 'Catering service',
-      amount: 1800,
-      currency: 'USD',
-      date: '2024-01-12T00:00:00Z',
-      vendor: 'Elite Catering',
-      paymentMethod: 'BANK_TRANSFER',
-      status: 'PAID',
-      receiptUrl: 'https://example.com/receipt2.pdf',
-      notes: 'Full payment'
-    },
-    {
-      id: '3',
-      budgetId: '1',
-      category: 'Marketing',
-      description: 'Social media advertising',
-      amount: 800,
-      currency: 'USD',
-      date: '2024-01-14T00:00:00Z',
-      vendor: 'Digital Ads Co.',
-      paymentMethod: 'CREDIT_CARD',
-      status: 'PAID'
-    },
-    {
-      id: '4',
-      budgetId: '1',
-      category: 'Marketing',
-      description: 'Print materials',
-      amount: 400,
-      currency: 'USD',
-      date: '2024-01-15T00:00:00Z',
-      vendor: 'Print Shop',
-      paymentMethod: 'CREDIT_CARD',
-      status: 'PAID'
-    },
-    {
-      id: '5',
-      budgetId: '1',
-      category: 'Equipment',
-      description: 'Sound system rental',
-      amount: 500,
-      currency: 'USD',
-      date: '2024-01-16T00:00:00Z',
-      vendor: 'Audio Rentals',
-      paymentMethod: 'CASH',
-      status: 'PAID'
+  const fetchBudgetData = useCallback(async () => {
+    try {
+      const summary = await budgetService.getBudgetSummary('mock-budget-1');
+      
+      // Convert summary to BudgetDTO
+      const budgetDto: BudgetDTO = {
+        id: '1',
+        eventId,
+        totalBudget: summary.totalBudget,
+        spentAmount: summary.spentAmount,
+        remainingAmount: summary.remainingAmount,
+        currency: 'USD',
+        categories: summary.categoryBreakdown.map((cat: any) => ({
+          name: cat.categoryName,
+          budgeted: cat.allocatedAmount,
+          spent: cat.spentAmount,
+          remaining: cat.remainingAmount
+        }))
+      };
+      
+      setBudget(budgetDto);
+      
+      // Map recent expenses to ExpenseDTO
+      const expenseDtos: ExpenseDTO[] = summary.recentExpenses.map((exp: any) => ({
+        id: exp.id,
+        budgetId: '1',
+        category: summary.categoryBreakdown.find((c: any) => c.categoryId === exp.categoryId)?.categoryName || 'General',
+        description: exp.description,
+        amount: exp.amount,
+        currency: 'USD',
+        date: exp.date,
+        vendor: exp.vendor,
+        paymentMethod: 'CREDIT_CARD',
+        status: exp.status === 'approved' ? 'APPROVED' : (exp.status === 'rejected' ? 'REJECTED' : 'PAID')
+      }));
+      
+      setExpenses(expenseDtos);
+    } catch (error) {
+      ErrorHandler.handle(error, 'fetchBudgetData');
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
     }
-  ], []);
+  }, [eventId]);
+
+  useEffect(() => {
+    fetchBudgetData();
+  }, [fetchBudgetData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchBudgetData();
+  }, [fetchBudgetData]);
 
   const filteredExpenses = useMemo(() => {
     if (filterCategory === 'all') return expenses;
     return expenses.filter(exp => exp.category === filterCategory);
   }, [expenses, filterCategory]);
+
+  if (isLoading || !budget) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={brand.primary} />
+      </View>
+    );
+  }
 
   const totalSpent = budget.spentAmount;
   const totalBudget = budget.totalBudget;
@@ -152,6 +133,9 @@ export default function BudgetScreen({ eventId, onBack }: Props) {
       <ScrollView
         contentContainerStyle={{ padding: spacing.xl, gap: spacing.xl }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={brand.primary} />
+        }
       >
         {/* Credit Card Style Total Budget */}
         <View style={{

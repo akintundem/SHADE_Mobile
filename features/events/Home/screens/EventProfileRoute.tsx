@@ -277,7 +277,7 @@ export const EventProfileRoute = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF', position: 'relative' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface, position: 'relative' }} edges={['top']}>
 
       {showEmpty ? (
         <View style={{ flex: 1, paddingBottom: bottomGutter }}>
@@ -291,18 +291,19 @@ export const EventProfileRoute = () => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: bottomGutter }}
+          style={{ backgroundColor: colors.surface }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#000000"
-              colors={['#000000']}
+              tintColor={colors.text.primary}
+              colors={[colors.text.primary]}
             />
           }
         >
           <View>
             {/* Header with Carousel (Image + Map) */}
-            <View style={{ position: 'relative', height: 250, overflow: 'hidden' }}>
+            <View style={{ position: 'relative', height: 280, overflow: 'hidden', backgroundColor: colors.background }}>
               {venueCoordinates ? (
                 <Animated.View
                   style={{
@@ -324,14 +325,14 @@ export const EventProfileRoute = () => {
                       style={{ width: '100%', height: '100%' }}
                       resizeMode="cover"
                     >
-                      {/* Dark overlay for text readability */}
+                      {/* Gradient-like overlay for text readability */}
                       <View style={{
                         position: 'absolute',
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 120,
-                        backgroundColor: 'rgba(0,0,0,0.4)',
+                        height: 160,
+                        backgroundColor: 'rgba(0,0,0,0.3)',
                       }} />
                     </ImageBackground>
                   </View>
@@ -348,8 +349,8 @@ export const EventProfileRoute = () => {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: 120,
-                      backgroundColor: 'rgba(0,0,0,0.4)',
+                      height: 160,
+                      backgroundColor: 'rgba(0,0,0,0.3)',
                     }} />
                   </View>
                 </Animated.View>
@@ -359,14 +360,14 @@ export const EventProfileRoute = () => {
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 >
-                  {/* Dark overlay for text readability */}
+                  {/* Gradient-like overlay for text readability */}
                   <View style={{
                     position: 'absolute',
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    height: 120,
-                    backgroundColor: 'rgba(0,0,0,0.4)',
+                    height: 160,
+                    backgroundColor: 'rgba(0,0,0,0.3)',
                   }} />
                 </ImageBackground>
               )}
@@ -379,15 +380,15 @@ export const EventProfileRoute = () => {
                     position: 'absolute',
                     top: spacing.lg,
                     left: spacing.lg,
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: 'rgba(255,255,255,0.9)',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <ChevronLeft size={24} color="#FFFFFF" />
+                  <ChevronLeft size={20} color={colors.text.primary} />
                 </TouchableOpacity>
                 
                 {/* Share Button */}
@@ -398,15 +399,15 @@ export const EventProfileRoute = () => {
                     position: 'absolute',
                     top: spacing.lg,
                     right: spacing.lg,
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: 'rgba(0,0,0,0.3)',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: 'rgba(255,255,255,0.9)',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Share2 size={20} color="#FFFFFF" />
+                  <Share2 size={18} color={colors.text.primary} />
                 </TouchableOpacity>
               </SafeAreaView>
 
@@ -420,9 +421,10 @@ export const EventProfileRoute = () => {
                 <Text
                   style={{
                     color: '#FFFFFF',
+                    fontFamily: typography.family.bold,
                     fontWeight: typography.weight.bold,
-                    fontSize: typography.size['3xl'],
-                    marginBottom: spacing.xs,
+                    fontSize: typography.size['4xl'],
+                    letterSpacing: -0.5,
                   }}
                   numberOfLines={2}
                 >
@@ -432,9 +434,10 @@ export const EventProfileRoute = () => {
                 {formattedVenueAddress && (
                   <Text
                     style={{
-                      color: '#FFFFFF',
+                      color: 'rgba(255,255,255,0.9)',
                       fontSize: typography.size.base,
-                      opacity: 0.9,
+                      fontFamily: typography.family.medium,
+                      fontWeight: typography.weight.medium,
                       marginTop: spacing.xs,
                     }}
                     numberOfLines={1}
@@ -448,21 +451,21 @@ export const EventProfileRoute = () => {
               {venueCoordinates && (
                 <View style={{
                   position: 'absolute',
-                  bottom: spacing.md,
-                  right: spacing.xl,
+                  top: spacing.lg + 44, // Below back button
+                  right: spacing.lg,
                   flexDirection: 'row',
-                  gap: spacing.xs,
+                  gap: 6,
                 }}>
                   <View style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
                     backgroundColor: carouselIndex === 0 ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
                   }} />
                   <View style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
                     backgroundColor: carouselIndex === 1 ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
                   }} />
                 </View>
@@ -470,36 +473,37 @@ export const EventProfileRoute = () => {
             </View>
 
             {/* Content */}
-            <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.xl }}>
+            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.xl }}>
 
               {/* Schedule Section */}
-              <View style={{ marginTop: spacing.lg }}>
+              <View style={{ marginTop: spacing.md }}>
                 <Text style={{
-                  color: '#000000',
-                  fontSize: typography.size['2xl'],
+                  color: colors.text.primary,
+                  fontSize: typography.size.lg,
+                  fontFamily: typography.family.bold,
                   fontWeight: typography.weight.bold,
-                  marginBottom: spacing.lg,
+                  marginBottom: spacing.md,
                 }}>
                   Schedule
                 </Text>
                 <View style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: borderRadius.xl,
-                  padding: spacing.xl,
-                  borderWidth: 2,
-                  borderColor: '#000000',
-                  minHeight: 120,
+                  backgroundColor: colors.cardElevated,
+                  borderRadius: borderRadius.lg,
+                  padding: spacing.lg,
+                  minHeight: 100,
                 }}>
                   {(formattedStart || formattedEnd || formattedRegistration) ? (
                     <View style={{ gap: spacing.md }}>
                       {formattedStart && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                          <CalendarClock size={20} color="#000000" />
+                          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                            <CalendarClock size={16} color={colors.text.primary} />
+                          </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={{ color: '#000000', fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                              Start
+                            <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                              Starts
                             </Text>
-                            <Text style={{ color: '#000000', fontSize: typography.size.base, marginTop: 2 }}>
+                            <Text style={{ color: colors.text.primary, fontSize: typography.size.base, marginTop: 1, fontWeight: typography.weight.medium }}>
                               {formattedStart}
                             </Text>
                           </View>
@@ -507,12 +511,14 @@ export const EventProfileRoute = () => {
                       )}
                       {formattedEnd && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                          <CalendarClock size={20} color="#000000" />
+                          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                            <CalendarClock size={16} color={colors.text.primary} />
+                          </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={{ color: '#000000', fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                              End
+                            <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                              Ends
                             </Text>
-                            <Text style={{ color: '#000000', fontSize: typography.size.base, marginTop: 2 }}>
+                            <Text style={{ color: colors.text.primary, fontSize: typography.size.base, marginTop: 1, fontWeight: typography.weight.medium }}>
                               {formattedEnd}
                             </Text>
                           </View>
@@ -520,12 +526,14 @@ export const EventProfileRoute = () => {
                       )}
                       {formattedRegistration && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                          <CalendarClock size={20} color="#000000" />
+                          <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                            <CalendarClock size={16} color={colors.text.primary} />
+                          </View>
                           <View style={{ flex: 1 }}>
-                            <Text style={{ color: '#000000', fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                              Registration deadline
+                            <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                              Registration Deadline
                             </Text>
-                            <Text style={{ color: '#000000', fontSize: typography.size.base, marginTop: 2 }}>
+                            <Text style={{ color: colors.text.primary, fontSize: typography.size.base, marginTop: 1, fontWeight: typography.weight.medium }}>
                               {formattedRegistration}
                             </Text>
                           </View>
@@ -533,7 +541,7 @@ export const EventProfileRoute = () => {
                       )}
                     </View>
                   ) : (
-                    <Text style={{ color: '#000000', fontSize: typography.size.base, opacity: 0.5 }}>
+                    <Text style={{ color: colors.text.tertiary, fontSize: typography.size.base, textAlign: 'center', marginTop: spacing.md }}>
                       No schedule information available
                     </Text>
                   )}
@@ -541,17 +549,18 @@ export const EventProfileRoute = () => {
               </View>
 
               {/* Manage Section */}
-              <View style={{ marginTop: spacing['2xl'] }}>
+              <View style={{ marginTop: spacing.xl }}>
                 <Text style={{
-                  color: '#000000',
-                  fontSize: typography.size['2xl'],
+                  color: colors.text.primary,
+                  fontSize: typography.size.lg,
+                  fontFamily: typography.family.bold,
                   fontWeight: typography.weight.bold,
-                  marginBottom: spacing.lg,
+                  marginBottom: spacing.md,
                 }}>
                   Manage
                 </Text>
                 
-                <View style={{ gap: spacing.sm }}>
+                <View style={{ gap: spacing.md }}>
                   {/* Event Details */}
                   <TouchableOpacity
                     onPress={() => eventId && navigation.navigate('EventAdmin', { eventId })}
@@ -559,42 +568,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Hash size={24} color="#FFFFFF" />
+                      <Hash size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         Event Details
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         Edit information
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* Guest List */}
@@ -604,42 +610,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <UsersRound size={24} color="#FFFFFF" />
+                      <UsersRound size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         Guest List
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         Manage attendees
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* Budget */}
@@ -649,42 +652,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Wallet size={24} color="#FFFFFF" />
+                      <Wallet size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         Budget
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         Track expenses and budget
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* Vendors */}
@@ -694,42 +694,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Store size={24} color="#FFFFFF" />
+                      <Store size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         {t('Vendors')}
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         Manage vendors and suppliers
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* Timeline */}
@@ -752,42 +749,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Calendar size={24} color="#FFFFFF" />
+                      <Calendar size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         Timeline
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         View timeline and manage tasks
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* Collaboration */}
@@ -797,42 +791,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Users size={24} color="#FFFFFF" />
+                      <Users size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         Collaboration
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         Manage collaborators and team
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* RSVP */}
@@ -842,42 +833,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <CalendarCheck size={24} color="#FFFFFF" />
+                      <CalendarCheck size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         {t('RSVP')}
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         Track responses and attendance
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
 
                   {/* Feeds */}
@@ -887,42 +875,39 @@ export const EventProfileRoute = () => {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: borderRadius.xl,
-                      padding: spacing.lg,
-                      borderWidth: 2,
-                      borderColor: '#000000',
+                      backgroundColor: colors.cardElevated,
+                      borderRadius: borderRadius.lg,
+                      padding: spacing.md,
                       gap: spacing.md,
                     }}
                   >
                     <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: '#000000',
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: colors.surface,
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <MessageSquare size={24} color="#FFFFFF" />
+                      <MessageSquare size={20} color={colors.text.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.primary,
                         fontSize: typography.size.base,
-                        fontWeight: typography.weight.bold
+                        fontWeight: typography.weight.semibold
                       }}>
                         Feeds
                       </Text>
                       <Text style={{
-                        color: '#000000',
+                        color: colors.text.tertiary,
                         fontSize: typography.size.sm,
-                        marginTop: 2,
-                        opacity: 0.6
+                        marginTop: 1
                       }}>
                         View posts, photos, and videos
                       </Text>
                     </View>
-                    <ChevronRight size={20} color="#000000" />
+                    <ChevronRight size={18} color={colors.text.tertiary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -951,16 +936,15 @@ export const EventProfileRoute = () => {
                 onPress={() => setIsAgentOpen(true)}
                 activeOpacity={0.9}
                 style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 28,
-                  backgroundColor: brand.secondary,
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: colors.text.primary,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  ...shadows.sm,
                 }}
               >
-                <Stars size={24} color={colors.background} />
+                <Stars size={28} color={colors.background} />
               </TouchableOpacity>
             </View>
           )}

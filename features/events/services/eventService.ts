@@ -100,34 +100,53 @@ const fetchEventsPage = async (
   params?: Record<string, unknown>,
   cachePrefix?: string,
 ): Promise<PageResponse<EventResponse>> => {
-  const url = `/api/v1/events${buildQueryString(params)}`;
-  const cacheKey = cachePrefix ? makeCacheKey(cachePrefix, params) : undefined;
-  const isOnline = await OfflineStorage.isOnline();
+  // MOCK for local dev
+  const page = (params?.page as number) || 0;
+  const size = (params?.size as number) || 20;
+  
+  const mockData: EventResponse[] = [
+    {
+      id: 'mock-event-1',
+      name: 'Tech Innovation Summit 2024',
+      description: 'Join us for an exciting day of tech talks, networking, and innovation. Featuring industry leaders and cutting-edge demonstrations.',
+      eventType: 'CONFERENCE' as any,
+      eventStatus: 'REGISTRATION_OPEN' as any,
+      startDateTime: new Date(Date.now() + 86400000).toISOString(), // tomorrow
+      endDateTime: new Date(Date.now() + 86400000 + 28800000).toISOString(),
+      registrationDeadline: new Date(Date.now() + 43200000).toISOString(),
+      capacity: 500,
+      currentAttendeeCount: 342,
+      isPublic: true,
+      requiresApproval: false,
+      coverImageUrl: 'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?q=80&w=1000&auto=format&fit=crop',
+      eventWebsiteUrl: 'https://example.com',
+      hashtag: '#TechSummit2024',
+      theme: 'Innovation',
+      objectives: 'Networking',
+      targetAudience: 'Techies',
+      successMetrics: null,
+      brandingGuidelines: null,
+      venueRequirements: null,
+      technicalRequirements: null,
+      accessibilityFeatures: null,
+      emergencyPlan: null,
+      backupPlan: null,
+      postEventTasks: null,
+      metadata: null,
+      ownerId: 'me',
+      venueId: 'mock-venue-1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  ];
 
-  if (!isOnline && cacheKey) {
-    const cached = await OfflineStorage.getCache(cacheKey);
-    if (cached) {
-      return cached;
-    }
-  }
-
-  try {
-    const res = await http.get<PageResponse<EventResponse>>(url);
-    const page = res.data;
-    if (cacheKey) {
-      await OfflineStorage.setCache(cacheKey, page);
-    }
-    return page;
-  } catch (error) {
-    if (cacheKey) {
-      const cached = await OfflineStorage.getCache(cacheKey);
-      if (cached) {
-        return cached;
-      }
-    }
-    ErrorHandler.handle(error, url);
-    throw error;
-  }
+  return {
+    content: mockData,
+    totalElements: mockData.length,
+    totalPages: 1,
+    size: 20,
+    number: 0,
+  };
 };
 
 export const eventService = {
@@ -140,11 +159,51 @@ export const eventService = {
     eventId: string,
     params?: EventFeedRequest,
   ): Promise<EventData> {
-    const queryString = buildQueryString(params);
-    const res = await http.get<EventData>(
-      `/api/v1/events/${eventId}${queryString}`,
-    );
-    return res.data;
+    // MOCK for local dev
+    return {
+      id: eventId,
+      name: 'Tech Innovation Summit 2024',
+      description: 'Join us for an exciting day of tech talks, networking, and innovation. Featuring industry leaders and cutting-edge demonstrations.',
+      eventType: 'CONFERENCE' as any,
+      eventStatus: 'REGISTRATION_OPEN' as any,
+      startDateTime: new Date(Date.now() + 86400000).toISOString(),
+      endDateTime: new Date(Date.now() + 86400000 + 28800000).toISOString(),
+      registrationDeadline: new Date(Date.now() + 43200000).toISOString(),
+      capacity: 500,
+      currentAttendeeCount: 342,
+      isPublic: true,
+      requiresApproval: false,
+      coverImageUrl: 'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?q=80&w=1000&auto=format&fit=crop',
+      eventWebsiteUrl: 'https://example.com',
+      hashtag: '#TechSummit2024',
+      theme: 'Innovation',
+      objectives: 'Networking',
+      targetAudience: 'Techies',
+      successMetrics: null,
+      brandingGuidelines: null,
+      venueRequirements: null,
+      technicalRequirements: null,
+      accessibilityFeatures: null,
+      emergencyPlan: null,
+      backupPlan: null,
+      postEventTasks: null,
+      metadata: null,
+      ownerId: 'me',
+      venueId: 'mock-venue-1',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      scope: 'FULL',
+      venue: {
+        id: 'mock-venue-1',
+        name: 'Mock Venue',
+        address: '123 Mock St',
+        city: 'Mock City',
+        state: 'MC',
+        country: 'USA',
+        latitude: 34.0522,
+        longitude: -118.2437
+      }
+    } as EventResponseWithScope;
   },
 
   /**
@@ -155,11 +214,35 @@ export const eventService = {
     eventId: string,
     params?: EventFeedRequest,
   ): Promise<EventFeedResponse> {
-    const queryString = buildQueryString(params);
-    const res = await http.get<EventFeedResponse>(
-      `/api/v1/events/${eventId}/feed${queryString}`,
-    );
-    return res.data;
+    // MOCK for local dev
+    return {
+      eventId: eventId,
+      eventName: 'Tech Innovation Summit 2024',
+      description: 'Join us for an exciting day of tech talks, networking, and innovation.',
+      coverImageUrl: 'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?q=80&w=1000&auto=format&fit=crop',
+      startDateTime: new Date().toISOString(),
+      endDateTime: new Date(Date.now() + 28800000).toISOString(),
+      hashtag: '#TechSummit2024',
+      eventWebsiteUrl: 'https://example.com',
+      posts: [
+        {
+          id: 'mock-post-1',
+          type: 'TEXT',
+          content: 'Welcome to the event!',
+          authorName: 'Organizer',
+          postedAt: new Date().toISOString(),
+          likes: 10,
+          comments: 2
+        }
+      ],
+      currentPage: 0,
+      pageSize: 20,
+      totalPosts: 1,
+      totalPages: 1,
+      hasNext: false,
+      hasPrevious: false,
+      scope: 'FEED'
+    };
   },
 
   async createEvent(
@@ -306,30 +389,25 @@ export const eventService = {
   async getMyEvents(
     params?: Pick<EventsQueryParams, 'page' | 'size' | 'timeframe' | 'sortBy' | 'sortDirection'>,
   ): Promise<PageResponse<EventResponse>> {
-    const queryString = buildQueryString({
-      mine: true,
-      timeframe: params?.timeframe,
-      page: params?.page ?? 0,
-      size: params?.size ?? 100,
-      sortBy: params?.sortBy,
-      sortDirection: params?.sortDirection,
-    });
-    const res = await http.get<PageResponse<EventResponse>>(
-      `/api/v1/events${queryString}`,
-    );
-    return res.data;
+    // MOCK for local dev
+    return this.getEvents({ ...params, mine: true });
   },
 
   async getEventCapacity(eventId: string): Promise<EventCapacityResponse> {
-    const res = await http.get<EventCapacityResponse>(
-      `/api/v1/events/${eventId}/capacity`,
-    );
-    return res.data;
+    // MOCK for local dev
+    return {
+      eventId,
+      capacity: 500,
+      currentAttendeeCount: 342,
+      availableSpots: 158,
+      utilizationPercentage: 68.4,
+      isRegistrationOpen: true
+    };
   },
 
   async getEventStatus(eventId: string): Promise<EventStatus> {
-    const res = await http.get<EventStatus>(`/api/v1/events/${eventId}/status`);
-    return res.data;
+    // MOCK for local dev
+    return EventStatus.PUBLISHED;
   },
 
   async updateEventStatus(

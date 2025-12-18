@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { ArrowLeft, Bell, ImageIcon, Layers, ShieldCheck, UserPlus, Users } from 'lucide-react-native';
+import { ArrowLeft, Bell, ChevronRight, ImageIcon, Layers, ShieldCheck, UserPlus, Users } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { eventService } from '../../services/eventService';
 import { Event } from '../../types/events';
@@ -49,7 +49,7 @@ const EventAdminScreen = () => {
   }, [params.eventId]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }} edges={['top', 'bottom']}>
       <View
         style={{
           flexDirection: 'row',
@@ -57,8 +57,7 @@ const EventAdminScreen = () => {
           justifyContent: 'space-between',
           paddingHorizontal: spacing.lg,
           paddingVertical: spacing.md,
-          borderBottomWidth: 1,
-          borderColor: colors.border,
+          backgroundColor: colors.surface,
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
@@ -69,15 +68,16 @@ const EventAdminScreen = () => {
             <Text
               style={{
                 color: colors.text.primary,
-                fontWeight: typography.weight.semibold,
+                fontFamily: typography.family.bold,
+                fontWeight: typography.weight.bold,
                 fontSize: typography.size.lg,
-                textTransform: 'uppercase',
+                letterSpacing: -0.3,
               }}
             >
               Event Console
             </Text>
             {event ? (
-              <Text numberOfLines={1} style={{ color: colors.text.secondary, fontSize: typography.size.xs, marginTop: 2 }}>
+              <Text numberOfLines={1} style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginTop: 1, fontFamily: typography.family.medium }}>
                 {event.name}
               </Text>
             ) : null}
@@ -88,7 +88,7 @@ const EventAdminScreen = () => {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.xl,
+          paddingVertical: spacing.lg,
           gap: spacing.md,
         }}
         showsVerticalScrollIndicator={false}
@@ -99,13 +99,11 @@ const EventAdminScreen = () => {
             <TouchableOpacity
               key={feature.key}
               onPress={() => navigation.navigate(feature.screen, { eventId: params.eventId })}
-              activeOpacity={0.85}
+              activeOpacity={0.7}
               style={{
-                borderWidth: 1,
-                borderColor: colors.text.primary,
-                borderRadius: borderRadius.xl,
-                padding: spacing.lg,
-                backgroundColor: colors.background,
+                borderRadius: borderRadius.lg,
+                padding: spacing.md,
+                backgroundColor: colors.cardElevated,
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: spacing.md,
@@ -113,26 +111,30 @@ const EventAdminScreen = () => {
             >
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: borderRadius.md,
-                  borderWidth: 1,
-                  borderColor: colors.text.primary,
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: colors.surface,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Icon size={22} color={colors.text.primary} />
+                <Icon size={20} color={colors.text.primary} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text.primary, fontWeight: typography.weight.semibold, fontSize: typography.size.base }}>
+                <Text style={{ 
+                  color: colors.text.primary, 
+                  fontWeight: typography.weight.semibold, 
+                  fontSize: typography.size.base,
+                  fontFamily: typography.family.semibold
+                }}>
                   {feature.title}
                 </Text>
-                <Text style={{ color: colors.text.secondary, fontSize: typography.size.sm, marginTop: 2 }}>
+                <Text style={{ color: colors.text.tertiary, fontSize: typography.size.sm, marginTop: 1 }}>
                   {feature.description}
                 </Text>
               </View>
-              <ArrowLeft size={18} color={colors.text.secondary} style={{ transform: [{ rotate: '180deg' }] }} />
+              <ChevronRight size={18} color={colors.text.tertiary} />
             </TouchableOpacity>
           );
         })}

@@ -32,39 +32,71 @@ export type UpdateBudgetRequest = {
 export const budgetService = {
   // Budget CRUD operations
   async createBudget(request: CreateBudgetRequest) {
-    const res = await http.post<ApiResponse<Budget>>('/api/v1/budgets', request);
-    const body = res.data;
-    if (body.status === 201 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to create budget');
+    // MOCK for local dev
+    return {
+      id: 'mock-budget-1',
+      eventId: request.eventId,
+      totalBudget: request.totalBudget,
+      spentAmount: 0,
+      remainingAmount: request.totalBudget,
+      currency: 'USD',
+      categories: request.categories.map((c, i) => ({
+        id: `mock-cat-${i}`,
+        name: c.name,
+        allocatedAmount: c.allocatedAmount,
+        spentAmount: 0,
+        remainingAmount: c.allocatedAmount,
+      })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as any;
   },
 
   async getBudget(budgetId: string) {
-    const res = await http.get<ApiResponse<Budget>>(`/api/v1/budgets/${budgetId}`);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to get budget');
+    // MOCK for local dev
+    return {
+      id: budgetId,
+      eventId: 'mock-event-1',
+      totalBudget: 10000,
+      spentAmount: 6500,
+      remainingAmount: 3500,
+      currency: 'USD',
+      categories: [
+        { id: '1', name: 'Venue', allocatedAmount: 3000, spentAmount: 3000, remainingAmount: 0 },
+        { id: '2', name: 'Catering', allocatedAmount: 2500, spentAmount: 1800, remainingAmount: 700 },
+        { id: '3', name: 'Marketing', allocatedAmount: 1500, spentAmount: 1200, remainingAmount: 300 },
+        { id: '4', name: 'Equipment', allocatedAmount: 2000, spentAmount: 500, remainingAmount: 1500 },
+        { id: '5', name: 'Miscellaneous', allocatedAmount: 1000, spentAmount: 0, remainingAmount: 1000 }
+      ],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-15T00:00:00Z'
+    } as any;
   },
 
   async getBudgetByEvent(eventId: string) {
-    const res = await http.get<ApiResponse<Budget>>(`/api/v1/events/${eventId}/budget`);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to get event budget');
+    // MOCK for local dev
+    return this.getBudget('mock-budget-1');
   },
 
   async updateBudget(budgetId: string, updates: UpdateBudgetRequest) {
-    const res = await http.put<ApiResponse<Budget>>(`/api/v1/budgets/${budgetId}`, updates);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to update budget');
+    // MOCK for local dev
+    return {
+      id: budgetId,
+      eventId: 'mock-event-1',
+      totalBudget: updates.totalBudget || 10000,
+      spentAmount: 6500,
+      remainingAmount: (updates.totalBudget || 10000) - 6500,
+      currency: 'USD',
+      categories: updates.categories?.map((c, i) => ({
+        id: c.categoryId || `mock-cat-${i}`,
+        name: c.name || 'Category',
+        allocatedAmount: c.allocatedAmount || 1000,
+        spentAmount: 0,
+        remainingAmount: c.allocatedAmount || 1000
+      })) || [],
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: new Date().toISOString()
+    } as any;
   },
 
   async deleteBudget(budgetId: string) {
@@ -148,22 +180,24 @@ export const budgetService = {
     dateFrom?: string;
     dateTo?: string;
   }) {
-    const queryParams = new URLSearchParams();
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.size) queryParams.append('size', params.size.toString());
-    if (params?.status) queryParams.append('status', params.status);
-    if (params?.dateFrom) queryParams.append('dateFrom', params.dateFrom);
-    if (params?.dateTo) queryParams.append('dateTo', params.dateTo);
-
-    const queryString = queryParams.toString();
-    const url = queryString ? `/api/v1/budget-categories/${categoryId}/expenses?${queryString}` : `/api/v1/budget-categories/${categoryId}/expenses`;
-    
-    const res = await http.get<ApiResponse<{ expenses: Expense[]; total: number; page: number; size: number }>>(url);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to get expenses by category');
+    // MOCK for local dev
+    return {
+      expenses: [
+        {
+          id: '1',
+          budgetId: 'mock-budget-1',
+          categoryId,
+          categoryName: 'Category',
+          description: 'Mock Expense 1',
+          amount: 500,
+          date: new Date().toISOString(),
+          status: 'PAID'
+        }
+      ],
+      total: 1,
+      page: 0,
+      size: 20
+    } as any;
   },
 
   // Expense approval workflow
@@ -189,32 +223,30 @@ export const budgetService = {
 
   // Budget analytics and reporting
   async getBudgetSummary(budgetId: string) {
-    const res = await http.get<ApiResponse<{
-      totalBudget: number;
-      allocatedAmount: number;
-      spentAmount: number;
-      remainingAmount: number;
-      utilizationPercentage: number;
-      categoryBreakdown: Array<{
-        categoryId: string;
-        categoryName: string;
-        allocatedAmount: number;
-        spentAmount: number;
-        remainingAmount: number;
-        utilizationPercentage: number;
-      }>;
-      recentExpenses: Expense[];
-      topVendors: Array<{
-        vendor: string;
-        totalSpent: number;
-        expenseCount: number;
-      }>;
-    }>>(`/api/v1/budgets/${budgetId}/summary`);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to get budget summary');
+    // MOCK for local dev
+    return {
+      totalBudget: 10000,
+      allocatedAmount: 10000,
+      spentAmount: 6500,
+      remainingAmount: 3500,
+      utilizationPercentage: 65,
+      categoryBreakdown: [
+        { categoryId: '1', categoryName: 'Venue', allocatedAmount: 3000, spentAmount: 3000, remainingAmount: 0, utilizationPercentage: 100 },
+        { categoryId: '2', categoryName: 'Catering', allocatedAmount: 2500, spentAmount: 1800, remainingAmount: 700, utilizationPercentage: 72 },
+        { categoryId: '3', categoryName: 'Marketing', allocatedAmount: 1500, spentAmount: 1200, remainingAmount: 300, utilizationPercentage: 80 },
+        { categoryId: '4', categoryName: 'Equipment', allocatedAmount: 2000, spentAmount: 500, remainingAmount: 1500, utilizationPercentage: 25 },
+        { categoryId: '5', categoryName: 'Miscellaneous', allocatedAmount: 1000, spentAmount: 0, remainingAmount: 1000, utilizationPercentage: 0 }
+      ],
+      recentExpenses: [
+        { id: '1', description: 'Grand Ballroom rental', amount: 3000, date: '2024-01-10T00:00:00Z', vendor: 'Grand Ballroom Inc.', status: 'PAID' },
+        { id: '2', description: 'Catering service', amount: 1800, date: '2024-01-12T00:00:00Z', vendor: 'Elite Catering', status: 'PAID' },
+        { id: '3', description: 'Social media advertising', amount: 800, date: '2024-01-14T00:00:00Z', vendor: 'Digital Ads Co.', status: 'PAID' }
+      ],
+      topVendors: [
+        { vendor: 'Grand Ballroom Inc.', totalSpent: 3000, expenseCount: 1 },
+        { vendor: 'Elite Catering', totalSpent: 1800, expenseCount: 1 }
+      ],
+    } as any;
   },
 
   async getBudgetReports(eventId: string, reportType: 'summary' | 'detailed' | 'vendor' | 'category') {

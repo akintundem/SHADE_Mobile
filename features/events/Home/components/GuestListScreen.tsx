@@ -228,7 +228,7 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.background }}
+      style={{ flex: 1, backgroundColor: colors.surface }}
       edges={['top', 'bottom']}
     >
       {/* Header */}
@@ -239,8 +239,6 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
           justifyContent: 'space-between',
           paddingHorizontal: spacing.lg,
           paddingVertical: spacing.md,
-          borderBottomWidth: 1,
-          borderColor: colors.border,
           backgroundColor: colors.surface,
         }}
       >
@@ -252,8 +250,10 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
             <Text
               style={{
                 fontSize: typography.size.xl,
+                fontFamily: typography.family.bold,
                 fontWeight: typography.weight.bold,
                 color: colors.text.primary,
+                letterSpacing: -0.3,
               }}
             >
               Guest List
@@ -261,8 +261,9 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
             <Text
               style={{
                 fontSize: typography.size.sm,
-                color: colors.text.secondary,
-                marginTop: 2,
+                fontFamily: typography.family.medium,
+                color: colors.text.tertiary,
+                marginTop: 1,
               }}
             >
               {invitations.length}{' '}
@@ -272,21 +273,22 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
         </View>
         <TouchableOpacity
           onPress={() => setShowInviteModal(true)}
+          activeOpacity={0.7}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             gap: spacing.xs,
-            backgroundColor: brand.primary,
+            backgroundColor: colors.text.primary,
             paddingHorizontal: spacing.md,
             paddingVertical: spacing.sm,
             borderRadius: borderRadius.full,
-            ...shadows.sm,
           }}
         >
-          <UserPlus size={18} color="#FFFFFF" />
+          <UserPlus size={18} color={colors.background} />
           <Text
             style={{
-              color: '#FFFFFF',
+              color: colors.background,
+              fontFamily: typography.family.semibold,
               fontWeight: typography.weight.semibold,
               fontSize: typography.size.sm,
             }}
@@ -308,19 +310,16 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor: colors.surface,
-            borderRadius: borderRadius.xl,
+            backgroundColor: colors.cardElevated,
+            borderRadius: borderRadius.lg,
             paddingHorizontal: spacing.md,
             gap: spacing.sm,
-            height: 52,
-            borderWidth: 1,
-            borderColor: searchQuery ? brand.primary : colors.border,
-            ...shadows.sm,
+            height: 48,
           }}
         >
           <Search
-            size={20}
-            color={searchQuery ? brand.primary : colors.text.tertiary}
+            size={18}
+            color={colors.text.tertiary}
           />
           <TextInput
             placeholder="Search guests or invite people..."
@@ -330,6 +329,7 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
               flex: 1,
               color: colors.text.primary,
               fontSize: typography.size.base,
+              fontFamily: typography.family.regular,
             }}
             placeholderTextColor={colors.text.tertiary}
           />
@@ -349,9 +349,10 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
         >
           <Text
             style={{
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.semibold,
-              color: colors.text.secondary,
+              fontSize: typography.size.xs,
+              fontFamily: typography.family.bold,
+              fontWeight: typography.weight.bold,
+              color: colors.text.tertiary,
               marginBottom: spacing.sm,
               textTransform: 'uppercase',
               letterSpacing: 0.5,
@@ -369,18 +370,13 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                 key={user.id}
                 onPress={() => !user.isInvited && handleInviteUser(user)}
                 disabled={user.isInvited}
+                activeOpacity={0.7}
                 style={{
                   width: 140,
-                  backgroundColor: user.isInvited
-                    ? colors.surface
-                    : colors.background,
-                  borderRadius: borderRadius.xl,
+                  backgroundColor: colors.cardElevated,
+                  borderRadius: borderRadius.lg,
                   padding: spacing.md,
                   alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: user.isInvited
-                    ? colors.border
-                    : brand.primary,
                   opacity: user.isInvited ? 0.6 : 1,
                 }}
               >
@@ -391,10 +387,7 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                     borderRadius: 32,
                     overflow: 'hidden',
                     marginBottom: spacing.sm,
-                    borderWidth: 2,
-                    borderColor: user.isInvited
-                      ? colors.border
-                      : brand.primary,
+                    backgroundColor: colors.surface,
                   }}
                 >
                   {user.profileImageUrl ? (
@@ -408,7 +401,7 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                       style={{
                         width: '100%',
                         height: '100%',
-                        backgroundColor: brand.primary + '20',
+                        backgroundColor: colors.surface,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
@@ -416,8 +409,9 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                       <Text
                         style={{
                           fontSize: typography.size.lg,
+                          fontFamily: typography.family.bold,
                           fontWeight: typography.weight.bold,
-                          color: brand.primary,
+                          color: colors.text.primary,
                         }}
                       >
                         {user.name.charAt(0).toUpperCase()}
@@ -428,6 +422,7 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                 <Text
                   style={{
                     fontSize: typography.size.sm,
+                    fontFamily: typography.family.semibold,
                     fontWeight: typography.weight.semibold,
                     color: colors.text.primary,
                     textAlign: 'center',
@@ -440,9 +435,10 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                 <Text
                   style={{
                     fontSize: typography.size.xs,
+                    fontFamily: typography.family.regular,
                     color: colors.text.tertiary,
                     textAlign: 'center',
-                    marginBottom: spacing.xs,
+                    marginBottom: spacing.sm,
                   }}
                   numberOfLines={1}
                 >
@@ -456,15 +452,16 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                       gap: spacing.xs,
                       paddingHorizontal: spacing.sm,
                       paddingVertical: 4,
-                      backgroundColor: '#22c55e20',
-                      borderRadius: borderRadius.sm,
+                      backgroundColor: colors.semantic.success + '15',
+                      borderRadius: borderRadius.full,
                     }}
                   >
-                    <CheckCircle size={12} color="#22c55e" />
+                    <CheckCircle size={12} color={colors.semantic.success} />
                     <Text
                       style={{
                         fontSize: typography.size.xs,
-                        color: '#22c55e',
+                        color: colors.semantic.success,
+                        fontFamily: typography.family.medium,
                         fontWeight: typography.weight.medium,
                       }}
                     >
@@ -477,18 +474,19 @@ export default function GuestListScreen({ eventId, onBack }: Props) {
                       flexDirection: 'row',
                       alignItems: 'center',
                       gap: spacing.xs,
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 4,
-                      backgroundColor: brand.primary,
-                      borderRadius: borderRadius.sm,
+                      paddingHorizontal: spacing.md,
+                      paddingVertical: 6,
+                      backgroundColor: colors.text.primary,
+                      borderRadius: borderRadius.full,
                     }}
                   >
-                    <Plus size={12} color="#FFFFFF" />
+                    <Plus size={12} color={colors.background} />
                     <Text
                       style={{
                         fontSize: typography.size.xs,
-                        color: '#FFFFFF',
-                        fontWeight: typography.weight.medium,
+                        color: colors.background,
+                        fontFamily: typography.family.semibold,
+                        fontWeight: typography.weight.semibold,
                       }}
                     >
                       Invite
@@ -596,50 +594,46 @@ function AttendeeCard({
   getStatusIcon: (status: string) => React.ReactNode;
   getInitials: (fullName: string) => string;
 }) {
-  const { colors, typography, spacing, borderRadius, shadows, brand } = useTheme();
+  const { colors, typography, spacing, borderRadius, brand } = useTheme();
   const displayName = invitation.name || invitation.email;
 
   return (
     <TouchableOpacity
       style={{
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.xl,
-        padding: spacing.lg,
+        backgroundColor: colors.cardElevated,
+        borderRadius: borderRadius.lg,
+        padding: spacing.md,
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.md,
-        borderWidth: 1,
-        borderColor: colors.border,
-        ...shadows.sm,
       }}
       activeOpacity={0.7}
     >
       {/* Avatar */}
       <View
         style={{
-          width: 56,
-          height: 56,
-          borderRadius: 28,
+          width: 48,
+          height: 48,
+          borderRadius: 24,
           overflow: 'hidden',
           backgroundColor: colors.surface,
-          borderWidth: 2,
-          borderColor: colors.border,
         }}
       >
         <View
           style={{
             width: '100%',
             height: '100%',
-            backgroundColor: brand.primary + '15',
+            backgroundColor: brand.primary + '10',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
           <Text
             style={{
-              fontSize: typography.size.lg,
+              fontSize: typography.size.base,
+              fontFamily: typography.family.bold,
               fontWeight: typography.weight.bold,
-              color: brand.primary,
+              color: colors.text.primary,
             }}
           >
             {getInitials(displayName)}
@@ -648,42 +642,30 @@ function AttendeeCard({
       </View>
 
       {/* Info */}
-      <View style={{ flex: 1, gap: spacing.xs }}>
+      <View style={{ flex: 1, gap: 2 }}>
         <Text
           style={{
             fontSize: typography.size.base,
+            fontFamily: typography.family.semibold,
             fontWeight: typography.weight.semibold,
             color: colors.text.primary,
           }}
         >
           {displayName}
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Mail size={12} color={colors.text.tertiary} />
           <Text
             style={{
-              fontSize: typography.size.sm,
-              color: colors.text.secondary,
+              fontSize: typography.size.xs,
+              fontFamily: typography.family.medium,
+              color: colors.text.tertiary,
             }}
             numberOfLines={1}
           >
             {invitation.email}
           </Text>
         </View>
-        {invitation.invitedAt && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Clock size={12} color={colors.text.tertiary} />
-            <Text
-              style={{
-                fontSize: typography.size.xs,
-                color: colors.text.tertiary,
-              }}
-              numberOfLines={1}
-            >
-              Invited {new Date(invitation.invitedAt).toLocaleString()}
-            </Text>
-          </View>
-        )}
       </View>
 
       {/* Status */}
@@ -691,22 +673,22 @@ function AttendeeCard({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          gap: spacing.xs,
+          gap: 4,
           paddingHorizontal: spacing.sm,
-          paddingVertical: spacing.xs,
-          backgroundColor: getStatusColor(invitation.status) + '20',
+          paddingVertical: 4,
+          backgroundColor: colors.surface,
           borderRadius: borderRadius.full,
-          borderWidth: 1,
-          borderColor: getStatusColor(invitation.status),
         }}
       >
         {getStatusIcon(invitation.status)}
         <Text
           style={{
             fontSize: typography.size.xs,
-            fontWeight: typography.weight.medium,
+            fontFamily: typography.family.bold,
+            fontWeight: typography.weight.bold,
             color: getStatusColor(invitation.status),
-            textTransform: 'capitalize',
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
           }}
         >
           {invitation.status.toLowerCase()}
@@ -731,7 +713,7 @@ function InviteModal({
   onInvite: () => void;
   onClose: () => void;
 }) {
-  const { colors, spacing, typography, borderRadius, brand, shadows } =
+  const { colors, spacing, typography, borderRadius, brand } =
     useTheme();
 
   return (
@@ -742,7 +724,7 @@ function InviteModal({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         justifyContent: 'flex-end',
       }}
     >
@@ -757,8 +739,7 @@ function InviteModal({
           borderTopLeftRadius: borderRadius['2xl'],
           borderTopRightRadius: borderRadius['2xl'],
           padding: spacing.xl,
-          paddingBottom: spacing['2xl'],
-          ...shadows.xl,
+          paddingBottom: spacing['3xl'],
         }}
       >
         <View
@@ -766,47 +747,52 @@ function InviteModal({
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: spacing.lg,
+            marginBottom: spacing.xl,
           }}
         >
           <Text
             style={{
               fontSize: typography.size.xl,
+              fontFamily: typography.family.bold,
               fontWeight: typography.weight.bold,
               color: colors.text.primary,
+              letterSpacing: -0.3,
             }}
           >
             Invite Guest
           </Text>
-          <TouchableOpacity onPress={onClose}>
-            <X size={24} color={colors.text.secondary} />
+          <TouchableOpacity onPress={onClose} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.cardElevated, alignItems: 'center', justifyContent: 'center' }}>
+            <X size={18} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
 
-        <View style={{ gap: spacing.md }}>
+        <View style={{ gap: spacing.lg }}>
           <View>
             <Text
               style={{
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.medium,
-                color: colors.text.secondary,
-                marginBottom: spacing.sm,
+                fontSize: typography.size.xs,
+                fontFamily: typography.family.bold,
+                fontWeight: typography.weight.bold,
+                color: colors.text.tertiary,
+                marginBottom: spacing.xs,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
               }}
             >
               Name (Optional)
             </Text>
             <TextInput
-              placeholder="Enter name"
+              placeholder="Enter guest name"
               value={inviteName}
               onChangeText={onNameChange}
               style={{
-                backgroundColor: colors.background,
+                backgroundColor: colors.cardElevated,
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 fontSize: typography.size.base,
+                fontFamily: typography.family.regular,
                 color: colors.text.primary,
-                borderWidth: 1,
-                borderColor: colors.border,
+                height: 52,
               }}
               placeholderTextColor={colors.text.tertiary}
             />
@@ -815,13 +801,16 @@ function InviteModal({
           <View>
             <Text
               style={{
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.medium,
-                color: colors.text.secondary,
-                marginBottom: spacing.sm,
+                fontSize: typography.size.xs,
+                fontFamily: typography.family.bold,
+                fontWeight: typography.weight.bold,
+                color: colors.text.tertiary,
+                marginBottom: spacing.xs,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
               }}
             >
-              Email Address *
+              Email Address
             </Text>
             <TextInput
               placeholder="Enter email address"
@@ -830,13 +819,13 @@ function InviteModal({
               keyboardType="email-address"
               autoCapitalize="none"
               style={{
-                backgroundColor: colors.background,
+                backgroundColor: colors.cardElevated,
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 fontSize: typography.size.base,
+                fontFamily: typography.family.regular,
                 color: colors.text.primary,
-                borderWidth: 1,
-                borderColor: colors.border,
+                height: 52,
               }}
               placeholderTextColor={colors.text.tertiary}
             />
@@ -845,20 +834,21 @@ function InviteModal({
           <TouchableOpacity
             onPress={onInvite}
             disabled={!inviteEmail.trim()}
+            activeOpacity={0.7}
             style={{
-              backgroundColor: inviteEmail.trim() ? brand.primary : colors.border,
-              borderRadius: borderRadius.xl,
-              paddingVertical: spacing.md,
+              backgroundColor: inviteEmail.trim() ? colors.text.primary : colors.cardElevated,
+              borderRadius: borderRadius.full,
+              height: 56,
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: spacing.md,
-              ...shadows.sm,
             }}
           >
             <Text
               style={{
-                color: inviteEmail.trim() ? '#FFFFFF' : colors.text.tertiary,
-                fontWeight: typography.weight.semibold,
+                color: inviteEmail.trim() ? colors.background : colors.text.tertiary,
+                fontFamily: typography.family.bold,
+                fontWeight: typography.weight.bold,
                 fontSize: typography.size.base,
               }}
             >
