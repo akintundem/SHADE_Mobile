@@ -64,10 +64,9 @@ const TaskRow = React.memo(({
     <View
       style={{
         flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: isSubtask ? colors.surface : colors.background,
+        backgroundColor: isSubtask ? colors.surface : colors.cardElevated,
         minHeight: isSubtask ? 60 : 72,
+        marginBottom: 2,
       }}
     >
       {/* Fixed Task Name Column */}
@@ -75,27 +74,16 @@ const TaskRow = React.memo(({
         width: TASK_COLUMN_WIDTH,
         paddingVertical: spacing.md,
         paddingHorizontal: spacing.md,
-        borderRightWidth: 1,
-        borderColor: colors.border,
         justifyContent: 'center',
-        backgroundColor: colors.surface,
+        backgroundColor: isSubtask ? colors.surface : colors.cardElevated,
       }}>
-        {isSubtask && (
-          <View style={{ 
-            position: 'absolute',
-            left: spacing.sm,
-            top: spacing.sm,
-            width: 2,
-            height: '100%',
-            backgroundColor: colors.border,
-          }} />
-        )}
         <View style={{ marginLeft: isSubtask ? spacing.md : 0 }}>
           <Text 
             numberOfLines={2}
             style={{
               color: isCompleted ? colors.text.tertiary : colors.text.primary,
               fontSize: isSubtask ? typography.size.sm : typography.size.base,
+              fontFamily: isSubtask ? typography.family.regular : typography.family.semibold,
               fontWeight: isSubtask ? typography.weight.regular : typography.weight.semibold,
               lineHeight: isSubtask ? 18 : 20,
               textDecorationLine: isCompleted ? 'line-through' : 'none',
@@ -109,15 +97,16 @@ const TaskRow = React.memo(({
             <View style={{ 
               flexDirection: 'row', 
               alignItems: 'center', 
-              gap: spacing.xs,
-              marginTop: spacing.xs
+              gap: 4,
+              marginTop: 4
             }}>
-              <User size={12} color={colors.text.tertiary} strokeWidth={2} />
+              <User size={10} color={colors.text.tertiary} strokeWidth={2} />
               <Text 
                 numberOfLines={1}
                 style={{
                   color: colors.text.tertiary,
-                  fontSize: typography.size.xs,
+                  fontSize: 10,
+                  fontFamily: typography.family.medium,
                   fontWeight: typography.weight.regular,
                 }}
               >
@@ -146,11 +135,11 @@ const TaskRow = React.memo(({
             <View
               style={{
                 position: 'absolute',
-                left: startIndex * dateColumnWidth + spacing.sm,
-                width: (endIndex - startIndex + 1) * dateColumnWidth - spacing.sm * 2,
+                left: startIndex * dateColumnWidth + 8,
+                width: (endIndex - startIndex + 1) * dateColumnWidth - 16,
                 top: '50%',
-                marginTop: -6,
-                height: 12,
+                marginTop: -4,
+                height: 8,
                 zIndex: 1,
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -159,10 +148,10 @@ const TaskRow = React.memo(({
             >
               <View style={{
                 width: '100%',
-                height: 6,
+                height: 4,
                 backgroundColor: statusColor,
                 borderRadius: borderRadius.full,
-                opacity: isCompleted ? 0.4 : 1,
+                opacity: isCompleted ? 0.3 : 1,
               }} />
             </View>
           )}
@@ -171,33 +160,27 @@ const TaskRow = React.memo(({
             const isInTaskRange = spansMultipleDates 
               ? index >= startIndex && index <= endIndex
               : dateStr === taskStartDate || dateStr === taskEndDate;
-            const isStartDate = dateStr === taskStartDate;
-            const isEndDate = dateStr === taskEndDate;
 
             return (
               <View
                 key={index}
                 style={{
                   width: dateColumnWidth,
-                  paddingVertical: spacing.md,
-                  paddingHorizontal: spacing.sm,
-                  borderRightWidth: index < dates.length - 1 ? 1 : 0,
-                  borderColor: colors.border,
                   alignItems: 'center',
                   justifyContent: 'center',
                   minHeight: isSubtask ? 56 : 64,
-                  backgroundColor: colors.background,
+                  backgroundColor: isSubtask ? colors.surface : colors.cardElevated,
                 }}
               >
                 {/* Single date indicator (when task doesn't span) - Clean Minimal Design */}
                 {!spansMultipleDates && isInTaskRange && (
                   <View style={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                     <View style={{
-                      width: isCompleted ? 10 : 8,
-                      height: isCompleted ? 10 : 8,
-                      borderRadius: isCompleted ? 5 : 4,
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
                       backgroundColor: statusColor,
-                      opacity: isCompleted ? 0.6 : 1,
+                      opacity: isCompleted ? 0.4 : 1,
                     }} />
                   </View>
                 )}
@@ -348,34 +331,27 @@ export default function TimelineView({ tasks, eventId }: Props) {
   }, [syncScrolls]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {/* Header Row - Enhanced Design */}
       <View style={{ 
         flexDirection: 'row', 
-        borderBottomWidth: 1, 
-        borderColor: colors.border,
         backgroundColor: colors.surface,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 2,
       }}>
         {/* Fixed Task Name Column Header */}
         <View style={{ 
           width: TASK_COLUMN_WIDTH, 
           paddingVertical: spacing.lg,
           paddingHorizontal: spacing.md, 
-          borderRightWidth: 1, 
-          borderColor: colors.border,
           justifyContent: 'center',
           backgroundColor: colors.surface,
         }}>
           <Text style={{ 
-            color: colors.text.primary, 
-            fontSize: typography.size.sm, 
+            color: colors.text.tertiary, 
+            fontSize: 10, 
+            fontFamily: typography.family.bold,
             fontWeight: typography.weight.bold,
-            letterSpacing: 0.3
+            letterSpacing: 0.5,
+            textTransform: 'uppercase'
           }}>
             Tasks
           </Text>
@@ -401,10 +377,8 @@ export default function TimelineView({ tasks, eventId }: Props) {
                   key={index}
                   style={{
                     width: DATE_COLUMN_WIDTH,
-                    paddingVertical: spacing.lg,
+                    paddingVertical: spacing.md,
                     paddingHorizontal: spacing.sm,
-                    borderRightWidth: index < dates.length - 1 ? 1 : 0,
-                    borderColor: colors.border,
                     alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: colors.surface,
@@ -412,16 +386,18 @@ export default function TimelineView({ tasks, eventId }: Props) {
                 >
                   <Text style={{
                     color: colors.text.primary,
-                    fontSize: typography.size.xl,
+                    fontSize: typography.size.lg,
+                    fontFamily: typography.family.bold,
                     fontWeight: typography.weight.bold,
-                    lineHeight: 24
+                    lineHeight: 20
                   }}>
                     {day}
                   </Text>
                   <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.xs,
-                    fontWeight: typography.weight.medium,
+                    color: colors.text.tertiary,
+                    fontSize: 10,
+                    fontFamily: typography.family.bold,
+                    fontWeight: typography.weight.bold,
                     textTransform: 'uppercase',
                     letterSpacing: 0.5,
                     marginTop: 2

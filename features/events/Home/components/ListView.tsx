@@ -96,7 +96,7 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
   const isExpanded = (taskId: string) => expandedTasks.has(taskId);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {/* Status Summary Cards */}
       <View style={{
         flexDirection: 'row',
@@ -115,29 +115,31 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
             <TouchableOpacity
               key={key}
               onPress={() => onFilterChange(key)}
+              activeOpacity={0.7}
               style={{
                 flex: 1,
-                backgroundColor: colors.surface,
+                backgroundColor: isActive ? colors.text.primary : colors.cardElevated,
                 borderRadius: borderRadius.lg,
                 padding: spacing.md,
                 alignItems: 'center',
-                borderWidth: isActive ? 2 : 1,
-                borderColor: isActive ? colors.text.primary : colors.border
               }}
             >
               <Text style={{
-                color: colors.text.primary,
-                fontSize: typography.size['2xl'],
+                color: isActive ? colors.background : colors.text.primary,
+                fontSize: typography.size.xl,
+                fontFamily: typography.family.bold,
                 fontWeight: typography.weight.bold
               }}>
                 {count}
               </Text>
               <Text style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.xs,
+                color: isActive ? colors.background : colors.text.tertiary,
+                fontSize: 10,
+                fontFamily: typography.family.bold,
                 textTransform: 'uppercase',
-                marginTop: spacing.xs,
-                fontWeight: typography.weight.semibold
+                marginTop: 2,
+                fontWeight: typography.weight.bold,
+                letterSpacing: 0.5,
               }}>
                 {label}
               </Text>
@@ -161,98 +163,103 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
             <TouchableOpacity
               key={task.id}
               onPress={() => onTaskPress?.(task)}
+              activeOpacity={0.7}
               style={{
-                backgroundColor: colors.surface,
-                borderRadius: borderRadius.xl,
+                backgroundColor: colors.cardElevated,
+                borderRadius: borderRadius.lg,
                 padding: spacing.lg,
-                borderWidth: 1,
-                borderColor: colors.border
               }}
             >
               {/* Header */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
-                  {getStatusIcon(task.status)}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, flex: 1 }}>
+                  <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
+                    {getStatusIcon(task.status)}
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Text style={{
-                      color: task.status === 'COMPLETED' ? colors.text.secondary : colors.text.primary,
+                      color: task.status === 'COMPLETED' ? colors.text.tertiary : colors.text.primary,
                       fontSize: typography.size.lg,
+                      fontFamily: typography.family.semibold,
                       fontWeight: typography.weight.semibold,
                       textDecorationLine: task.status === 'COMPLETED' ? 'line-through' : 'none'
                     }}>
                       {task.title}
                     </Text>
                     <Text style={{
-                      color: colors.text.secondary,
+                      color: colors.text.tertiary,
                       fontSize: typography.size.sm,
-                      marginTop: spacing.xs
+                      fontFamily: typography.family.regular,
+                      marginTop: 2
                     }}>
                       {task.description}
                     </Text>
                   </View>
                 </View>
-                <TouchableOpacity>
-                  <MoreVertical size={18} color={colors.text.secondary} />
+                <TouchableOpacity style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}>
+                  <MoreVertical size={18} color={colors.text.tertiary} />
                 </TouchableOpacity>
               </View>
 
-              {/* Tags */}
-              {task.tags && task.tags.length > 0 && (
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm }}>
-                  <View style={{
-                    backgroundColor: colors.border,
-                    borderRadius: borderRadius.full,
-                    paddingHorizontal: spacing.sm,
-                    paddingVertical: spacing.xs
+              {/* Tags and Priority */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.md }}>
+                <View style={{
+                  backgroundColor: getPriorityColor(task.priority) + '15',
+                  borderRadius: borderRadius.full,
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: 4
+                }}>
+                  <Text style={{
+                    color: getPriorityColor(task.priority),
+                    fontSize: 10,
+                    fontFamily: typography.family.bold,
+                    fontWeight: typography.weight.bold,
+                    textTransform: 'uppercase'
                   }}>
+                    {task.priority}
+                  </Text>
+                </View>
+                {task.tags && task.tags.slice(0, 2).map((tag, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      backgroundColor: colors.surface,
+                      borderRadius: borderRadius.full,
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 4
+                    }}
+                  >
                     <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                      fontWeight: typography.weight.semibold,
+                      color: colors.text.tertiary,
+                      fontSize: 10,
+                      fontFamily: typography.family.bold,
+                      fontWeight: typography.weight.bold,
                       textTransform: 'uppercase'
                     }}>
-                      {task.priority}
+                      {tag}
                     </Text>
                   </View>
-                  {task.tags.slice(0, 2).map((tag, index) => (
-                    <View
-                      key={index}
-                      style={{
-                        backgroundColor: colors.border,
-                        borderRadius: borderRadius.full,
-                        paddingHorizontal: spacing.sm,
-                        paddingVertical: spacing.xs
-                      }}
-                    >
-                      <Text style={{
-                        color: colors.text.secondary,
-                        fontSize: typography.size.xs,
-                        fontWeight: typography.weight.semibold,
-                        textTransform: 'uppercase'
-                      }}>
-                        {tag}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                ))}
+              </View>
 
               {/* Date and Assignee */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginBottom: spacing.md }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                  <Calendar size={14} color={colors.text.secondary} />
+                  <Calendar size={14} color={colors.text.tertiary} />
                   <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.sm
+                    color: colors.text.tertiary,
+                    fontSize: typography.size.xs,
+                    fontFamily: typography.family.medium,
                   }}>
                     {formatDate(task.dueDate)}
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                  <User size={14} color={colors.text.secondary} />
+                  <User size={14} color={colors.text.tertiary} />
                   <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.sm
+                    color: colors.text.tertiary,
+                    fontSize: typography.size.xs,
+                    fontFamily: typography.family.medium,
                   }}>
                     {task.assignedTo}
                   </Text>
@@ -261,35 +268,37 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
 
               {/* Subtasks Progress */}
               {hasSubtasks && (
-                <View style={{ marginTop: spacing.sm }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs }}>
+                <View style={{ marginTop: spacing.xs }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                      fontWeight: typography.weight.semibold,
+                      color: colors.text.tertiary,
+                      fontSize: 10,
+                      fontFamily: typography.family.bold,
+                      fontWeight: typography.weight.bold,
                       textTransform: 'uppercase'
                     }}>
-                      {completedSubtasks} OF {totalSubtasks} SUBTASKS
+                      {completedSubtasks} / {totalSubtasks} SUBTASKS
                     </Text>
                     <Text style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.xs,
-                      fontWeight: typography.weight.semibold
+                      color: colors.text.primary,
+                      fontSize: 10,
+                      fontFamily: typography.family.bold,
+                      fontWeight: typography.weight.bold
                     }}>
                       {progress}%
                     </Text>
                   </View>
                   <View style={{
-                    height: 6,
-                    backgroundColor: colors.border,
-                    borderRadius: borderRadius.sm,
+                    height: 4,
+                    backgroundColor: colors.surface,
+                    borderRadius: borderRadius.full,
                     overflow: 'hidden'
                   }}>
                     <View style={{
                       width: `${progress}%`,
                       height: '100%',
-                      backgroundColor: colors.brand.primary,
-                      borderRadius: borderRadius.sm
+                      backgroundColor: colors.text.primary,
+                      borderRadius: borderRadius.full
                     }} />
                   </View>
                 </View>
@@ -299,25 +308,32 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
               {hasSubtasks && (
                 <TouchableOpacity
                   onPress={() => toggleSubtasks(task.id)}
+                  activeOpacity={0.7}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: spacing.xs,
-                    marginTop: spacing.sm,
-                    paddingVertical: spacing.xs
+                    gap: 4,
+                    marginTop: spacing.md,
+                    backgroundColor: colors.surface,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: 8,
+                    borderRadius: borderRadius.md,
+                    alignSelf: 'flex-start'
                   }}
                 >
-                  {isExpanded(task.id) ? (
-                    <ChevronDown size={16} color={colors.text.secondary} />
-                  ) : (
-                    <ChevronRight size={16} color={colors.text.secondary} />
-                  )}
                   <Text style={{
-                    color: colors.text.secondary,
-                    fontSize: typography.size.sm
+                    color: colors.text.primary,
+                    fontSize: typography.size.xs,
+                    fontFamily: typography.family.semibold,
+                    fontWeight: typography.weight.semibold
                   }}>
                     {isExpanded(task.id) ? 'Hide' : 'View'} {totalSubtasks} subtasks
                   </Text>
+                  {isExpanded(task.id) ? (
+                    <ChevronDown size={14} color={colors.text.primary} />
+                  ) : (
+                    <ChevronRight size={14} color={colors.text.primary} />
+                  )}
                 </TouchableOpacity>
               )}
 
@@ -330,24 +346,19 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
                       <View
                         key={subtask.id}
                         style={{
-                          marginLeft: spacing.lg,
-                          paddingLeft: spacing.md,
-                          borderLeftWidth: 2,
-                          borderLeftColor: colors.border,
-                          paddingVertical: spacing.sm,
-                          paddingRight: spacing.sm,
-                          backgroundColor: colors.background,
-                          borderRadius: borderRadius.md,
-                          borderWidth: 1,
-                          borderColor: colors.border
+                          marginLeft: spacing.xs,
+                          padding: spacing.md,
+                          backgroundColor: colors.surface,
+                          borderRadius: borderRadius.lg,
                         }}
                       >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 4 }}>
                           {getStatusIcon(subtask.status)}
                           <Text style={{
-                            color: isCompleted ? colors.text.secondary : colors.text.primary,
+                            color: isCompleted ? colors.text.tertiary : colors.text.primary,
                             fontSize: typography.size.sm,
-                            fontWeight: typography.weight.medium,
+                            fontFamily: typography.family.semibold,
+                            fontWeight: typography.weight.semibold,
                             textDecorationLine: isCompleted ? 'line-through' : 'none',
                             flex: 1
                           }}>
@@ -355,33 +366,24 @@ export default function ListView({ tasks, filterStatus, onFilterChange, onTaskPr
                           </Text>
                         </View>
                         
-                        {subtask.description && (
-                          <Text style={{
-                            color: colors.text.secondary,
-                            fontSize: typography.size.xs,
-                            marginLeft: spacing.lg,
-                            marginBottom: spacing.xs
-                          }}>
-                            {subtask.description}
-                          </Text>
-                        )}
-
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginLeft: spacing.lg }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginLeft: 26 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                             <Calendar size={12} color={colors.text.tertiary} />
                             <Text style={{
                               color: colors.text.tertiary,
-                              fontSize: typography.size.xs
+                              fontSize: 10,
+                              fontFamily: typography.family.medium
                             }}>
                               {formatDate(subtask.dueDate)}
                             </Text>
                           </View>
                           {subtask.assignedTo && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                               <User size={12} color={colors.text.tertiary} />
                               <Text style={{
                                 color: colors.text.tertiary,
-                                fontSize: typography.size.xs
+                                fontSize: 10,
+                                fontFamily: typography.family.medium
                               }}>
                                 {subtask.assignedTo}
                               </Text>

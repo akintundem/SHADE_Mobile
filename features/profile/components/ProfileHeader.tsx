@@ -11,90 +11,61 @@ type Props = {
 };
 
 export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) => {
-  const { colors, brand, typography, spacing, borderRadius } = useTheme();
+  const { colors, typography, spacing, borderRadius } = useTheme();
   
+  const handle = (user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-');
+
   return (
     <View style={{ backgroundColor: colors.background }}>
       <View style={{ 
-        height: 56,
-        paddingHorizontal: spacing.lg,
+        height: 64,
+        paddingHorizontal: spacing.xl,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
+        gap: spacing.sm,
       }}>
-        <Text style={{
-          color: colors.text.primary,
-          fontWeight: typography.weight.bold,
-          fontSize: typography.size.xl,
-          letterSpacing: -0.5,
-        }}>
-          Profile
-        </Text>
-        
-        <View style={{ flexDirection: 'row', gap: spacing.md }}>
-          <TouchableOpacity 
-            onPress={onEditProfile}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Edit profile"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Edit3 size={18} color={colors.text.secondary} strokeWidth={2} />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={onOpenSettings}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            accessibilityLabel="Open settings"
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: colors.border,
-            }}
-          >
-            <Settings size={18} color={colors.text.secondary} strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          onPress={onEditProfile}
+          activeOpacity={0.7}
+          style={{
+            padding: spacing.sm,
+          }}
+        >
+          <Edit3 size={22} color={colors.text.primary} strokeWidth={1.5} />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={onOpenSettings}
+          activeOpacity={0.7}
+          style={{
+            padding: spacing.sm,
+          }}
+        >
+          <Settings size={22} color={colors.text.primary} strokeWidth={1.5} />
+        </TouchableOpacity>
       </View>
 
       <View style={{ 
-        alignItems: 'center',
-        paddingTop: spacing.xl,
-        paddingBottom: spacing['2xl'],
+        paddingHorizontal: spacing.xl,
+        paddingBottom: spacing.xl,
       }}>
-        <View style={{
-          position: 'relative',
-          marginBottom: spacing.lg,
-        }}>
+        <View style={{ marginBottom: spacing.xl }}>
           <Image
             source={{ uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop' }}
             style={{ 
               height: 100,
               width: 100,
               borderRadius: 50,
-              borderWidth: 3,
-              borderColor: brand.primary,
+              backgroundColor: colors.surface,
             }}
           />
-          {/* Removed umbrella badge for cleaner avatar */}
         </View>
         
         <Text style={{ 
-          fontSize: typography.size['2xl'],
+          fontSize: typography.size['5xl'],
           fontWeight: typography.weight.bold,
           color: colors.text.primary,
+          letterSpacing: -1,
         }}>
           {user.name || 'Member'}
         </Text>
@@ -102,18 +73,18 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
         <Text style={{ 
           marginTop: spacing.xs,
           color: colors.text.secondary,
-          fontSize: typography.size.base,
+          fontSize: typography.size.lg,
+          fontWeight: typography.weight.medium,
         }}>
-          @{(user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-')}
+          @{handle}
         </Text>
 
         <View style={{ 
           flexDirection: 'row',
           gap: spacing['3xl'],
-          marginTop: spacing.xl,
-          paddingHorizontal: spacing['2xl'],
+          marginTop: spacing['3xl'],
         }}>
-          <View style={{ alignItems: 'center' }}>
+          <View>
             <Text style={{ 
               color: colors.text.primary,
               fontWeight: typography.weight.bold,
@@ -124,12 +95,12 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
             <Text style={{ 
               color: colors.text.tertiary,
               fontSize: typography.size.sm,
-              marginTop: spacing.xs,
+              marginTop: 2,
             }}>
               Followers
             </Text>
           </View>
-          <View style={{ alignItems: 'center' }}>
+          <View>
             <Text style={{ 
               color: colors.text.primary,
               fontWeight: typography.weight.bold,
@@ -140,12 +111,12 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
             <Text style={{ 
               color: colors.text.tertiary,
               fontSize: typography.size.sm,
-              marginTop: spacing.xs,
+              marginTop: 2,
             }}>
               Following
             </Text>
           </View>
-          <View style={{ alignItems: 'center' }}>
+          <View>
             <Text style={{ 
               color: colors.text.primary,
               fontWeight: typography.weight.bold,
@@ -156,7 +127,7 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
             <Text style={{ 
               color: colors.text.tertiary,
               fontSize: typography.size.sm,
-              marginTop: spacing.xs,
+              marginTop: 2,
             }}>
               Events
             </Text>

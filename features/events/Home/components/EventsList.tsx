@@ -48,7 +48,7 @@ export const EventsList = ({
   }
 
   return (
-    <View style={{ paddingHorizontal: spacing.lg, gap: spacing.lg }}>
+    <View style={{ paddingHorizontal: spacing.xl }}>
       {events.map(item => (
         <EventCard key={item.id} item={item} />
       ))}

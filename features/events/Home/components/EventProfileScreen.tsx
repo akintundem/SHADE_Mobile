@@ -58,7 +58,6 @@ export const EventProfileScreen = ({ title, imageUrl, bio, posts = [] }: Props) 
         keyExtractor={i => i.id}
         renderItem={({ item }) => (
           <View style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderTopWidth: 1, borderColor: colors.border }}>
-            {/* User row */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               <Image source={{ uri: item.user.avatar }} style={{ width: 40, height: 40, borderRadius: 20 }} />
               <View style={{ flex: 1 }}>
@@ -73,12 +72,10 @@ export const EventProfileScreen = ({ title, imageUrl, bio, posts = [] }: Props) 
               </View>
             </View>
 
-            {/* Media */}
             {item.photos && item.photos.length > 0 ? (
               <PhotoGrid urls={item.photos} />
             ) : null}
 
-            {/* Actions */}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm, paddingRight: spacing.lg }}>
               <Action icon={MessageCircle} />
               <Action icon={Repeat2} />
@@ -153,5 +150,3 @@ const PhotoGrid = ({ urls }: { urls: string[] }) => {
     </View>
   );
 };
-
-

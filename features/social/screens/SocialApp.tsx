@@ -4,7 +4,7 @@ import { User } from '../../auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../auth/services/authService';
 import HomeScreen from '../../events/Home/screens/HomeScreen';
-import DiscoverScreen from '../../events/Discover/screens/DiscoverScreen';
+import ManageScreen from '../../events/Home/screens/ManageScreen';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
 const CameraScreen = React.lazy(() => import('../../media/Camera/screens/CameraScreen'));
 const VideoEditorScreen = React.lazy(() => import('../../media/editor/screens/VideoEditorScreen'));
@@ -23,7 +23,7 @@ type Props = {
 export default function SocialApp({ user, onLogout }: Props) {
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'home' | 'discover' | 'map' | 'profile'>('home');
+  const [tab, setTab] = useState<'home' | 'manage' | 'profile'>('home');
   const [isCreateEventOpen, setCreateEventOpen] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
 
@@ -43,16 +43,16 @@ export default function SocialApp({ user, onLogout }: Props) {
       {tab === 'home' ? (
         <HomeScreen
           user={user}
-          onTabChange={setTab}
+          onTabChange={setTab as any}
+          onCreateEvent={() => setCreateEventOpen(true)}
+        />
+      ) : tab === 'manage' ? (
+        <ManageScreen
+          user={user}
+          onTabChange={setTab as any}
           onCreateEvent={() => setCreateEventOpen(true)}
           onOpenCamera={() => setCameraOpen(true)}
           onOpenGallery={() => setGalleryOpen(true)}
-        />
-      ) : tab === 'discover' ? (
-        <DiscoverScreen
-          user={user}
-          onTabChange={setTab}
-          onCreateEvent={() => setCreateEventOpen(true)}
         />
       ) : (
         <React.Suspense fallback={null}>

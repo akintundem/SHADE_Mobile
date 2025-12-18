@@ -4,6 +4,8 @@ import React, { useMemo } from 'react';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
 import { EventStatus } from '../../types/events';
+import { dateUtils } from '../../../../common/utils/helpers';
+import { DATE_FORMATS } from '../../../../common/utils/constants';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1400&auto=format&fit=crop';
 
@@ -34,205 +36,35 @@ type Props = {
 };
 
 export const EventCard = ({ item, width }: Props) => {
-  const { typography, spacing, borderRadius, isDark, brand, shadows } = useTheme();
+  const { typography, spacing, borderRadius, colors } = useTheme();
   const navigation = useNavigation<any>();
   const { width: screenWidth } = Dimensions.get('window');
-  const cardWidth = width ?? screenWidth - spacing.lg * 2;
-  const cardHeight = Math.max(320, cardWidth * 1.05);
-
-  const overlayColor = 'rgba(0,0,0,0.65)';
-  const primaryText = '#FFFFFF';
-  const mutedText = 'rgba(255,255,255,0.72)';
-  const subtleText = 'rgba(255,255,255,0.55)';
-  const avatarBorder = 'rgba(255,255,255,0.35)';
-  const avatarSize = 36;
+  const cardWidth = width ?? screenWidth - spacing.xl * 2;
+  const cardHeight = cardWidth * 1.1; // Taller card for the overlay design
 
   const locationLabel = useMemo(() => {
     if (item.city || item.state) {
       const parts = [item.city, item.state].filter(Boolean);
-      if (parts.length > 0) return parts.join(', ');
+      return parts.join(', ');
     }
-    return item.venue ?? undefined;
+    return item.venue ?? 'Remote';
   }, [item.city, item.state, item.venue]);
 
-  const dayLabel = useMemo(() => {
-    if (!item.startAt) return undefined;
-    const startDate = new Date(item.startAt);
-    if (Number.isNaN(startDate.getTime())) return undefined;
+  const timeLabel = useMemo(() => {
+    if (!item.startAt) return 'Date TBD';
     const now = new Date();
-    const diffInMs = now.getTime() - startDate.getTime();
-    const dayMs = 1000 * 60 * 60 * 24;
-    if (diffInMs >= 0) {
-      const elapsedDays = Math.floor(diffInMs / dayMs);
-      return `Day ${elapsedDays + 1} `;
-    }
-    const daysUntil = Math.ceil(Math.abs(diffInMs) / dayMs);
-    return daysUntil === 0 ? 'Starts today' : `Starts in ${daysUntil} day${daysUntil === 1 ? '' : 's'} `;
+    const startDate = new Date(item.startAt);
+    const diffTime = startDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Starts today';
+    if (diffDays === 1) return 'Starts in 1 day';
+    if (diffDays > 0 && diffDays < 7) return `Starts in ${diffDays} days`;
+    
+    return dateUtils.formatDate(item.startAt, DATE_FORMATS.DISPLAY_DATE_SHORT);
   }, [item.startAt]);
 
-  const participantInitials = useMemo(() => {
-    if (!item.cosigners || item.cosigners.length === 0) return [];
-    return item.cosigners
-      .slice(0, 3)
-      .map(name => {
-        const trimmed = name.trim();
-        if (!trimmed) return '';
-        const parts = trimmed.split(/\s+/);
-        const initials = parts
-          .slice(0, 2)
-          .map(part => part[0]?.toUpperCase() ?? '')
-          .join('');
-        return initials || trimmed.slice(0, 2).toUpperCase();
-      })
-      .filter(Boolean);
-  }, [item.cosigners]);
-
   const participantCount = item.cosignedCount ?? item.cosigners?.length ?? 0;
-  const extraParticipants = Math.max(participantCount - participantInitials.length, 0);
-  const participantSummary = participantCount > 0 ? `${participantCount} traveling together` : 'Be the first to join';
-
-  const content = (
-    <View style={{ flex: 1, justifyContent: 'space-between' }}>
-      <View style={{ gap: spacing.lg }}>
-        <Text
-          style={{
-            color: primaryText,
-            fontSize: typography.size['3xl'],
-            fontWeight: typography.weight.bold,
-            lineHeight: typography.size['3xl'] * 1.1,
-          }}
-          numberOfLines={2}
-        >
-          {item.title}
-        </Text>
-
-        {locationLabel ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <MapPin size={18} color={primaryText} strokeWidth={2} />
-            <Text
-              style={{
-                color: mutedText,
-                fontSize: typography.size.base,
-                fontWeight: typography.weight.medium,
-              }}
-            >
-              {locationLabel}
-            </Text>
-          </View>
-        ) : null}
-
-        {dayLabel ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-            <Clock size={18} color={primaryText} strokeWidth={2} />
-            <Text
-              style={{
-                color: mutedText,
-                fontSize: typography.size.base,
-                fontWeight: typography.weight.medium,
-              }}
-            >
-              {dayLabel}
-            </Text>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={{ marginTop: spacing['3xl'] }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', marginRight: spacing.md }}>
-            {participantInitials.length > 0 ? (
-              participantInitials.map((initials, index) => (
-                <View
-                  key={`${initials} -${index} `}
-                  style={{
-                    width: avatarSize,
-                    height: avatarSize,
-                    borderRadius: avatarSize / 2,
-                    backgroundColor: 'rgba(255,255,255,0.18)',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: index === 0 ? 0 : -spacing.sm,
-                    borderWidth: 2,
-                    borderColor: avatarBorder,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: primaryText,
-                      fontWeight: typography.weight.semibold,
-                      fontSize: typography.size.sm,
-                    }}
-                  >
-                    {initials}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <View
-                style={{
-                  width: avatarSize,
-                  height: avatarSize,
-                  borderRadius: avatarSize / 2,
-                  backgroundColor: 'rgba(255,255,255,0.12)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: avatarBorder,
-                }}
-              >
-                <Text
-                  style={{
-                    color: primaryText,
-                    fontWeight: typography.weight.semibold,
-                    fontSize: typography.size.sm,
-                  }}
-                >
-                  YOU
-                </Text>
-              </View>
-            )}
-
-            {extraParticipants > 0 ? (
-              <View
-                style={{
-                  width: avatarSize,
-                  height: avatarSize,
-                  borderRadius: avatarSize / 2,
-                  backgroundColor: 'rgba(255,255,255,0.12)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: participantInitials.length > 0 ? -spacing.sm : 0,
-                  borderWidth: 2,
-                  borderColor: avatarBorder,
-                }}
-              >
-                <Text
-                  style={{
-                    color: primaryText,
-                    fontWeight: typography.weight.semibold,
-                    fontSize: typography.size.sm,
-                  }}
-                >
-                  +{extraParticipants}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-
-          <Text
-            style={{
-              color: subtleText,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium,
-            }}
-            numberOfLines={1}
-          >
-            {participantSummary}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
 
   return (
     <TouchableOpacity
@@ -249,30 +81,81 @@ export const EventCard = ({ item, width }: Props) => {
       style={{
         width: cardWidth,
         height: cardHeight,
-        borderRadius: borderRadius['3xl'],
+        borderRadius: 32, // More rounded as per image
         overflow: 'hidden',
-        backgroundColor: '#000000',
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 12 },
-        shadowOpacity: isDark ? 0.45 : 0.2,
-        shadowRadius: 24,
-        elevation: 8,
+        marginBottom: spacing.xl,
       }}
     >
       <ImageBackground
         source={{ uri: item.imageUrl ?? FALLBACK_IMAGE }}
+        style={{ width: '100%', height: '100%' }}
         resizeMode="cover"
-        style={{ flex: 1 }}
-        imageStyle={{ borderRadius: borderRadius['3xl'] }}
       >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: overlayColor,
-            padding: spacing['2xl'],
-          }}
-        >
-          {content}
+        {/* Dark overlay to ensure text readability */}
+        <View style={{ 
+          ...View.style, 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          backgroundColor: 'rgba(0,0,0,0.4)' 
+        }} />
+
+        <View style={{ flex: 1, padding: spacing.xl, justifyContent: 'space-between' }}>
+          {/* Top Section */}
+          <View style={{ gap: spacing.md }}>
+            <Text
+              style={{
+                color: '#FFFFFF',
+                fontSize: 32,
+                fontWeight: typography.weight.bold,
+                letterSpacing: -0.5,
+                lineHeight: 38,
+              }}
+              numberOfLines={3}
+            >
+              {item.title}
+            </Text>
+
+            <View style={{ gap: spacing.sm }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <MapPin size={20} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: typography.weight.medium }}>
+                  {locationLabel}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                <Clock size={20} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontSize: 18, fontWeight: typography.weight.medium }}>
+                  {timeLabel}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Bottom Section */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <View style={{ 
+              width: 44, 
+              height: 44, 
+              borderRadius: 22, 
+              backgroundColor: 'rgba(255,255,255,0.2)', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.3)'
+            }}>
+              <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: typography.weight.bold }}>YOU</Text>
+            </View>
+            <Text style={{ 
+              color: 'rgba(255,255,255,0.8)', 
+              fontSize: 16, 
+              fontWeight: typography.weight.medium 
+            }}>
+              {participantCount > 0 ? `${participantCount} people attending` : 'Be the first to join'}
+            </Text>
+          </View>
         </View>
       </ImageBackground>
     </TouchableOpacity>

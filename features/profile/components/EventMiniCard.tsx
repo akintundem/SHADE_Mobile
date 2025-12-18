@@ -1,5 +1,7 @@
 import React from 'react';
-import { ImageBackground, View, Text } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { ChevronRight } from 'lucide-react-native';
 
 type Props = {
   title: string;
@@ -10,26 +12,92 @@ type Props = {
   imageUrl: string;
 };
 
-export const EventMiniCard = ({ title, date, location, tagLeft, tagRight, imageUrl }: Props) => (
-  <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#FFFFFF' }}>
-    <ImageBackground source={{ uri: imageUrl }} style={{ height: 160 }}>
-      <View style={{ position: 'absolute', inset: 0 as any, backgroundColor: 'rgba(0,0,0,0.18)' }} />
-      {tagLeft ? (
-        <View style={{ position: 'absolute', top: 10, left: 10, backgroundColor: '#FFFFFF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
-          <Text style={{ color: '#111827', fontSize: 12 }}>{tagLeft}</Text>
+export const EventMiniCard = ({ title, date, location, tagLeft, tagRight, imageUrl }: Props) => {
+  const { colors, typography, spacing, borderRadius } = useTheme();
+
+  return (
+    <TouchableOpacity 
+      activeOpacity={0.8}
+      style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        gap: spacing.lg,
+        paddingVertical: spacing.sm,
+      }}
+    >
+      <View style={{ position: 'relative' }}>
+        <Image 
+          source={{ uri: imageUrl }} 
+          style={{ 
+            height: 90, 
+            width: 90, 
+            borderRadius: borderRadius.md,
+            backgroundColor: colors.surface,
+          }} 
+        />
+        {tagRight && (
+          <View style={{
+            position: 'absolute',
+            top: -4,
+            right: -4,
+            backgroundColor: colors.brand.primary,
+            paddingHorizontal: 6,
+            paddingVertical: 2,
+            borderRadius: 4,
+          }}>
+            <Text style={{ 
+              color: '#FFFFFF', 
+              fontSize: 10, 
+              fontWeight: typography.weight.bold,
+              textTransform: 'uppercase'
+            }}>
+              {tagRight}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: 4 }}>
+          {tagLeft && (
+            <Text style={{ 
+              fontSize: 11, 
+              color: colors.text.tertiary, 
+              fontWeight: typography.weight.bold,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}>
+              {tagLeft}
+            </Text>
+          )}
         </View>
-      ) : null}
-      {tagRight ? (
-        <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#111827', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 12 }}>{tagRight}</Text>
-        </View>
-      ) : null}
-    </ImageBackground>
-    <View style={{ padding: 12 }}>
-      <Text style={{ color: '#111827', fontWeight: '700' }}>{title}</Text>
-      <Text style={{ color: '#6B7280', marginTop: 4 }}>{date}</Text>
-      <Text style={{ color: '#6B7280', marginTop: 2 }}>{location}</Text>
-    </View>
-  </View>
-);
+        <Text style={{ 
+          color: colors.text.primary, 
+          fontWeight: typography.weight.bold, 
+          fontSize: typography.size.lg,
+          letterSpacing: -0.5,
+          marginBottom: 4,
+        }}>
+          {title}
+        </Text>
+        <Text style={{ 
+          color: colors.text.secondary, 
+          fontSize: typography.size.sm,
+          opacity: 0.8,
+        }}>
+          {date}
+        </Text>
+        <Text style={{ 
+          color: colors.text.tertiary, 
+          fontSize: typography.size.xs,
+          marginTop: 2,
+        }}>
+          {location}
+        </Text>
+      </View>
+
+      <ChevronRight size={18} color={colors.text.tertiary} strokeWidth={2} />
+    </TouchableOpacity>
+  );
+};
 

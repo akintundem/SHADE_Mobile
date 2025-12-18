@@ -213,48 +213,48 @@ export default function EventManageScreen({ route }: Props) {
   }, [tasks]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }} edges={['top', 'bottom']}>
       {/* Header with Progress */}
       <View style={{
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border
+        backgroundColor: colors.surface,
       }}>
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
           gap: spacing.md,
-          marginBottom: spacing.md
+          marginBottom: spacing.lg
         }}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ArrowLeft size={24} color={colors.text.primary} />
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.cardElevated, alignItems: 'center', justifyContent: 'center' }}>
+            <ArrowLeft size={20} color={colors.text.primary} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={{
               fontSize: typography.size.xl,
+              fontFamily: typography.family.bold,
               fontWeight: typography.weight.bold,
-              color: colors.text.primary
+              color: colors.text.primary,
+              letterSpacing: -0.3,
             }}>
               {title}
             </Text>
             <Text style={{
               fontSize: typography.size.sm,
-              color: colors.text.secondary,
-              marginTop: spacing.xs
+              fontFamily: typography.family.medium,
+              color: colors.text.tertiary,
+              marginTop: 1
             }}>
               Tasks & Timeline
             </Text>
           </View>
         </View>
 
-        {/* Progress Card */}
+        {/* Progress Section */}
         <View style={{
-          backgroundColor: colors.surface,
+          backgroundColor: colors.cardElevated,
           borderRadius: borderRadius.lg,
-          padding: spacing.md,
-          borderWidth: 1,
-          borderColor: colors.border
+          padding: spacing.lg,
         }}>
           <View style={{
             flexDirection: 'row',
@@ -263,15 +263,19 @@ export default function EventManageScreen({ route }: Props) {
             marginBottom: spacing.sm
           }}>
             <Text style={{
-              color: colors.text.primary,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium
+              color: colors.text.tertiary,
+              fontSize: typography.size.xs,
+              fontFamily: typography.family.bold,
+              fontWeight: typography.weight.bold,
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
             }}>
-              Progress
+              Overall Progress
             </Text>
             <Text style={{
               color: colors.text.primary,
               fontSize: typography.size.lg,
+              fontFamily: typography.family.bold,
               fontWeight: typography.weight.bold
             }}>
               {overallProgress}%
@@ -279,14 +283,14 @@ export default function EventManageScreen({ route }: Props) {
           </View>
           <View style={{
             height: 6,
-            backgroundColor: colors.border,
+            backgroundColor: colors.surface,
             borderRadius: borderRadius.full,
             overflow: 'hidden'
           }}>
             <View style={{
               width: `${overallProgress}%`,
               height: '100%',
-              backgroundColor: colors.brand.primary,
+              backgroundColor: colors.text.primary,
               borderRadius: borderRadius.full
             }} />
           </View>
@@ -296,15 +300,15 @@ export default function EventManageScreen({ route }: Props) {
       {/* View Toggle */}
       <View style={{
         flexDirection: 'row',
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.lg,
-        padding: spacing.xs,
+        backgroundColor: colors.cardElevated,
+        borderRadius: borderRadius.full,
+        padding: 4,
         marginHorizontal: spacing.lg,
-        marginVertical: spacing.md,
-        gap: spacing.xs
+        marginVertical: spacing.lg,
       }}>
         <TouchableOpacity
           onPress={() => setTaskView('list')}
+          activeOpacity={0.7}
           style={{
             flex: 1,
             flexDirection: 'row',
@@ -312,21 +316,23 @@ export default function EventManageScreen({ route }: Props) {
             justifyContent: 'center',
             gap: spacing.xs,
             paddingVertical: spacing.sm,
-            borderRadius: borderRadius.md,
-            backgroundColor: taskView === 'list' ? colors.brand.primary : 'transparent'
+            borderRadius: borderRadius.full,
+            backgroundColor: taskView === 'list' ? colors.text.primary : 'transparent'
           }}
         >
-          <List size={16} color={taskView === 'list' ? colors.text.inverse : colors.text.secondary} />
+          <List size={16} color={taskView === 'list' ? colors.background : colors.text.tertiary} />
           <Text style={{
-            color: taskView === 'list' ? colors.text.inverse : colors.text.secondary,
+            color: taskView === 'list' ? colors.background : colors.text.tertiary,
             fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium
+            fontFamily: typography.family.semibold,
+            fontWeight: typography.weight.semibold
           }}>
             List
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setTaskView('timeline')}
+          activeOpacity={0.7}
           style={{
             flex: 1,
             flexDirection: 'row',
@@ -334,15 +340,16 @@ export default function EventManageScreen({ route }: Props) {
             justifyContent: 'center',
             gap: spacing.xs,
             paddingVertical: spacing.sm,
-            borderRadius: borderRadius.md,
-            backgroundColor: taskView === 'timeline' ? colors.brand.primary : 'transparent'
+            borderRadius: borderRadius.full,
+            backgroundColor: taskView === 'timeline' ? colors.text.primary : 'transparent'
           }}
         >
-          <BarChart3 size={16} color={taskView === 'timeline' ? colors.text.inverse : colors.text.secondary} />
+          <BarChart3 size={16} color={taskView === 'timeline' ? colors.background : colors.text.tertiary} />
           <Text style={{
-            color: taskView === 'timeline' ? colors.text.inverse : colors.text.secondary,
+            color: taskView === 'timeline' ? colors.background : colors.text.tertiary,
             fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium
+            fontFamily: typography.family.semibold,
+            fontWeight: typography.weight.semibold
           }}>
             Timeline
           </Text>
@@ -350,38 +357,35 @@ export default function EventManageScreen({ route }: Props) {
       </View>
 
       {/* Task Content */}
-      {taskView === 'list' ? (
-        <ListView
-          tasks={tasks}
-          filterStatus={taskFilter}
-          onFilterChange={setTaskFilter}
-        />
-      ) : (
-        <TimelineView tasks={tasks} eventId={id} />
-      )}
+      <View style={{ flex: 1 }}>
+        {taskView === 'list' ? (
+          <ListView
+            tasks={tasks}
+            filterStatus={taskFilter}
+            onFilterChange={setTaskFilter}
+          />
+        ) : (
+          <TimelineView tasks={tasks} eventId={id} />
+        )}
+      </View>
 
       {/* AI Chat Button */}
       <TouchableOpacity
         onPress={() => navigation.navigate('Chat', { eventId: id })}
-        activeOpacity={0.8}
+        activeOpacity={0.9}
         style={{
           position: 'absolute',
           bottom: spacing.xl,
           right: spacing.xl,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: brand.primary,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: colors.text.primary,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#000000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
         }}
       >
-        <MessageCircle size={26} color="#FFFFFF" strokeWidth={2.5} />
+        <MessageCircle size={28} color={colors.background} />
       </TouchableOpacity>
     </SafeAreaView>
   );

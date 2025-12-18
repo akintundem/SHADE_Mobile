@@ -6,7 +6,7 @@ import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { Home, ClipboardList, User } from 'lucide-react-native';
 
 type Props = {
-  active: 'home' | 'discover' | 'profile';
+  active: 'home' | 'manage' | 'profile';
   onChange?: (tab: Props['active']) => void;
 };
 
@@ -58,8 +58,8 @@ export const TabBar = ({ active, onChange }: Props) => {
         Icon={Home}
       />
       <Item
-        active={active === 'discover'}
-        onPress={() => onChange?.('discover')}
+        active={active === 'manage'}
+        onPress={() => onChange?.('manage')}
         Icon={ClipboardList}
       />
       <Item

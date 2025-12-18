@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import {
   Accessibility,
+  ArrowLeft,
   Bell,
   ChevronRight,
   Download,
@@ -50,7 +51,7 @@ type BannerState = {
 
 export default function SettingsScreen({
   user,
-  onClose: _onClose,
+  onClose,
   onLogout,
 }: Props) {
   const { isDark, setDark, colors, spacing, borderRadius, typography } =
@@ -72,12 +73,20 @@ export default function SettingsScreen({
 
   const Section = ({ title }: { title: string }) => (
     <View
-      style={{ paddingHorizontal: spacing.lg, paddingVertical: spacing.md }}
+      style={{ 
+        paddingHorizontal: spacing.xl, 
+        paddingTop: spacing['2xl'], 
+        paddingBottom: spacing.md,
+        backgroundColor: colors.background,
+      }}
     >
       <Text
         style={{
           color: colors.text.tertiary,
-          fontWeight: typography.weight.semibold,
+          fontWeight: typography.weight.bold,
+          fontSize: typography.size.xs,
+          textTransform: 'uppercase',
+          letterSpacing: 1.5,
         }}
       >
         {title}
@@ -104,35 +113,46 @@ export default function SettingsScreen({
       onPress={onPress}
       disabled={!onPress}
       style={{
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md + 2,
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.lg,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottomWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface,
+        borderColor: colors.divider,
+        backgroundColor: colors.background,
       }}
-      activeOpacity={onPress ? 0.65 : 1}
+      activeOpacity={onPress ? 0.7 : 1}
     >
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          gap: spacing.md,
+          gap: spacing.lg,
           flex: 1,
         }}
       >
-        <Icon
-          size={18}
-          color={danger ? colors.semantic.error : colors.text.primary}
-        />
+        <View style={{
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          backgroundColor: colors.surface,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Icon
+            size={18}
+            color={danger ? colors.semantic.error : colors.text.primary}
+            strokeWidth={1.5}
+          />
+        </View>
         <View style={{ flex: 1 }}>
           <Text
             style={{
               color: danger ? colors.semantic.error : colors.text.primary,
               fontWeight: typography.weight.semibold,
-              fontSize: typography.size.sm,
+              fontSize: typography.size.base,
+              letterSpacing: -0.2,
             }}
           >
             {title}
@@ -142,7 +162,7 @@ export default function SettingsScreen({
               style={{
                 color: colors.text.tertiary,
                 marginTop: 2,
-                fontSize: typography.size.xs,
+                fontSize: typography.size.sm,
               }}
               numberOfLines={1}
             >
@@ -151,7 +171,7 @@ export default function SettingsScreen({
           ) : null}
         </View>
       </View>
-      {end ?? <ChevronRight size={16} color={colors.text.tertiary} />}
+      {end ?? <ChevronRight size={18} color={colors.text.tertiary} strokeWidth={1.5} />}
     </TouchableOpacity>
   );
 
@@ -240,26 +260,41 @@ export default function SettingsScreen({
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View
           style={{
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.md,
-            backgroundColor: colors.surfaceElevated,
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.xl,
             borderBottomWidth: 1,
-            borderColor: colors.border,
+            borderColor: colors.divider,
           }}
         >
+          {onClose && (
+            <TouchableOpacity 
+              onPress={onClose}
+              style={{ marginBottom: spacing.lg, marginLeft: -spacing.xs }}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={24} color={colors.text.primary} strokeWidth={1.5} />
+            </TouchableOpacity>
+          )}
           <Text
             style={{
-              fontSize: typography.size.lg,
+              fontSize: typography.size['3xl'],
               fontWeight: typography.weight.bold,
               color: colors.text.primary,
+              letterSpacing: -1,
             }}
           >
             {t('Settings')}
           </Text>
-          <Text style={{ color: colors.text.tertiary, marginTop: 4 }}>
+          <Text style={{ 
+            color: colors.text.secondary, 
+            marginTop: spacing.xs,
+            fontSize: typography.size.base,
+            fontWeight: typography.weight.medium,
+          }}>
             {headerSubtitle}
           </Text>
         </View>
@@ -496,16 +531,17 @@ export default function SettingsScreen({
 
         <View
           style={{
-            alignItems: 'center',
-            paddingVertical: spacing['3xl'],
+            alignItems: 'flex-start',
+            paddingHorizontal: spacing.xl,
+            paddingVertical: spacing['5xl'],
             gap: spacing.xs,
           }}
         >
-          <Text style={{ color: colors.text.tertiary }}>Capsule v1.0.0</Text>
-          <Text style={{ color: colors.text.tertiary }}>
-            Terms Privacy Cookies
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium }}>Capsule v1.0.0</Text>
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
+            Terms • Privacy • Cookies
           </Text>
-          <Text style={{ color: colors.text.tertiary }}>
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginTop: spacing.xs }}>
             © {new Date().getFullYear()} Capsule. All rights reserved.
           </Text>
         </View>

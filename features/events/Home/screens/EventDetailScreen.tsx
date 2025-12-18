@@ -64,13 +64,12 @@ export default function EventDetailScreen() {
         setEvent(data);
       } else {
         // For EventFeedResponse, we need to convert it to Event format
-        // Since EventFeedResponse doesn't have all Event fields, we'll create a minimal Event
         setEvent({
           id: data.eventId,
           name: data.eventName,
           description: data.description || null,
-          eventType: 'OTHER' as any, // EventFeedResponse doesn't include eventType
-          eventStatus: 'DRAFT' as any, // EventFeedResponse doesn't include eventStatus
+          eventType: 'OTHER' as any,
+          eventStatus: 'DRAFT' as any,
           startDateTime: data.startDateTime || null,
           endDateTime: null,
           registrationDeadline: null,
@@ -212,13 +211,10 @@ export default function EventDetailScreen() {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   };
 
-  // Show loading state
   if (loading) {
     return <LoadingOverlay visible={true} message="Loading event details..." />;
   }
 
-  // If event is FEED scope (GUEST), show feeds screen ONLY - no dashboard access
-  // Check this immediately after loading completes to prevent dashboard flash
   if (!loading && eventData && isFeedResponse(eventData)) {
     return (
       <EventFeedsScreen
@@ -229,7 +225,6 @@ export default function EventDetailScreen() {
     );
   }
 
-  // If error or no event (FULL scope only), show error state
   if (error || !event) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -257,25 +252,18 @@ export default function EventDetailScreen() {
     );
   }
 
-  const availableSpots =
-    event.capacity && event.currentAttendeeCount
-      ? event.capacity - event.currentAttendeeCount
-      : null;
-
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.surface }}
       edges={['top', 'bottom']}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Cover Image */}
         <View style={{ position: 'relative' }}>
           <Image
             source={{ uri: event.coverImageUrl || FALLBACK_IMAGE }}
             style={{ width: '100%', height: 300 }}
             resizeMode="cover"
           />
-          {/* Gradient-like overlay for text readability */}
           <View style={{
             position: 'absolute',
             bottom: 0,
@@ -302,7 +290,6 @@ export default function EventDetailScreen() {
             <ArrowLeft size={20} color={colors.text.primary} />
           </TouchableOpacity>
 
-          {/* Status Badge */}
           <View
             style={{
               position: 'absolute',
@@ -329,9 +316,7 @@ export default function EventDetailScreen() {
           </View>
         </View>
 
-        {/* Content */}
         <View style={{ padding: spacing.lg, gap: spacing.xl }}>
-          {/* Title */}
           <View>
             <Text
               style={{
@@ -358,7 +343,6 @@ export default function EventDetailScreen() {
             )}
           </View>
 
-          {/* Action Buttons */}
           <View style={{ gap: spacing.md }}>
             <TouchableOpacity
               onPress={handleEdit}
@@ -402,14 +386,7 @@ export default function EventDetailScreen() {
                 }}
               >
                 <Share2 size={18} color={colors.text.primary} />
-                <Text style={{ 
-                  color: colors.text.primary, 
-                  fontFamily: typography.family.medium,
-                  fontWeight: typography.weight.medium,
-                  fontSize: typography.size.sm,
-                }}>
-                  Share
-                </Text>
+                <Text style={{ color: colors.text.primary, fontFamily: typography.family.medium, fontWeight: typography.weight.medium, fontSize: typography.size.sm }}>Share</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -427,343 +404,56 @@ export default function EventDetailScreen() {
                 }}
               >
                 <Settings size={18} color={colors.text.primary} />
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontFamily: typography.family.medium,
-                    fontWeight: typography.weight.medium,
-                    fontSize: typography.size.sm,
-                  }}
-                >
-                  Manage
-                </Text>
+                <Text style={{ color: colors.text.primary, fontFamily: typography.family.medium, fontWeight: typography.weight.medium, fontSize: typography.size.sm }}>Manage</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Description */}
           {event.description && (
             <View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.lg,
-                  fontFamily: typography.family.bold,
-                  fontWeight: typography.weight.bold,
-                  marginBottom: spacing.xs,
-                }}
-              >
-                About
-              </Text>
-              <Text
-                style={{
-                  color: colors.text.secondary,
-                  fontSize: typography.size.base,
-                  lineHeight: 22,
-                  fontFamily: typography.family.regular,
-                }}
-              >
-                {event.description}
-              </Text>
+              <Text style={{ color: colors.text.primary, fontSize: typography.size.lg, fontFamily: typography.family.bold, fontWeight: typography.weight.bold, marginBottom: spacing.xs }}>About</Text>
+              <Text style={{ color: colors.text.secondary, fontSize: typography.size.base, lineHeight: 22, fontFamily: typography.family.regular }}>{event.description}</Text>
             </View>
           )}
 
-          {/* Event Details Section */}
-          <View
-            style={{
-              backgroundColor: colors.cardElevated,
-              borderRadius: borderRadius.lg,
-              padding: spacing.lg,
-              gap: spacing.lg,
-            }}
-          >
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size.lg,
-                fontFamily: typography.family.bold,
-                fontWeight: typography.weight.bold,
-              }}
-            >
-              Event Details
-            </Text>
-
-            {/* Date & Time */}
+          <View style={{ backgroundColor: colors.cardElevated, borderRadius: borderRadius.lg, padding: spacing.lg, gap: spacing.lg }}>
+            <Text style={{ color: colors.text.primary, fontSize: typography.size.lg, fontFamily: typography.family.bold, fontWeight: typography.weight.bold }}>Event Details</Text>
             {event.startDateTime && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                }}
-              >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
                   <Calendar size={18} color={colors.text.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: colors.text.tertiary,
-                      fontSize: typography.size.xs,
-                      fontFamily: typography.family.medium,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    Date & Time
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.base,
-                      fontFamily: typography.family.medium,
-                      fontWeight: typography.weight.medium,
-                      marginTop: 1,
-                    }}
-                  >
-                    {dateUtils.formatDate(
-                      event.startDateTime,
-                      DATE_FORMATS.DISPLAY_DATETIME,
-                    )}
+                  <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontFamily: typography.family.medium, textTransform: 'uppercase', letterSpacing: 0.5 }}>Date & Time</Text>
+                  <Text style={{ color: colors.text.primary, fontSize: typography.size.base, fontFamily: typography.family.medium, fontWeight: typography.weight.medium, marginTop: 1 }}>
+                    {dateUtils.formatDate(event.startDateTime, DATE_FORMATS.DISPLAY_DATETIME)}
                   </Text>
                 </View>
               </View>
             )}
-
-            {/* Location */}
             {event.eventWebsiteUrl && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                }}
-              >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={18} color={colors.text.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: colors.text.tertiary,
-                      fontSize: typography.size.xs,
-                      fontFamily: typography.family.medium,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    Location
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.base,
-                      fontFamily: typography.family.medium,
-                      fontWeight: typography.weight.medium,
-                      marginTop: 1,
-                    }}
-                  >
-                    {event.eventWebsiteUrl}
-                  </Text>
+                  <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontFamily: typography.family.medium, textTransform: 'uppercase', letterSpacing: 0.5 }}>Location</Text>
+                  <Text style={{ color: colors.text.primary, fontSize: typography.size.base, fontFamily: typography.family.medium, fontWeight: typography.weight.medium, marginTop: 1 }}>{event.eventWebsiteUrl}</Text>
                 </View>
               </View>
             )}
-
-            {/* Capacity */}
             {event.capacity && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                }}
-              >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                 <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}>
                   <Users size={18} color={colors.text.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: colors.text.tertiary,
-                      fontSize: typography.size.xs,
-                      fontFamily: typography.family.medium,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    Capacity
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.base,
-                      fontFamily: typography.family.medium,
-                      fontWeight: typography.weight.medium,
-                      marginTop: 1,
-                    }}
-                  >
-                    {event.currentAttendeeCount || 0} / {event.capacity}{' '}
-                    attendees
-                  </Text>
+                  <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontFamily: typography.family.medium, textTransform: 'uppercase', letterSpacing: 0.5 }}>Capacity</Text>
+                  <Text style={{ color: colors.text.primary, fontSize: typography.size.base, fontFamily: typography.family.medium, fontWeight: typography.weight.medium, marginTop: 1 }}>{event.currentAttendeeCount || 0} / {event.capacity} attendees</Text>
                 </View>
               </View>
             )}
           </View>
-
-          {/* Status Actions */}
-          {event.eventStatus !== EventStatus.COMPLETED &&
-            event.eventStatus !== EventStatus.CANCELLED && (
-              <View style={{ gap: spacing.md }}>
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.lg,
-                    fontFamily: typography.family.bold,
-                    fontWeight: typography.weight.bold,
-                  }}
-                >
-                  Actions
-                </Text>
-
-                {(event.eventStatus === EventStatus.DRAFT ||
-                  event.eventStatus === EventStatus.PLANNING) && (
-                  <TouchableOpacity
-                    onPress={handlePublish}
-                    activeOpacity={0.7}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: spacing.sm,
-                      backgroundColor: colors.semantic.success,
-                      paddingVertical: spacing.md,
-                      borderRadius: borderRadius.lg,
-                    }}
-                  >
-                    <PlayCircle size={20} color="#FFFFFF" />
-                    <Text
-                      style={{
-                        color: '#FFFFFF',
-                        fontFamily: typography.family.bold,
-                        fontWeight: typography.weight.bold,
-                        fontSize: typography.size.base,
-                      }}
-                    >
-                      Publish Event
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                {event.eventStatus === EventStatus.PUBLISHED && (
-                  <TouchableOpacity
-                    onPress={handleComplete}
-                    activeOpacity={0.7}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: spacing.sm,
-                      backgroundColor: colors.cardElevated,
-                      paddingVertical: spacing.md,
-                      borderRadius: borderRadius.lg,
-                    }}
-                  >
-                    <CheckCircle2 size={20} color={colors.text.primary} />
-                    <Text
-                      style={{
-                        color: colors.text.primary,
-                        fontFamily: typography.family.semibold,
-                        fontWeight: typography.weight.semibold,
-                        fontSize: typography.size.base,
-                      }}
-                    >
-                      Mark as Complete
-                    </Text>
-                  </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                  onPress={handleCancel}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: spacing.sm,
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)',
-                    paddingVertical: spacing.md,
-                    borderRadius: borderRadius.lg,
-                  }}
-                >
-                  <XCircle size={20} color={colors.semantic.error} />
-                  <Text
-                    style={{
-                      color: colors.semantic.error,
-                      fontFamily: typography.family.semibold,
-                      fontWeight: typography.weight.semibold,
-                      fontSize: typography.size.base,
-                    }}
-                  >
-                    Cancel Event
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-          {/* Additional Info */}
-          {(event.targetAudience || event.objectives) && (
-            <View style={{ gap: spacing.xl, marginTop: spacing.md }}>
-              {event.targetAudience && (
-                <View>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.lg,
-                      fontFamily: typography.family.bold,
-                      fontWeight: typography.weight.bold,
-                      marginBottom: spacing.xs,
-                    }}
-                  >
-                    Target Audience
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.base,
-                      fontFamily: typography.family.regular,
-                    }}
-                  >
-                    {event.targetAudience}
-                  </Text>
-                </View>
-              )}
-
-              {event.objectives && (
-                <View>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.lg,
-                      fontFamily: typography.family.bold,
-                      fontWeight: typography.weight.bold,
-                      marginBottom: spacing.xs,
-                    }}
-                  >
-                    Objectives
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.secondary,
-                      fontSize: typography.size.base,
-                      fontFamily: typography.family.regular,
-                    }}
-                  >
-                    {event.objectives}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>

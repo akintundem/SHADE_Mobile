@@ -1,74 +1,102 @@
-import React, { useState } from 'react';
-import { ScrollView, View, RefreshControl } from 'react-native';
-import { HomeHeader } from '../components/HomeHeader';
-import { EventSegmentedControl, SegmentType } from '../components/EventSegmentedControl';
-import { EventsList } from '../components/EventsList';
-import { TabBar } from '../components/TabBar';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  ScrollView,
+  View,
+  Text,
+  RefreshControl,
+  Dimensions
+} from 'react-native';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { User } from '../../types/events';
-import { EventItem } from '../components/EventCard';
-import { useEvents } from '../hooks/useEvents';
-import { useEventFilters } from '../hooks/useEventFilters';
+import { TabBar } from '../components/TabBar';
+import { eventService } from '../../services/eventService';
+import { EventResponse } from '../../types/events';
+import LoadingState from '../../../../common/components/LoadingState';
+import { EventsList } from '../components/EventsList';
 import { convertEventsToItems } from '../utils/eventUtils';
 
+const { width } = Dimensions.get('window');
+
 type Props = {
-  user: User;
-  events?: EventItem[];
+  user: any;
+  onTabChange?: (tab: 'home' | 'manage' | 'profile') => void;
   onCreateEvent?: () => void;
   onOpenMenu?: () => void;
   onOpenCamera?: () => void;
   onOpenGallery?: () => void;
-  onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void;
 };
 
-export default function HomeScreen({
-  user,
-  events = [],
-  onCreateEvent,
-  onOpenMenu,
-  onOpenCamera,
-  onOpenGallery,
-  onTabChange,
-}: Props) {
-  const { colors, spacing } = useTheme();
-  const [activeSegment, setActiveSegment] = useState<SegmentType>('live');
+export default function HomeScreen({ user, onTabChange }: Props) {
+  const { colors, spacing, typography } = useTheme();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [allEvents, setAllEvents] = useState<EventResponse[]>([]);
 
-  const { events: fetchedEvents, isLoading, refreshing, onRefresh } = useEvents();
-  const allEvents = [...events, ...convertEventsToItems(fetchedEvents)];
-  const { filteredEvents, emptyState } = useEventFilters(allEvents, activeSegment);
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const publicEvents = await eventService.getPublicEvents({ size: 20 });
+      setAllEvents(publicEvents.content);
+    } catch (error) {
+      console.error('Failed to load discovery data', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData();
+  };
+
+  const eventItems = convertEventsToItems(allEvents);
+
+  if (loading && !refreshing) {
+    return <LoadingState />;
+  }
 
   return (
     <SafeAreaWrapper edges={['top']}>
-      <View style={{ flex: 1 }}>
-        <View style={{ backgroundColor: colors.background }}>
-          <HomeHeader user={user} onOpenMenu={onOpenMenu} onOpenCamera={onOpenCamera} onOpenGallery={onOpenGallery} />
-          <EventSegmentedControl
-            activeSegment={activeSegment}
-            onSegmentChange={setActiveSegment}
-          />
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        {/* Header */}
+        <View style={{
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.lg,
+          paddingBottom: spacing.lg,
+          backgroundColor: colors.background,
+        }}>
+          <Text style={{
+            fontSize: 32,
+            fontWeight: typography.weight.bold,
+            color: colors.text.primary,
+            letterSpacing: -1,
+          }}>
+            Shade
+          </Text>
         </View>
 
         <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: spacing.xl }}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: spacing['6xl'] }}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor={colors.text.primary}
-              colors={[colors.text.primary]}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.text.primary} />
           }
         >
-          <EventsList
-            events={filteredEvents}
-            isLoading={isLoading}
-            emptyState={emptyState}
-            onCreateEvent={onCreateEvent}
-            showCreateAction={activeSegment === 'live'}
-          />
+          <View style={{ marginTop: spacing.md }}>
+            <EventsList
+              events={eventItems}
+              isLoading={loading}
+              emptyState={{ 
+                title: "No events found", 
+                subtitle: "Check back later for more events!" 
+              }}
+            />
+          </View>
         </ScrollView>
       </View>
 

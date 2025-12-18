@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingVi
 import { ArrowLeft } from 'lucide-react-native';
 import { User } from '../../auth/types/auth';
 import { useI18n } from '../../../common/i18n/I18nProvider';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
   user: User;
@@ -13,6 +14,7 @@ type Props = {
 
 export default function EditProfileScreen({ user, onBack, onSave }: Props) {
   const { t } = useI18n();
+  const { colors, spacing, typography, borderRadius } = useTheme();
   const [tab, setTab] = useState<'basic' | 'professional' | 'privacy'>('basic');
   const [name, setName] = useState(user.name || '');
   const [username, setUsername] = useState((user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-'));
@@ -21,24 +23,41 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
   const [location, setLocation] = useState('');
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderColor: '#E5E7EB' }}>
-          <TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
-            <ArrowLeft size={20} color="#111827" />
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          paddingHorizontal: spacing.xl, 
+          paddingVertical: spacing.lg,
+          borderBottomWidth: 1, 
+          borderColor: colors.divider 
+        }}>
+          <TouchableOpacity onPress={onBack} style={{ padding: spacing.xs }}>
+            <ArrowLeft size={24} color={colors.text.primary} strokeWidth={1.5} />
           </TouchableOpacity>
-          <Text style={{ color: '#111827', fontWeight: '700' }}>{t('EditProfile')}</Text>
+          <Text style={{ color: colors.text.primary, fontWeight: typography.weight.bold, fontSize: typography.size.lg }}>
+            {t('EditProfile')}
+          </Text>
           <TouchableOpacity
             onPress={() => onSave?.({ name, username, bio, website, location })}
-            style={{ backgroundColor: '#111827', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}
+            style={{ 
+              backgroundColor: colors.text.primary, 
+              borderRadius: borderRadius.full, 
+              paddingHorizontal: spacing.lg, 
+              paddingVertical: spacing.sm 
+            }}
           >
-            <Text style={{ color: '#FFFFFF', fontWeight: '600' }}>{t('Save')}</Text>
+            <Text style={{ color: colors.text.inverse, fontWeight: typography.weight.bold, fontSize: typography.size.sm }}>
+              {t('Save')}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Tabs */}
-        <View style={{ flexDirection: 'row', gap: 12, padding: 12 }}>
+        {/* Wealthsimple-style Flat Tabs */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: spacing.xl, borderBottomWidth: 1, borderColor: colors.divider }}>
           {[
             { key: 'basic', label: t('Basic') },
             { key: 'professional', label: t('Professional') },
@@ -47,18 +66,32 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
             <TouchableOpacity
               key={tabOption.key}
               onPress={() => setTab(tabOption.key as any)}
-              style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: tab === (tabOption.key as any) ? '#111827' : '#F3F4F6' }}
+              style={{ 
+                paddingVertical: spacing.lg, 
+                marginRight: spacing.xl,
+                borderBottomWidth: tab === tabOption.key ? 2 : 0,
+                borderBottomColor: colors.text.primary
+              }}
             >
-              <Text style={{ color: tab === (tabOption.key as any) ? '#FFFFFF' : '#111827', fontWeight: '600' }}>{tabOption.label}</Text>
+              <Text style={{ 
+                color: tab === tabOption.key ? colors.text.primary : colors.text.tertiary, 
+                fontWeight: tab === tabOption.key ? typography.weight.bold : typography.weight.medium,
+                fontSize: typography.size.base
+              }}>
+                {tabOption.label}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+        <ScrollView 
+          contentContainerStyle={{ paddingBottom: spacing['4xl'], paddingTop: spacing.xl }}
+          showsVerticalScrollIndicator={false}
+        >
           {tab === 'basic' ? (
-            <View style={{ paddingHorizontal: 16, gap: 12 }}>
+            <View style={{ paddingHorizontal: spacing.xl, gap: spacing.xl }}>
               <LabeledInput label={t('FullName')} value={name} onChangeText={setName} />
-              <LabeledInput label={t('Username')} value={username} onChangeText={setUsername} prefix="#" />
+              <LabeledInput label={t('Username')} value={username} onChangeText={setUsername} prefix="@" />
               <LabeledTextArea label={t('Bio')} value={bio} onChangeText={setBio} maxLength={150} />
               <LabeledInput label={t('Website')} value={website} onChangeText={setWebsite} placeholder="yourwebsite.com" />
               <LabeledInput label={t('Location')} value={location} onChangeText={setLocation} placeholder={t('CityCountry')} />
@@ -66,14 +99,18 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
           ) : null}
 
           {tab === 'professional' ? (
-            <View style={{ paddingHorizontal: 16 }}>
-              <Text style={{ color: '#6B7280' }}>{t('ProfessionalSettingsComingSoon')}</Text>
+            <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, alignItems: 'center' }}>
+              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.base }}>
+                {t('ProfessionalSettingsComingSoon')}
+              </Text>
             </View>
           ) : null}
 
           {tab === 'privacy' ? (
-            <View style={{ paddingHorizontal: 16 }}>
-              <Text style={{ color: '#6B7280' }}>{t('PrivacyControlsWillLiveHere')}</Text>
+            <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.xl, alignItems: 'center' }}>
+              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.base }}>
+                {t('PrivacyControlsWillLiveHere')}
+              </Text>
             </View>
           ) : null}
         </ScrollView>
@@ -83,12 +120,24 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
 }
 
 function LabeledInput({ label, prefix, ...rest }: any) {
+  const { colors, spacing, typography } = useTheme();
   return (
-    <View>
-      <Text style={{ color: '#6B7280', marginBottom: 6 }}>{label}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingHorizontal: 12, height: 44, backgroundColor: '#FFFFFF' }}>
-        {prefix ? <Text style={{ color: '#6B7280', marginRight: 6 }}>{prefix}</Text> : null}
-        <TextInput {...rest} style={{ flex: 1, color: '#111827' }} placeholderTextColor="#9CA3AF" />
+    <View style={{ borderBottomWidth: 1, borderColor: colors.divider, paddingBottom: spacing.sm }}>
+      <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.bold, textTransform: 'uppercase', letterSpacing: 1, marginBottom: spacing.xs }}>
+        {label}
+      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {prefix ? <Text style={{ color: colors.text.secondary, marginRight: spacing.xs, fontSize: typography.size.base }}>{prefix}</Text> : null}
+        <TextInput 
+          {...rest} 
+          style={{ 
+            flex: 1, 
+            color: colors.text.primary, 
+            fontSize: typography.size.base,
+            paddingVertical: spacing.xs,
+          }} 
+          placeholderTextColor={colors.text.disabled} 
+        />
       </View>
     </View>
   );
@@ -96,24 +145,32 @@ function LabeledInput({ label, prefix, ...rest }: any) {
 
 function LabeledTextArea({ label, maxLength = 150, value, onChangeText }: any) {
   const { t } = useI18n();
+  const { colors, spacing, typography } = useTheme();
   return (
-    <View>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
-        <Text style={{ color: '#6B7280' }}>{label}</Text>
-        <Text style={{ color: '#9CA3AF' }}>{(value?.length || 0)}/{maxLength}</Text>
+    <View style={{ borderBottomWidth: 1, borderColor: colors.divider, paddingBottom: spacing.sm }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xs }}>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.bold, textTransform: 'uppercase', letterSpacing: 1 }}>
+          {label}
+        </Text>
+        <Text style={{ color: colors.text.disabled, fontSize: typography.size.xs }}>
+          {(value?.length || 0)}/{maxLength}
+        </Text>
       </View>
-      <View style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#FFFFFF' }}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          multiline
-          numberOfLines={4}
-          maxLength={maxLength}
-          style={{ color: '#111827', minHeight: 80 }}
-          placeholder={t('TellPeopleAboutYourself')}
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        multiline
+        numberOfLines={4}
+        maxLength={maxLength}
+        style={{ 
+          color: colors.text.primary, 
+          fontSize: typography.size.base,
+          minHeight: 80,
+          paddingVertical: spacing.xs,
+        }}
+        placeholder={t('TellPeopleAboutYourself')}
+        placeholderTextColor={colors.text.disabled}
+      />
     </View>
   );
 }

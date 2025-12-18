@@ -9,7 +9,7 @@ import EditProfileScreen from './EditProfileScreen';
 import { User } from '../../auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 
-type Props = { user: User; onTabChange?: (tab: 'home' | 'discover' | 'map' | 'profile') => void; onLogout?: () => void };
+type Props = { user: User; onTabChange?: (tab: 'home' | 'manage' | 'profile') => void; onLogout?: () => void };
 
 export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
   const { colors, brand, typography, spacing, borderRadius } = useTheme();
@@ -37,41 +37,39 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: spacing['3xl'] }}
+        contentContainerStyle={{ paddingBottom: spacing['6xl'] }}
         showsVerticalScrollIndicator={false}
       >
         <ProfileHeader user={user} onEditProfile={() => setView('edit')} onOpenSettings={() => setView('settings')} />
 
-        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
-          {/* Segmented control */}
+        <View style={{ marginTop: spacing.xl }}>
+          {/* Wealthsimple-style Flat Navigation */}
           <View style={{
             flexDirection: 'row',
-            backgroundColor: colors.surface,
-            borderRadius: borderRadius.lg,
-            padding: spacing.xs,
-            borderWidth: 1,
-            borderColor: colors.border,
+            paddingHorizontal: spacing.xl,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.divider,
           }}>
             {[
-              { key: 'posts', label: 'Posts' },
               { key: 'events', label: 'Events' },
+              { key: 'posts', label: 'Posts' },
             ].map(t => (
               <TouchableOpacity
                 key={t.key}
                 onPress={() => setSection(t.key as any)}
                 activeOpacity={0.7}
                 style={{
-                  flex: 1,
-                  paddingVertical: spacing.md,
-                  borderRadius: borderRadius.md,
-                  backgroundColor: section === t.key ? brand.primary : 'transparent',
-                  alignItems: 'center',
+                  paddingVertical: spacing.lg,
+                  marginRight: spacing['2xl'],
+                  borderBottomWidth: section === t.key ? 2 : 0,
+                  borderBottomColor: colors.text.primary,
                 }}
               >
                 <Text style={{
-                  color: section === t.key ? '#FFFFFF' : colors.text.secondary,
-                  fontWeight: section === t.key ? typography.weight.semibold : typography.weight.medium,
-                  fontSize: typography.size.sm,
+                  color: section === t.key ? colors.text.primary : colors.text.tertiary,
+                  fontWeight: section === t.key ? typography.weight.bold : typography.weight.medium,
+                  fontSize: typography.size.base,
+                  letterSpacing: -0.2,
                 }}>
                   {t.label}
                 </Text>
@@ -79,38 +77,42 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
             ))}
           </View>
 
-          {section === 'events' ? (
-            <View style={{ marginTop: spacing.lg, gap: spacing.md }}>
-              <EventMiniCard
-                title="Tech Conference 2024"
-                date="Nov 14, 2024"
-                location="San Francisco, CA"
-                tagLeft="upcoming"
-                tagRight="Creator"
-                imageUrl="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop"
-              />
-              <EventMiniCard
-                title="Live Sessions Night"
-                date="May 22, 2025"
-                location="Los Angeles, CA"
-                tagLeft="completed"
-                tagRight="Creator"
-                imageUrl="https://images.unsplash.com/photo-1461784180009-21121b2f2045?q=80&w=1400&auto=format&fit=crop"
-              />
-            </View>
-          ) : (
-            <View style={{
-              alignItems: 'center',
-              paddingVertical: spacing['5xl'],
-            }}>
-              <Text style={{
-                color: colors.text.tertiary,
-                fontSize: typography.size.base,
+          <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.xl }}>
+            {section === 'events' ? (
+              <View style={{ gap: spacing.xl }}>
+                <EventMiniCard
+                  title="Tech Conference 2024"
+                  date="Nov 14, 2024"
+                  location="San Francisco, CA"
+                  tagLeft="upcoming"
+                  tagRight="Creator"
+                  imageUrl="https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop"
+                />
+                <View style={{ height: 1, backgroundColor: colors.divider, opacity: 0.5 }} />
+                <EventMiniCard
+                  title="Live Sessions Night"
+                  date="May 22, 2025"
+                  location="Los Angeles, CA"
+                  tagLeft="completed"
+                  tagRight="Creator"
+                  imageUrl="https://images.unsplash.com/photo-1461784180009-21121b2f2045?q=80&w=1400&auto=format&fit=crop"
+                />
+              </View>
+            ) : (
+              <View style={{
+                alignItems: 'center',
+                paddingVertical: spacing['7xl'],
               }}>
-                No posts yet
-              </Text>
-            </View>
-          )}
+                <Text style={{
+                  color: colors.text.tertiary,
+                  fontSize: typography.size.base,
+                  fontWeight: typography.weight.medium,
+                }}>
+                  No posts yet
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
 

@@ -43,7 +43,7 @@ export const ManageEventCard = ({
   const clamped = Math.max(0, Math.min(100, progress));
 
   return (
-    <View style={{ borderRadius: borderRadius.xl, overflow: 'hidden', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadows.sm }}>
+    <View style={{ borderRadius: borderRadius.xl, overflow: 'hidden', backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, ...shadows.sm, marginBottom: spacing.lg }}>
       <Image source={{ uri: imageUrl }} style={{ height: 140, width: '100%' }} resizeMode="cover" />
       <View style={{ padding: spacing.lg, gap: spacing.sm }}>
         <Text style={{ color: colors.text.primary, fontWeight: typography.weight.bold, fontSize: typography.size.lg }} numberOfLines={1}>{title}</Text>
@@ -84,5 +84,3 @@ export const ManageEventCard = ({
     </View>
   );
 };
-
-
