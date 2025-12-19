@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Mail } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../common/i18n/I18nProvider';
-import { authService } from '../services/authService';
+import { authService } from '../../../core/auth/authService';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';

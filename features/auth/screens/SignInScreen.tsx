@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../common/i18n/I18nProvider';
-import { User } from '../types/auth';
+import { User } from '../../../core/auth/types/auth';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import BrandLogo from '../../../common/components/brand/BrandLogo';
 import { SignInForm } from '../components';

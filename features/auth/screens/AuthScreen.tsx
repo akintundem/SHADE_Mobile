@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User } from '../types/auth';
+import { User } from '../../../core/auth/types/auth';
 import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
 

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { RegisterRequest } from '../types/auth';
-import { authService } from '../services/authService';
+import { RegisterRequest } from '../../../core/auth/types/auth';
+import { authService } from '../../../core/auth/authService';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
 import Button from '../../../common/components/ui/Button';
