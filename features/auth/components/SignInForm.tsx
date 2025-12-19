@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
 import { User, LoginRequest } from '../../../core/auth/types/auth';
-import { authService } from '../../../core/auth/authService';
+import { authService } from '../../../core/auth/services/authService';
 import { setUser } from '../../../common/storage/authStorage';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import Input from '../../../common/components/ui/Input';

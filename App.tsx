@@ -23,7 +23,7 @@ function App() {
           if (cached) {
             // Validate token on app startup
             try {
-              const { authService } = await import('./core/auth/authService');
+              const { authService } = await import('./core/auth/services/authService');
               const validationResult = await authService.validateToken({ token });
 
               if (validationResult.valid && validationResult.user) {

@@ -1,5 +1,5 @@
 // Re-export services from core auth
-export { authService } from '../../core/auth/authService';
+export { authService } from '../../core/auth/services/authService';
 
 // Re-export common services
 export { http, httpUnauthenticated, persistTokenFrom } from './httpClient';

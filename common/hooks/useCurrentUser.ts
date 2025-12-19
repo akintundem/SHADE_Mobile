@@ -1,5 +1,5 @@
 import { useAsync } from './useAsync';
-import { authService } from '../../core/auth/authService';
+import { authService } from '../../core/auth/services/authService';
 import { SecureUserResponse } from '../../core/auth/types/auth';
 
 export function useCurrentUser() {
