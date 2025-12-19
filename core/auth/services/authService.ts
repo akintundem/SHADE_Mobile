@@ -1,4 +1,4 @@
-import { http, httpUnauthenticated, persistTokenFrom } from '../../common/services/httpClient';
+import { http, httpUnauthenticated, persistTokenFrom } from '../../../common/services/httpClient';
 import {
   ApiMessageResponse,
   SecureAuthResponse,
@@ -26,11 +26,11 @@ import {
 } from '../types/auth';
 
 // Lazy load authStorage to avoid circular dependencies
-let authStorage: typeof import('../../common/storage/authStorage') | null = null;
+let authStorage: typeof import('../../../common/storage/authStorage') | null = null;
 
 const getAuthStorage = async () => {
   if (!authStorage) {
-    authStorage = await import('../../common/storage/authStorage');
+    authStorage = await import('../../../common/storage/authStorage');
   }
   return authStorage;
 };
