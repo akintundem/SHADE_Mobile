@@ -17,6 +17,8 @@ export const en = {
   SendResetLink: 'Send reset link',
   PleaseEnterEmail: 'Please enter your email address',
   ResetLinkSent: 'If an account exists with this email, we\'ve sent a password reset link.',
+  EmailSent: 'Email sent',
+  EmailSentDescription: 'We\'ve sent a password reset link to {email}',
   UnableToSendResetEmail: 'Unable to send reset email. Please try again.',
   PleaseEnterValidEmail: 'Please enter a valid email address',
   PasswordIncorrect: 'Sorry, your password was incorrect. Please double-check your password.',

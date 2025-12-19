@@ -64,6 +64,19 @@ function App() {
   }, []);
 
   const handleLogin = (u: User) => setUser(u);
+  const handleLogout = async () => {
+    try {
+      // Call logout service to invalidate session on server and clear local data
+      const { authService } = await import('./core/auth/services/authService');
+      await authService.logout();
+    } catch (error) {
+      // If logout service fails, still clear local auth data
+      const { clearAllAuth } = await import('./common/storage/authStorage');
+      await clearAllAuth();
+    }
+    // Always clear user state to return to auth screen
+    setUser(null);
+  };
 
   return (
     <SafeAreaProvider>
@@ -77,7 +90,7 @@ function App() {
                   onLogin={handleLogin}
                 />
               ) : (
-                <WelcomeScreen user={user} />
+                <WelcomeScreen user={user} onLogout={handleLogout} />
               )}
             </NavigationContainer>
           </ThemeProvider>

@@ -17,6 +17,8 @@ export const fr = {
   SendResetLink: 'Envoyer le lien de réinitialisation',
   PleaseEnterEmail: 'Veuillez entrer votre adresse e-mail',
   ResetLinkSent: 'Si un compte existe avec cet e-mail, nous avons envoyé un lien de réinitialisation de mot de passe.',
+  EmailSent: 'E-mail envoyé',
+  EmailSentDescription: 'Nous avons envoyé un lien de réinitialisation de mot de passe à {email}',
   UnableToSendResetEmail: 'Impossible d\'envoyer l\'e-mail de réinitialisation. Veuillez réessayer.',
   PleaseEnterValidEmail: 'Veuillez entrer une adresse e-mail valide',
   PasswordIncorrect: 'Désolé, votre mot de passe était incorrect. Veuillez vérifier votre mot de passe.',

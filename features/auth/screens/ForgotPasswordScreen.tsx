@@ -8,6 +8,7 @@ import { authService } from '../../../core/auth/services/authService';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
+import ResetPasswordSentScreen from './ResetPasswordSentScreen';
 
 type Props = {
   email?: string;
@@ -21,13 +22,12 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
   const [email, setEmail] = useState(initialEmail);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [showSentScreen, setShowSentScreen] = useState(false);
 
   const handleSubmit = async () => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
       setMessage(t('PleaseEnterEmail'));
-      setSuccess(false);
       return;
     }
 
@@ -37,23 +37,26 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
       const response = await authService.forgotPassword(trimmedEmail.toLowerCase());
       
       if (response.success) {
-        setMessage(t('ResetLinkSent'));
-        setSuccess(true);
-        setTimeout(() => {
-          onSuccess();
-        }, 2000);
+        setShowSentScreen(true);
       } else {
         setMessage(response.message || t('UnableToSendResetEmail'));
-        setSuccess(false);
       }
     } catch (err: any) {
       const errorMessage = err?.message || t('UnableToSendResetEmail');
       setMessage(errorMessage);
-      setSuccess(false);
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (showSentScreen) {
+    return (
+      <ResetPasswordSentScreen
+        email={email.trim()}
+        onBackToSignIn={onSuccess}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -68,6 +71,7 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         extraScrollHeight={spacing.lg}
+        scrollEnabled={false}
       >
         {/* Back Button */}
         <TouchableOpacity
@@ -125,22 +129,16 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
             {message && (
               <View
                 style={{
-                  backgroundColor: success
-                    ? colors.semantic.successLight
-                    : colors.semantic.errorLight,
+                  backgroundColor: colors.semantic.errorLight,
                   padding: spacing.md,
                   borderRadius: spacing.md,
                   borderWidth: 1,
-                  borderColor: success
-                    ? colors.semantic.success
-                    : colors.semantic.error,
+                  borderColor: colors.semantic.error,
                 }}
               >
                 <Text
                   style={{
-                    color: success
-                      ? colors.semantic.success
-                      : colors.semantic.error,
+                    color: colors.semantic.error,
                     fontSize: typography.size.xs,
                     fontWeight: typography.weight.medium,
                     lineHeight: 18,

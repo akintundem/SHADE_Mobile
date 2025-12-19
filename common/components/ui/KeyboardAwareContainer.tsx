@@ -12,6 +12,7 @@ type KeyboardAwareContainerProps = {
   extraScrollHeight?: number;
   showsVerticalScrollIndicator?: boolean;
   keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
+  scrollEnabled?: boolean;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
 };
@@ -26,6 +27,7 @@ export default function KeyboardAwareContainer({
   extraScrollHeight = 20,
   showsVerticalScrollIndicator = false,
   keyboardShouldPersistTaps = 'handled',
+  scrollEnabled = true,
   onKeyboardShow,
   onKeyboardHide,
 }: KeyboardAwareContainerProps) {
@@ -52,6 +54,7 @@ export default function KeyboardAwareContainer({
       keyboardVerticalOffset={keyboardVerticalOffset}
       enableResetScrollToCoords={false}
       keyboardOpeningTime={0}
+      scrollEnabled={scrollEnabled}
       onKeyboardWillShow={Platform.OS === 'ios' ? handleKeyboardShow : undefined}
       onKeyboardWillHide={Platform.OS === 'ios' ? handleKeyboardHide : undefined}
       onKeyboardDidShow={Platform.OS === 'android' ? handleKeyboardShow : undefined}

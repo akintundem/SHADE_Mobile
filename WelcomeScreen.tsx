@@ -3,13 +3,15 @@ import { View, Text, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from './common/theme/ThemeProvider';
 import BrandLogo from './common/components/brand/BrandLogo';
+import Button from './common/components/ui/Button';
 
 type Props = {
   user: any;
+  onLogout: () => void;
 };
 
-export default function WelcomeScreen({ user }: Props) {
-  const { colors, spacing, typography } = useTheme();
+export default function WelcomeScreen({ user, onLogout }: Props) {
+  const { colors, spacing, typography, isDark } = useTheme();
 
   return (
     <SafeAreaView 
@@ -20,7 +22,7 @@ export default function WelcomeScreen({ user }: Props) {
       edges={['top', 'bottom']}
     >
       <StatusBar 
-        barStyle={colors.background === '#FFFFFF' ? 'dark-content' : 'light-content'} 
+        barStyle={isDark ? 'light-content' : 'dark-content'} 
         backgroundColor={colors.background}
       />
       <View style={{ 
@@ -48,6 +50,17 @@ export default function WelcomeScreen({ user }: Props) {
           }}>
             Welcome
           </Text>
+        </View>
+
+        <View style={{ width: '100%', paddingHorizontal: spacing.xl }}>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onPress={onLogout}
+          >
+            Log out
+          </Button>
         </View>
       </View>
     </SafeAreaView>

@@ -48,6 +48,7 @@ export default function SignInScreen({ onLogin, onSwitchToSignUp }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         extraScrollHeight={spacing.lg}
+        scrollEnabled={false}
       >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: spacing['3xl'] }}>
