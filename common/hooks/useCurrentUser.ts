@@ -1,9 +1,9 @@
 import { useAsync } from './useAsync';
 import { authService } from '../../features/auth/services/authService';
-import { UserResponse } from '../../features/auth/types/auth';
+import { SecureUserResponse } from '../../features/auth/types/auth';
 
 export function useCurrentUser() {
-  const [state, actions] = useAsync<UserResponse>(
+  const [state, actions] = useAsync<SecureUserResponse>(
     () => authService.getCurrentUser(),
     {
       immediate: true,

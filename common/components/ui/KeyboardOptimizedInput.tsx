@@ -199,9 +199,10 @@ export default function KeyboardOptimizedInput({
         <Text
           style={{
             fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium,
+            fontWeight: typography.weight.semibold,
             color: colors.text.primary,
-            marginBottom: spacing.xs,
+            marginBottom: spacing.sm,
+            letterSpacing: 0.2,
           }}
         >
           {label}
@@ -212,9 +213,9 @@ export default function KeyboardOptimizedInput({
         style={{
           flexDirection: 'row',
           alignItems: inputType === 'description' ? 'flex-start' : 'center',
-          minHeight: inputType === 'description' ? 80 : 56,
-          borderRadius: borderRadius.xl,
-          borderWidth: 1.5,
+          minHeight: inputType === 'description' ? 80 : 60,
+          borderRadius: borderRadius.lg,
+          borderWidth: isFocused ? 2 : 1,
           borderColor: hasError 
             ? colors.semantic.error 
             : hasSuccess 
@@ -222,16 +223,17 @@ export default function KeyboardOptimizedInput({
             : isFocused 
             ? colors.brand.primary 
             : colors.border,
-          backgroundColor: colors.surface,
-          paddingHorizontal: spacing.lg,
+          backgroundColor: isFocused ? colors.background : colors.surface,
+          paddingHorizontal: spacing.xl,
           paddingVertical: inputType === 'description' ? spacing.md : 0,
-          ...shadows.sm,
+          transition: 'all 0.2s ease',
         }}
       >
         {getInputIcon() && (
           <View style={{ 
-            marginRight: spacing.sm,
-            marginTop: inputType === 'description' ? spacing.xs : 0
+            marginRight: spacing.md,
+            marginTop: inputType === 'description' ? spacing.sm : 0,
+            opacity: isFocused ? 1 : 0.6,
           }}>
             {getInputIcon()}
           </View>
@@ -248,8 +250,9 @@ export default function KeyboardOptimizedInput({
               flex: 1,
               fontSize: typography.size.base,
               color: colors.text.primary,
-              paddingVertical: spacing.sm,
-              minHeight: inputType === 'description' ? 48 : 56,
+              paddingVertical: spacing.md,
+              minHeight: inputType === 'description' ? 52 : 60,
+              fontWeight: typography.weight.regular,
             },
             style,
           ]}
@@ -263,14 +266,16 @@ export default function KeyboardOptimizedInput({
           <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
             style={{ 
-              marginLeft: spacing.sm,
-              marginTop: inputType === 'description' ? spacing.xs : 0
+              marginLeft: spacing.md,
+              marginTop: inputType === 'description' ? spacing.sm : 0,
+              padding: spacing.xs,
             }}
+            activeOpacity={0.6}
           >
             {showPassword ? (
-              <EyeOff size={20} color={colors.text.secondary} />
+              <EyeOff size={18} color={colors.text.tertiary} />
             ) : (
-              <Eye size={20} color={colors.text.secondary} />
+              <Eye size={18} color={colors.text.tertiary} />
             )}
           </TouchableOpacity>
         )}
@@ -280,9 +285,11 @@ export default function KeyboardOptimizedInput({
             onPress={onRightIconPress}
             disabled={!onRightIconPress}
             style={{ 
-              marginLeft: spacing.sm,
-              marginTop: inputType === 'description' ? spacing.xs : 0
+              marginLeft: spacing.md,
+              marginTop: inputType === 'description' ? spacing.sm : 0,
+              padding: spacing.xs,
             }}
+            activeOpacity={0.6}
           >
             {rightIcon}
           </TouchableOpacity>
@@ -295,7 +302,8 @@ export default function KeyboardOptimizedInput({
           style={{
             fontSize: typography.size.xs,
             color: colors.semantic.error,
-            marginTop: spacing.xs,
+            marginTop: spacing.sm,
+            fontWeight: typography.weight.medium,
           }}
         >
           {error}
@@ -308,7 +316,8 @@ export default function KeyboardOptimizedInput({
           style={{
             fontSize: typography.size.xs,
             color: colors.semantic.success,
-            marginTop: spacing.xs,
+            marginTop: spacing.sm,
+            fontWeight: typography.weight.medium,
           }}
         >
           {success}

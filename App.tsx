@@ -13,9 +13,7 @@ import { getToken, getUser as getCachedUser } from './common/storage/authStorage
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [authScreen, setAuthScreen] = useState<'signIn' | 'signUp' | 'resetPassword' | 'verifyEmail'>('signIn');
-  const [resetToken, setResetToken] = useState<string | undefined>();
-  const [verifyToken, setVerifyToken] = useState<string | undefined>();
+  const [authScreen, setAuthScreen] = useState<'signIn' | 'signUp'>('signIn');
 
   useEffect(() => {
     (async () => {
@@ -83,31 +81,9 @@ function App() {
   }, []);
 
   const handleDeepLink = (url: string) => {
+    // Deep link handling can be added here if needed in the future
     try {
-      // Parse URL manually for reset password
-      if (url.includes('reset-password')) {
-        // Extract token from URL (supports both query param and path param)
-        const tokenMatch = url.match(/[?&]token=([^&]+)/) || url.match(/reset-password\/([^/?]+)/);
-        const token = tokenMatch ? tokenMatch[1] : null;
-
-        if (token) {
-          setResetToken(token);
-          setAuthScreen('resetPassword');
-          setUser(null);
-        }
-      }
-
-      // Parse URL manually for email verification
-      if (url.includes('verify-email')) {
-        const tokenMatch = url.match(/[?&]token=([^&]+)/) || url.match(/verify-email\/([^/?]+)/);
-        const token = tokenMatch ? tokenMatch[1] : null;
-
-        if (token) {
-          setVerifyToken(token);
-          setAuthScreen('verifyEmail');
-          setUser(null);
-        }
-      }
+      // Handle any deep links if needed
     } catch (error) {
       // Error parsing deep link
     }
@@ -128,8 +104,6 @@ function App() {
                 <Auth
                   onLogin={handleLogin}
                   initialScreen={authScreen}
-                  resetToken={resetToken}
-                  verifyToken={verifyToken}
                 />
               ) : (
                 <WelcomeScreen user={user} />

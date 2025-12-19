@@ -9,11 +9,7 @@ import { useI18n } from '../../../common/i18n/I18nProvider';
 import NotificationModal, { NotificationInfo } from '../../../common/components/common/NotificationModal';
 
 type Props = {
-  onSignedUp?: (payload: {
-    email: string;
-    requiresProfile: boolean;
-    user: import('../services/authService').UserDTO;
-  }) => void;
+  onSignedUp?: () => void;
   onSwitchToSignIn?: () => void;
 };
 
@@ -87,119 +83,121 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
   );
 
   return (
-    <View style={{ gap: spacing.lg }}>
-      <View>
-        <KeyboardOptimizedInput
-          label="Email address"
-          value={email}
-          onChangeText={text => {
-            setEmail(text);
-            setError(null);
-          }}
-          placeholder="you@example.com"
-          inputType="email"
-          enableNativeAutocomplete={true}
-          containerStyle={{ marginBottom: 0 }}
-        />
-        {email.length > 0 && !isValidEmail && (
-          <Text style={{
-            fontSize: typography.size.xs,
-            color: colors.semantic.error,
-            marginTop: spacing.xs,
-          }}>
-            Please enter a valid email address
-          </Text>
-        )}
-      </View>
-
-      <View>
-        <KeyboardOptimizedInput
-          label="Password"
-          value={password}
-          onChangeText={text => {
-            setPassword(text);
-            setError(null);
-          }}
-          placeholder="Enter your password"
-          inputType="password"
-          enableNativeAutocomplete={true}
-          containerStyle={{ marginBottom: 0 }}
-        />
-        {password.length > 0 && (
-          <View style={{ marginTop: spacing.xs, gap: spacing.xs }}>
+    <View style={{ gap: spacing.xl }}>
+      <View style={{ gap: spacing.lg }}>
+        <View>
+          <KeyboardOptimizedInput
+            label="Email"
+            value={email}
+            onChangeText={text => {
+              setEmail(text);
+              setError(null);
+            }}
+            placeholder="you@example.com"
+            inputType="email"
+            enableNativeAutocomplete={true}
+            containerStyle={{ marginBottom: 0 }}
+          />
+          {email.length > 0 && !isValidEmail && (
             <Text style={{
               fontSize: typography.size.xs,
-              color: colors.text.secondary,
-              fontWeight: typography.weight.medium,
-              marginBottom: spacing.xs,
+              color: colors.semantic.error,
+              marginTop: spacing.xs,
+              fontWeight: typography.weight.regular,
             }}>
-              Password requirements:
+              Please enter a valid email address
             </Text>
-            <RequirementItem
-              met={passwordRequirements.length}
-              text={`8-128 characters (${password.length})`}
-              colors={colors}
-              typography={typography}
-            />
-            <RequirementItem
-              met={passwordRequirements.hasLowercase}
-              text="At least one lowercase letter"
-              colors={colors}
-              typography={typography}
-            />
-            <RequirementItem
-              met={passwordRequirements.hasUppercase}
-              text="At least one uppercase letter"
-              colors={colors}
-              typography={typography}
-            />
-            <RequirementItem
-              met={passwordRequirements.hasDigit}
-              text="At least one number"
-              colors={colors}
-              typography={typography}
-            />
-            <RequirementItem
-              met={passwordRequirements.hasSpecialChar}
-              text="At least one special character (!@#$%^&*...)"
-              colors={colors}
-              typography={typography}
-            />
-          </View>
-        )}
-      </View>
+          )}
+        </View>
 
-      <View>
-        <KeyboardOptimizedInput
-          label="Confirm password"
-          value={confirm}
-          onChangeText={text => {
-            setConfirm(text);
-            setError(null);
-          }}
-          placeholder="Confirm your password"
-          inputType="password"
-          enableNativeAutocomplete={true}
-          containerStyle={{ marginBottom: 0 }}
-        />
-        {confirm.length > 0 && !passwordsMatch && (
-          <Text style={{
-            fontSize: typography.size.xs,
-            color: colors.semantic.error,
-            marginTop: spacing.xs,
-          }}>
-            Passwords do not match
-          </Text>
-        )}
-        {confirm.length > 0 && passwordsMatch && (
-          <Text style={{
-            fontSize: typography.size.xs,
-            color: colors.semantic.success,
-            marginTop: spacing.xs,
-          }}>
-            Passwords match
-          </Text>
-        )}
+        <View>
+          <KeyboardOptimizedInput
+            label="Password"
+            value={password}
+            onChangeText={text => {
+              setPassword(text);
+              setError(null);
+            }}
+            placeholder="Enter your password"
+            inputType="password"
+            enableNativeAutocomplete={true}
+            containerStyle={{ marginBottom: 0 }}
+          />
+          {password.length > 0 && (
+            <View style={{ marginTop: spacing.md, gap: spacing.xs }}>
+              <RequirementItem
+                met={passwordRequirements.length}
+                text={`8-128 characters`}
+                colors={colors}
+                typography={typography}
+                spacing={spacing}
+              />
+              <RequirementItem
+                met={passwordRequirements.hasLowercase}
+                text="Lowercase letter"
+                colors={colors}
+                typography={typography}
+                spacing={spacing}
+              />
+              <RequirementItem
+                met={passwordRequirements.hasUppercase}
+                text="Uppercase letter"
+                colors={colors}
+                typography={typography}
+                spacing={spacing}
+              />
+              <RequirementItem
+                met={passwordRequirements.hasDigit}
+                text="Number"
+                colors={colors}
+                typography={typography}
+                spacing={spacing}
+              />
+              <RequirementItem
+                met={passwordRequirements.hasSpecialChar}
+                text="Special character"
+                colors={colors}
+                typography={typography}
+                spacing={spacing}
+              />
+            </View>
+          )}
+        </View>
+
+        <View>
+          <KeyboardOptimizedInput
+            label="Confirm password"
+            value={confirm}
+            onChangeText={text => {
+              setConfirm(text);
+              setError(null);
+            }}
+            placeholder="Confirm your password"
+            inputType="password"
+            enableNativeAutocomplete={true}
+            containerStyle={{ marginBottom: 0 }}
+          />
+          {confirm.length > 0 && !passwordsMatch && (
+            <Text style={{
+              fontSize: typography.size.xs,
+              color: colors.semantic.error,
+              marginTop: spacing.xs,
+              fontWeight: typography.weight.regular,
+            }}>
+              Passwords do not match
+            </Text>
+          )}
+          {confirm.length > 0 && passwordsMatch && (
+            <Text style={{
+              fontSize: typography.size.xs,
+              color: colors.semantic.success,
+              marginTop: spacing.xs,
+              fontWeight: typography.weight.medium,
+            }}>
+              Passwords match
+            </Text>
+          )}
+        </View>
       </View>
 
       <TouchableOpacity
@@ -214,10 +212,10 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
       >
         <View
           style={{
-            width: 20,
-            height: 20,
-            borderRadius: borderRadius.sm,
-            borderWidth: 2,
+            width: 18,
+            height: 18,
+            borderRadius: 4,
+            borderWidth: 1.5,
             borderColor: acceptTerms ? brand.primary : colors.border,
             backgroundColor: acceptTerms ? brand.primary : 'transparent',
             alignItems: 'center',
@@ -226,14 +224,14 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           }}
         >
           {acceptTerms && (
-            <Text
+            <View
               style={{
-                color: colors.text.inverse,
-                fontSize: 12,
-                fontWeight: typography.weight.bold,
+                width: 8,
+                height: 8,
+                borderRadius: 2,
+                backgroundColor: colors.text.inverse,
               }}
-            >
-            </Text>
+            />
           )}
         </View>
         <Text
@@ -242,6 +240,8 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             color: colors.text.secondary,
             fontSize: typography.size.sm,
             lineHeight: 20,
+            fontWeight: typography.weight.regular,
+            letterSpacing: 0.1,
           }}
         >
           I agree to the{' '}
@@ -266,101 +266,89 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
       </TouchableOpacity>
 
       {error && (
-        <Text
-          style={{
-            color: colors.semantic.error,
-            fontSize: typography.size.sm,
-            textAlign: 'center',
-          }}
-        >
-          {error}
-        </Text>
+        <View style={{ marginTop: spacing.sm }}>
+          <Text
+            style={{
+              color: colors.semantic.error,
+              fontSize: typography.size.sm,
+              textAlign: 'center',
+              fontWeight: typography.weight.regular,
+            }}
+          >
+            {error}
+          </Text>
+        </View>
       )}
 
-      <Button
-        onPress={async () => {
-          if (!canCreate) {
-            return;
-          }
-
-          try {
-            setSubmitting(true);
-            setError(null);
-            setNotification(null);
-            
-            const registerRequest: RegisterRequest = {
-              email: email.trim(),
-              password,
-              confirmPassword: confirm,
-            };
-            
-            const registerResponse = await authService.registerNew(registerRequest);
-            
-            // Registration successful - trigger success callback
-            onSignedUp?.({
-              email: email.trim(),
-              requiresProfile: true,
-              user: {
-                userId: email.trim(),
-                email: email.trim(),
-                username: '',
-                profileComplete: false,
-              },
-            });
-          } catch (e: any) {
-            // Handle specific error codes from API
-            let errorMessage = e?.message || 'Registration failed';
-            let errorTitle = 'Registration Failed';
-            let errorCode: string | undefined;
-            
-            // Check for network errors
-            if (errorMessage.includes('Unable to reach') || errorMessage.includes('network')) {
-              errorMessage = 'Unable to connect to the server. Please check your internet connection.';
-              errorTitle = 'Connection Error';
-              errorCode = 'NETWORK_ERROR';
-            } else if (errorMessage.includes('already registered') || errorMessage.includes('EMAIL_ALREADY_REGISTERED')) {
-              errorMessage = 'This email is already registered. Try logging in instead.';
-              errorTitle = 'Email Already Registered';
-              errorCode = 'EMAIL_ALREADY_REGISTERED';
-            } else if (errorMessage.includes('RATE_LIMIT_EXCEEDED')) {
-              errorMessage = 'Too many registration attempts. Please wait a few minutes and try again.';
-              errorTitle = 'Too Many Attempts';
-              errorCode = 'RATE_LIMIT_EXCEEDED';
-            } else if (errorMessage.includes('validation') || errorMessage.includes('VALIDATION_ERROR')) {
-              errorTitle = 'Validation Error';
-              errorCode = 'VALIDATION_ERROR';
+      <View style={{ marginTop: spacing.lg }}>
+        <Button
+          onPress={async () => {
+            if (!canCreate) {
+              return;
             }
-            
-            setNotification({
-              type: 'error',
-              title: errorTitle,
-              message: errorMessage,
-              code: errorCode,
-              retryable: errorCode !== 'EMAIL_ALREADY_REGISTERED',
-            });
-            setError(errorMessage);
-          } finally {
-            setSubmitting(false);
-          }
-        }}
-        disabled={!canCreate || submitting}
-        loading={submitting}
-        variant="primary"
-        size="lg"
-        fullWidth
-        style={{ marginTop: spacing.md }}
-      >
-        Create account
-      </Button>
+
+            try {
+              setSubmitting(true);
+              setError(null);
+              setNotification(null);
+              
+              const registerRequest: RegisterRequest = {
+                email: email.trim(),
+                password,
+                confirmPassword: confirm,
+              };
+              
+              await authService.registerNew(registerRequest);
+              
+              // Registration successful - trigger success callback
+              onSignedUp?.();
+            } catch (e: any) {
+              const errorMessage = e?.message || 'Registration failed';
+              let errorTitle = 'Registration Failed';
+              let errorCode: string | undefined;
+              
+              // Check for network errors
+              const lowerMessage = errorMessage.toLowerCase();
+              if (lowerMessage.includes('unable to reach') || lowerMessage.includes('network')) {
+                errorTitle = 'Connection Error';
+                errorCode = 'NETWORK_ERROR';
+              } else if (lowerMessage.includes('already registered') || lowerMessage.includes('email_already_registered')) {
+                errorTitle = 'Email Already Registered';
+                errorCode = 'EMAIL_ALREADY_REGISTERED';
+              } else if (lowerMessage.includes('rate_limit_exceeded')) {
+                errorTitle = 'Too Many Attempts';
+                errorCode = 'RATE_LIMIT_EXCEEDED';
+              } else if (lowerMessage.includes('validation') || lowerMessage.includes('validation_error')) {
+                errorTitle = 'Validation Error';
+                errorCode = 'VALIDATION_ERROR';
+              }
+              
+              setNotification({
+                type: 'error',
+                title: errorTitle,
+                message: errorMessage,
+                code: errorCode,
+                retryable: errorCode !== 'EMAIL_ALREADY_REGISTERED',
+              });
+              setError(errorMessage);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+          disabled={!canCreate || submitting}
+          loading={submitting}
+          variant="primary"
+          size="lg"
+          fullWidth
+        >
+          Create account
+        </Button>
+      </View>
 
       <NotificationModal
         visible={!!notification}
         notification={notification}
         onClose={() => setNotification(null)}
-        onRetry={() => {
-          setNotification(null);
-          // Retry logic can be added here if needed
-        }}
       />
 
       <View
@@ -368,24 +356,26 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
           flexDirection: 'row',
           justifyContent: 'center',
           alignItems: 'center',
-          marginTop: spacing.md,
+          marginTop: spacing.xl,
           gap: spacing.xs,
         }}
       >
         <Text
           style={{
             color: colors.text.secondary,
-            fontSize: typography.size.base,
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.regular,
           }}
         >
           Already have an account?
         </Text>
-        <TouchableOpacity onPress={onSwitchToSignIn}>
+        <TouchableOpacity onPress={onSwitchToSignIn} activeOpacity={0.7}>
           <Text
             style={{
               color: brand.primary,
-              fontSize: typography.size.base,
+              fontSize: typography.size.sm,
               fontWeight: typography.weight.semibold,
+              letterSpacing: 0.1,
             }}
           >
             Sign In
@@ -401,24 +391,30 @@ const RequirementItem = ({
   met, 
   text, 
   colors, 
-  typography 
+  typography,
+  spacing: spacingValue
 }: { 
   met: boolean; 
   text: string; 
   colors: any; 
   typography: any;
+  spacing: any;
 }) => {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacingValue.sm }}>
+      <View
+        style={{
+          width: 4,
+          height: 4,
+          borderRadius: 2,
+          backgroundColor: met ? colors.semantic.success : colors.border,
+        }}
+      />
       <Text style={{
         fontSize: typography.size.xs,
-        color: met ? colors.semantic.success : colors.text.secondary,
-      }}>
-        {met ? '' : ''}
-      </Text>
-      <Text style={{
-        fontSize: typography.size.xs,
-        color: met ? colors.semantic.success : colors.text.secondary,
+        color: met ? colors.text.secondary : colors.text.tertiary,
+        fontWeight: met ? typography.weight.medium : typography.weight.regular,
+        letterSpacing: 0.1,
       }}>
         {text}
       </Text>

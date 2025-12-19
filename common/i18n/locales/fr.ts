@@ -50,7 +50,7 @@ export const fr = {
   Or: 'ou',
   ContinueWithApple: 'Continuer avec Apple',
   ContinueWithSpotify: 'Continuer avec Spotify',
-  HeaderTagline: 'Vos moments privés, partagés en toute sécurité',
+  HeaderTagline: 'Créez et célébrez vos événements',
 
   // Home
   WelcomeBack: 'Bon retour, {name}',

@@ -1,22 +1,56 @@
 import { http, httpUnauthenticated, persistTokenFrom } from '../../../common/services/httpClient';
 import {
   ApiMessageResponse,
-  ApiResponse,
-  AuthResponse,
+  SecureAuthResponse,
   LoginRequest,
   RefreshTokenRequest,
   RegisterRequest,
   RegisterResponse,
   OnboardingRequest,
+  CompleteOnboardingWithImageRequest,
+  CompleteOnboardingWithImageResponse,
   PaginatedResponse,
   PublicUserResponse,
-  UserResponse,
+  SecureUserResponse,
   ValidateTokenRequest,
-  ValidateTokenResponse
+  TokenValidationResponse,
+  ResetPasswordRequest,
+  ChangePasswordRequest,
+  ResendEmailVerificationRequest,
+  UpdateUserProfileRequest,
+  UserSessionResponse,
+  ProfileImageUploadRequest,
+  ProfileImageUploadResponse,
+  ProfileImageCompleteRequest,
+  ProfileImageCompleteResponse,
 } from '../types/auth';
 
-export const authService = {
-  // Health Check
+// Lazy load authStorage to avoid circular dependencies
+let authStorage: typeof import('../../../common/storage/authStorage') | null = null;
+
+const getAuthStorage = async () => {
+  if (!authStorage) {
+    authStorage = await import('../../../common/storage/authStorage');
+  }
+  return authStorage;
+};
+
+const updateUserCache = async (user: SecureUserResponse, onboardingRequired?: boolean) => {
+  const storage = await getAuthStorage();
+  await storage.setUser({
+    userId: user.id,
+    email: user.email,
+    username: user.username || user.email,
+    profilePictureUrl: user.profilePictureUrl ?? undefined,
+    profileComplete: onboardingRequired === undefined ? true : !onboardingRequired,
+  });
+};
+
+export const securityService = {
+  /**
+   * Health check endpoint
+   * @returns Health status information
+   */
   async healthCheck() {
     const res = await httpUnauthenticated.get<{ service: string; status: string; timestamp: string }>('/api/v1/auth/health');
     return res.data;
@@ -24,127 +58,119 @@ export const authService = {
 
   /**
    * Register a new user
-   * @param request - RegisterRequest
-   * @returns RegisterResponse
-   * @throws Error
+   * @param request - Registration request with email and password
+   * @returns Success message response
    */
-  async registerNew(request: RegisterRequest) {
-    try {
-      const res = await httpUnauthenticated.post<RegisterResponse>('/api/v1/auth/register', {
-        email: request.email.toLowerCase().trim(),
-        password: request.password,
-        confirmPassword: request.confirmPassword,
-      });
-      if (res.data) {
-        return res.data;
-      }
-      throw new Error('Registration failed: No response data');
-    } catch (error: any) {
-      throw error;
-    }
+  async registerNew(request: RegisterRequest): Promise<RegisterResponse> {
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/register', {
+      email: request.email.toLowerCase().trim(),
+      password: request.password,
+      confirmPassword: request.confirmPassword,
+    });
+
+    return {
+      success: res.data.success,
+      message: res.data.message,
+    };
   },
 
   /**
-   * Login a user
-   * @param request - LoginRequest
-   * @returns AuthResponse
-   * @throws Error
+   * Login a user and store authentication tokens
+   * @param request - Login credentials
+   * @returns Authentication response with tokens and user data
    */
-  async loginNew(request: LoginRequest) {
-    const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/login', {
+  async loginNew(request: LoginRequest): Promise<SecureAuthResponse> {
+    const res = await httpUnauthenticated.post<SecureAuthResponse>('/api/v1/auth/login', {
       email: request.email.toLowerCase().trim(),
       password: request.password,
       rememberMe: request.rememberMe ?? false,
-
     });
-    if (res.data) {
-      await persistTokenFrom({ token: res.data.accessToken });
-      // Store refresh token and deviceId
-      const { setRefreshToken, setDeviceId, setUser } = await import('../../../common/storage/authStorage');
-      if (res.data.refreshToken) {
-        await setRefreshToken(res.data.refreshToken);
-      }
-      if (res.data.deviceId) {
-        await setDeviceId(res.data.deviceId);
-      }
-      await setUser({
-        userId: res.data.user.email,
-        email: res.data.user.email,
-        username: res.data.user.email,
-        profilePictureUrl: res.data.user.profileImageUrl ?? undefined,
-        profileComplete: !res.data.onboardingRequired
-      });
 
-      return res.data;
+    if (!res.data) {
+      throw new Error('Login failed: No response data');
     }
-    throw new Error('Login failed');
-  },
 
-  /**
-   * Get the current user
-   * @returns UserResponse
-   * @throws Error
-   */
-  async getCurrentUser() {
-    const res = await http.get<UserResponse>('/api/v1/auth/me');
+    // Store access token
+    await persistTokenFrom({ token: res.data.accessToken });
+
+    // Store refresh token, device ID, and user data
+    const storage = await getAuthStorage();
+    if (res.data.refreshToken) {
+      await storage.setRefreshToken(res.data.refreshToken);
+    }
+    if (res.data.deviceId) {
+      await storage.setDeviceId(res.data.deviceId);
+    }
+    await updateUserCache(res.data.user, res.data.onboardingRequired);
+
     return res.data;
   },
 
   /**
-   * Refresh the access token
-   * @param request - RefreshTokenRequest
-   * @returns AuthResponse
-   * @throws Error
+   * Get the current authenticated user
+   * @returns Current user information
    */
-  async refreshToken(request?: RefreshTokenRequest) {
-    // If no request provided, try to get refresh token from storage
-    if (!request) {
-      const { getRefreshToken, getDeviceId } = await import('../../../common/storage/authStorage');
-      const refreshToken = await getRefreshToken();
-      const deviceId = await getDeviceId();
+  async getCurrentUser(): Promise<SecureUserResponse> {
+    const res = await http.get<SecureUserResponse>('/api/v1/auth/me');
+    return res.data;
+  },
+
+  /**
+   * Refresh the access token using refresh token
+   * @param request - Optional refresh token request (will use stored token if not provided)
+   * @returns New authentication tokens
+   */
+  async refreshToken(request?: RefreshTokenRequest): Promise<SecureAuthResponse> {
+    let refreshRequest = request;
+
+    // If no request provided, get refresh token from storage
+    if (!refreshRequest) {
+      const storage = await getAuthStorage();
+      const refreshToken = await storage.getRefreshToken();
+      const deviceId = await storage.getDeviceId();
 
       if (!refreshToken) {
         throw new Error('No refresh token available');
       }
 
-      request = {
+      refreshRequest = {
         refreshToken,
         deviceId: deviceId || undefined,
       };
     }
 
-    const res = await httpUnauthenticated.post<AuthResponse>('/api/v1/auth/refresh-token', request);
-    if (res.data) {
-      await persistTokenFrom({ token: res.data.accessToken });
+    const res = await http.post<SecureAuthResponse>('/api/v1/auth/refresh-token', refreshRequest);
 
-      // Store new refresh token if provided
-      if (res.data.refreshToken) {
-        const { setRefreshToken } = await import('../../../common/storage/authStorage');
-        await setRefreshToken(res.data.refreshToken);
-      }
-
-      // Update deviceId if provided
-      if (res.data.deviceId) {
-        const { setDeviceId } = await import('../../../common/storage/authStorage');
-        await setDeviceId(res.data.deviceId);
-      }
-
-      return res.data;
+    if (!res.data) {
+      throw new Error('Token refresh failed: No response data');
     }
-    throw new Error('Token refresh failed');
+
+    // Store new access token
+    await persistTokenFrom({ token: res.data.accessToken });
+
+    // Update refresh token and device ID if provided
+    const storage = await getAuthStorage();
+    if (res.data.refreshToken) {
+      await storage.setRefreshToken(res.data.refreshToken);
+    }
+    if (res.data.deviceId) {
+      await storage.setDeviceId(res.data.deviceId);
+    }
+
+    return res.data;
   },
 
   /**
-   * Validate a token
-   * @param request - ValidateTokenRequest
-   * @returns ValidateTokenResponse
-   * @throws Error
+   * Validate a JWT token
+   * @param request - Token validation request
+   * @returns Token validation result with user data if valid
    */
-  async validateToken({ token }: ValidateTokenRequest) {
+  async validateToken({ token }: ValidateTokenRequest): Promise<TokenValidationResponse> {
     if (!token) {
       throw new Error('Token is required');
     }
-    const res = await httpUnauthenticated.post<ValidateTokenResponse>(
+
+    const res = await httpUnauthenticated.post<TokenValidationResponse>(
       '/api/v1/auth/validate-token',
       undefined,
       { params: { token } }
@@ -153,140 +179,197 @@ export const authService = {
   },
 
   /**
-   * Logout a user
-   * @returns ApiMessageResponse
-   * @throws Error
+   * Logout the current user and clear all stored tokens
+   * @returns Success message
    */
-  async logout() {
+  async logout(): Promise<ApiMessageResponse> {
     try {
-      // deviceId is automatically added by httpClient interceptor from storage
       const res = await http.post<ApiMessageResponse>('/api/v1/auth/logout', { confirm: true });
-      // Only clear after successful logout
-      const { clearAllAuth } = await import('../../../common/storage/authStorage');
-      await clearAllAuth();
+      const storage = await getAuthStorage();
+      await storage.clearAllAuth();
       return res.data;
     } catch (error) {
-      // Even if logout fails, clear client-side tokens (stateless JWT)
-      const { clearAllAuth } = await import('../../../common/storage/authStorage');
-      await clearAllAuth();
+      // Even if logout fails, clear client-side tokens
+      const storage = await getAuthStorage();
+      await storage.clearAllAuth();
       throw error;
     }
   },
 
   /**
-   * Forgot a user's password
-   * @param email - email of the user
-   * @returns ApiMessageResponse
-   * @throws Error
+   * Request password reset email
+   * @param email - User email address
+   * @returns Success message
    */
-  async forgotPassword(email: string) {
-    try {
-      const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/forgot-password', { email });
-      return res.data;
-    } catch (error: any) {
-      throw error;
-    }
+  async forgotPassword(email: string): Promise<ApiMessageResponse> {
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/forgot-password', {
+      email: email.toLowerCase().trim(),
+    });
+    return res.data;
   },
 
   /**
-   * Change a user's password
-   * @param currentPassword - current password of the user
-   * @param newPassword - new password of the user
-   * @param confirmPassword - confirm password of the user
-   * @returns ApiMessageResponse
-   * @throws Error
+   * Reset password using reset token
+   * @param request - Password reset request with token and new password
+   * @returns Success message
    */
-  async changePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
-    try {
-      // deviceId is automatically added by httpClient interceptor from storage
-      const res = await http.post<ApiMessageResponse>('/api/v1/auth/change-password', {
-        currentPassword,
-        newPassword,
-        confirmPassword,
-      });
-      return res.data;
-    } catch (error: any) {
-      throw error;
-    }
+  async resetPassword(request: ResetPasswordRequest): Promise<ApiMessageResponse> {
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/reset-password', request);
+    return res.data;
   },
 
   /**
-   * Verify a user's email
-   * @param token - token of the user
-   * @returns ApiMessageResponse
-   * @throws Error
+   * Change password for authenticated user
+   * @param request - Password change request
+   * @returns Success message
    */
-  async verifyEmail(token: string) {
-    try {
-      const res = await httpUnauthenticated.get<ApiMessageResponse>(`/api/v1/auth/verify-email/${token}`);
-      return res.data;
-    } catch (error: any) {
-      throw error;
-    }
+  async changePassword(request: ChangePasswordRequest): Promise<ApiMessageResponse> {
+    const res = await http.post<ApiMessageResponse>('/api/v1/auth/change-password', request);
+    return res.data;
   },
 
   /**
-   * Complete a user's onboarding
-   * @param request - OnboardingRequest
-   * @returns UserResponse
-   * @throws Error
+   * Verify email address using verification token
+   * @param token - Email verification token from email link
+   * @returns HTML content of verification page
    */
-  async completeOnboarding(request: OnboardingRequest) {
-    try {
-      const res = await http.post<UserResponse>('/api/v1/auth/complete-onboarding', {
-        name: request.name.trim(),
-        phoneNumber: request.phoneNumber || null,
-        dateOfBirth: request.dateOfBirth || null,
-        acceptTerms: true, // Must be true
-        acceptPrivacy: true, // Must be true
-        marketingOptIn: request.marketingOptIn ?? false,
-      });
-
-      // Update cached user data
-      const { setUser } = await import('../../../common/storage/authStorage');
-      await setUser({
-        userId: res.data.id ?? res.data.email,
-        email: res.data.email,
-        username: res.data.name,
-        profilePictureUrl: res.data.profileImageUrl ?? undefined,
-        profileComplete: true
-      });
-
-      return res.data;
-    } catch (error: any) {
-      throw error;
-    }
+  async verifyEmail(token: string): Promise<string> {
+    const res = await httpUnauthenticated.get<string>(
+      `/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`,
+      { headers: { Accept: 'text/html' } }
+    );
+    return res.data;
   },
 
   /**
-   * Search for users
-   * @param query - query to search for
-   * @param params - optional parameters
-   * @returns ApiResponse<{ users: UserResponse[]; total: number; page: number; size: number }>
-   * @throws Error
+   * Resend email verification
+   * @param email - User email address
+   * @returns Success message
    */
-  async searchUsers(query: string, params?: { page?: number; size?: number }) {
-    const queryParams = new URLSearchParams({ q: query });
-    if (params?.page) queryParams.append('page', params.page.toString());
-    if (params?.size) queryParams.append('size', params.size.toString());
-
-    const url = `/api/v1/users/search?${queryParams.toString()}`;
-    const res = await http.get<ApiResponse<{ users: UserResponse[]; total: number; page: number; size: number }>>(url);
-    const body = res.data;
-    if (body.status === 200 && body.data) {
-      return body.data;
-    }
-    throw new Error(body.message || 'Failed to search users');
+  async resendEmailVerification(email: string): Promise<ApiMessageResponse> {
+    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/verify-email', {
+      email: email.toLowerCase().trim(),
+    } as ResendEmailVerificationRequest);
+    return res.data;
   },
 
   /**
-   * Directory search for existing members (masked email)
+   * Complete user onboarding/profile setup
+   * @param request - Onboarding data
+   * @returns Updated user information
+   */
+  async completeOnboarding(request: OnboardingRequest): Promise<SecureUserResponse> {
+    const res = await http.post<SecureUserResponse>('/api/v1/auth/complete-onboarding', {
+      name: request.name.trim(),
+      username: request.username?.trim() || undefined,
+      phoneNumber: request.phoneNumber || null,
+      profilePictureUrl: request.profilePictureUrl || undefined,
+      dateOfBirth: request.dateOfBirth || null,
+      acceptTerms: request.acceptTerms,
+      acceptPrivacy: request.acceptPrivacy,
+      marketingOptIn: request.marketingOptIn ?? false,
+    });
+
+    await updateUserCache(res.data);
+
+    return res.data;
+  },
+
+  /**
+   * Complete onboarding with profile image upload
+   * @param request - Onboarding data with optional image upload metadata
+   * @returns Updated user information and optional upload URL
+   */
+  async completeOnboardingWithImage(request: CompleteOnboardingWithImageRequest): Promise<CompleteOnboardingWithImageResponse> {
+    const res = await http.post<CompleteOnboardingWithImageResponse>('/api/v1/auth/complete-onboarding-with-image', {
+      onboarding: {
+        name: request.onboarding.name.trim(),
+        username: request.onboarding.username?.trim() || undefined,
+        phoneNumber: request.onboarding.phoneNumber || null,
+        profilePictureUrl: request.onboarding.profilePictureUrl || undefined,
+        dateOfBirth: request.onboarding.dateOfBirth || null,
+        acceptTerms: request.onboarding.acceptTerms,
+        acceptPrivacy: request.onboarding.acceptPrivacy,
+        marketingOptIn: request.onboarding.marketingOptIn ?? false,
+      },
+      imageUpload: request.imageUpload || undefined,
+    });
+
+    if (res.data.user) {
+      await updateUserCache(res.data.user);
+    }
+
+    return res.data;
+  },
+
+  /**
+   * Update user profile information
+   * @param userId - User ID to update
+   * @param request - Profile update data
+   * @returns Updated user information
+   */
+  async updateUserProfile(userId: string, request: UpdateUserProfileRequest): Promise<SecureUserResponse> {
+    const res = await http.put<SecureUserResponse>(`/api/v1/auth/users/${userId}`, {
+      name: request.name.trim(),
+      username: request.username?.trim() || undefined,
+      phoneNumber: request.phoneNumber || null,
+      profilePictureUrl: request.profilePictureUrl || undefined,
+      userType: request.userType,
+      preferences: request.preferences || undefined,
+      marketingOptIn: request.marketingOptIn ?? false,
+      deviceId: request.deviceId || undefined,
+    });
+
+    await updateUserCache(res.data);
+
+    return res.data;
+  },
+
+  /**
+   * Get user by ID (admin only)
+   * @param userId - User ID
+   * @returns User information
+   */
+  async getUser(userId: string): Promise<SecureUserResponse> {
+    const res = await http.get<SecureUserResponse>(`/api/v1/auth/users/${userId}`);
+    return res.data;
+  },
+
+  /**
+   * Search for users (admin only)
+   * @param searchTerm - Search query
+   * @param params - Optional pagination parameters
+   * @returns Paginated list of users
+   */
+  async searchUsers(searchTerm: string, params?: { page?: number; size?: number }): Promise<PaginatedResponse<SecureUserResponse>> {
+    const queryParams = new URLSearchParams({ searchTerm: searchTerm.trim() });
+    if (params?.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    const res = await http.get<PaginatedResponse<SecureUserResponse>>(
+      `/api/v1/auth/users/search?${queryParams.toString()}`
+    );
+    return res.data;
+  },
+
+  /**
+   * Directory search for public user information
+   * @param searchTerm - Optional search term (if empty returns all users)
+   * @param params - Optional pagination parameters
+   * @returns Paginated list of public user information
    */
   async searchDirectory(
-    searchTerm: string,
+    searchTerm?: string,
     params?: { page?: number; size?: number },
   ): Promise<PaginatedResponse<PublicUserResponse>> {
-    const queryParams = new URLSearchParams({ searchTerm });
+    const queryParams = new URLSearchParams();
+    if (searchTerm) {
+      queryParams.append('searchTerm', searchTerm.trim());
+    }
     if (params?.page !== undefined) {
       queryParams.append('page', params.page.toString());
     }
@@ -299,5 +382,58 @@ export const authService = {
     );
     return res.data;
   },
+
+  /**
+   * Get presigned URL for profile image upload
+   * @param request - Image upload request with file metadata
+   * @returns Presigned upload URL and metadata
+   */
+  async getProfileImageUploadUrl(request: ProfileImageUploadRequest): Promise<ProfileImageUploadResponse> {
+    const res = await http.post<ProfileImageUploadResponse>('/api/v1/auth/profile-image/upload-url', request);
+    return res.data;
+  },
+
+  /**
+   * Complete profile image upload after S3 upload
+   * @param request - Upload completion request with S3 object details
+   * @returns Updated profile picture URL
+   */
+  async completeProfileImageUpload(request: ProfileImageCompleteRequest): Promise<ProfileImageCompleteResponse> {
+    const res = await http.post<ProfileImageCompleteResponse>('/api/v1/auth/profile-image/complete', request);
+
+    // Update cached user data with new profile picture URL
+    if (res.data.profilePictureUrl) {
+      const storage = await getAuthStorage();
+      const currentUser = await storage.getUser<SecureUserResponse>();
+      if (currentUser) {
+        await storage.setUser({
+          ...currentUser,
+          profilePictureUrl: res.data.profilePictureUrl,
+        });
+      }
+    }
+
+    return res.data;
+  },
+
+  /**
+   * Get all active user sessions
+   * @returns List of active sessions
+   */
+  async getActiveSessions(): Promise<UserSessionResponse[]> {
+    const res = await http.get<UserSessionResponse[]>('/api/v1/auth/sessions');
+    return res.data;
+  },
+
+  /**
+   * Terminate all user sessions
+   * @returns Success message
+   */
+  async terminateAllSessions(): Promise<ApiMessageResponse> {
+    const res = await http.delete<ApiMessageResponse>('/api/v1/auth/sessions/all');
+    return res.data;
+  },
 };
 
+// Export as authService for backward compatibility
+export const authService = securityService;

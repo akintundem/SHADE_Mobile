@@ -37,9 +37,9 @@ export default function Button({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: borderRadius.full,
-      paddingHorizontal: size === 'sm' ? spacing.md : size === 'md' ? spacing.xl : spacing['2xl'],
-      height: size === 'sm' ? 44 : size === 'md' ? 52 : 60,
+      borderRadius: borderRadius.xl,
+      paddingHorizontal: size === 'sm' ? spacing.lg : size === 'md' ? spacing.xl : spacing['2xl'],
+      height: size === 'sm' ? 44 : size === 'md' ? 48 : 52,
       gap: spacing.sm,
     };
 
@@ -52,31 +52,23 @@ export default function Button({
         return {
           ...baseStyle,
           backgroundColor: disabled ? colors.text.disabled : brand.primary,
-          ...(!disabled && shadows.brand),
         };
       case 'secondary':
         return {
           ...baseStyle,
           backgroundColor: disabled ? colors.text.disabled : brand.secondary,
-          ...(!disabled && {
-            shadowColor: brand.secondary,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.25,
-            shadowRadius: 8,
-            elevation: 4,
-          }),
         };
       case 'outline':
         return {
           ...baseStyle,
           backgroundColor: 'transparent',
-          borderWidth: 1.5,
+          borderWidth: 1,
           borderColor: disabled ? colors.border : brand.primary,
         };
       case 'ghost':
         return {
           ...baseStyle,
-          backgroundColor: disabled ? colors.card : colors.surface,
+          backgroundColor: 'transparent',
         };
       case 'danger':
         return {
@@ -90,8 +82,9 @@ export default function Button({
 
   const getTextStyle = () => {
     const baseStyle: any = {
-      fontSize: size === 'sm' ? typography.size.sm : size === 'md' ? typography.size.base : typography.size.lg,
-      fontWeight: typography.weight.semibold,
+      fontSize: size === 'sm' ? typography.size.xs : size === 'md' ? typography.size.sm : typography.size.base,
+      fontWeight: typography.weight.medium,
+      letterSpacing: 0.2,
     };
 
     switch (variant) {

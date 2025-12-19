@@ -126,10 +126,11 @@ const Input = forwardRef<TextInput, Props>(({
       {label && (
         <Text
           style={{
-            fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium,
+            fontSize: typography.size.xs,
+            fontWeight: typography.weight.semibold,
             color: colors.text.primary,
-            marginBottom: spacing.xs,
+            marginBottom: spacing.sm,
+            letterSpacing: 0.1,
           }}
         >
           {label}
@@ -141,19 +142,31 @@ const Input = forwardRef<TextInput, Props>(({
           {
             flexDirection: 'row',
             alignItems: (textInputProps.multiline || inputType === 'description') ? 'flex-start' : 'center',
-            minHeight: (textInputProps.multiline || inputType === 'description') ? 56 : 56,
+            minHeight: (textInputProps.multiline || inputType === 'description') ? 52 : 52,
             borderRadius: borderRadius.xl,
-            borderWidth: 1.5,
-            borderColor: error ? colors.semantic.error : isFocused ? colors.brand.primary : colors.border,
-            backgroundColor: colors.surface,
-            paddingHorizontal: spacing.lg,
-            paddingVertical: (textInputProps.multiline || inputType === 'description') ? spacing.sm : 0,
-            ...shadows.sm,
+            borderWidth: isFocused ? 2 : 1,
+            borderColor: error 
+              ? colors.semantic.error 
+              : isFocused 
+                ? colors.brand.primary 
+                : colors.border,
+            backgroundColor: isFocused ? colors.background : colors.surface,
+            paddingHorizontal: spacing.xl,
+            paddingVertical: (textInputProps.multiline || inputType === 'description') ? spacing.md : 0,
+            transition: 'all 0.2s ease',
           },
           containerStyle?.inputContainer,
         ]}
       >
-        {leftIcon && <View style={{ marginRight: spacing.sm, marginTop: (textInputProps.multiline || inputType === 'description') ? spacing.xs : 0 }}>{leftIcon}</View>}
+        {leftIcon && (
+          <View style={{ 
+            marginRight: spacing.md, 
+            marginTop: (textInputProps.multiline || inputType === 'description') ? spacing.sm : 0,
+            opacity: isFocused ? 1 : 0.6,
+          }}>
+            {leftIcon}
+          </View>
+        )}
         
         <TextInput
           ref={ref}
@@ -162,15 +175,17 @@ const Input = forwardRef<TextInput, Props>(({
           style={[
             {
               flex: 1,
-              fontSize: typography.size.base,
+              fontSize: typography.size.sm,
               color: colors.text.primary,
               paddingVertical: spacing.sm,
-              minHeight: (textInputProps.multiline || inputType === 'description') ? 48 : 56,
+              minHeight: (textInputProps.multiline || inputType === 'description') ? 48 : 52,
               textAlignVertical: (textInputProps.multiline || inputType === 'description') ? 'top' : 'center',
+              fontWeight: typography.weight.regular,
             },
             style,
           ]}
           placeholderTextColor={colors.text.tertiary}
+          keyboardAppearance={colors.background === '#FFFFFF' ? 'light' : 'dark'}
           onFocus={(e) => {
             setIsFocused(true);
             textInputProps.onFocus?.(e);
@@ -185,7 +200,11 @@ const Input = forwardRef<TextInput, Props>(({
           <TouchableOpacity
             onPress={onRightIconPress}
             disabled={!onRightIconPress}
-            style={{ marginLeft: spacing.sm }}
+            style={{ 
+              marginLeft: spacing.md,
+              padding: spacing.xs,
+            }}
+            activeOpacity={0.6}
           >
             {rightIcon}
           </TouchableOpacity>
@@ -197,7 +216,8 @@ const Input = forwardRef<TextInput, Props>(({
           style={{
             fontSize: typography.size.xs,
             color: colors.semantic.error,
-            marginTop: spacing.xs,
+            marginTop: spacing.sm,
+            fontWeight: typography.weight.medium,
           }}
         >
           {error}

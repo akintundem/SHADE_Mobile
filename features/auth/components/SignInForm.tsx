@@ -8,15 +8,15 @@ import { useTheme } from '../../../common/theme/ThemeProvider';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
 import { useI18n } from '../../../common/i18n/I18nProvider';
-import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 type Props = {
-  onLogin?: (user: User, onboardingRequired?: boolean) => void;
+  onLogin?: (user: User) => void;
   onSwitchToSignUp?: () => void;
+  onForgotPassword?: () => void;
 };
 
-export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
-  const { colors, brand, typography, spacing, borderRadius } = useTheme();
+export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Props) => {
+  const { colors, brand, typography, spacing } = useTheme();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,209 +24,210 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp }: Props) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [forgotVisible, setForgotVisible] = useState(false);
-
   const canSignIn = useMemo(() => !!email && !!password, [email, password]);
 
   return (
-    <View style={{ gap: spacing.lg }}>
-      <Input
-        label="Email Address"
-        value={email}
-        onChangeText={text => {
-          setEmail(text);
-          setError(null);
-        }}
-        placeholder={t('EmailAddress')}
-        inputType="email"
-        enableNativeAutocomplete={true}
-        leftIcon={<Mail size={20} color={colors.text.tertiary} />}
-        error={error && error.includes('email') ? error : undefined}
-        containerStyle={{ marginBottom: 0 }}
-      />
-
-      <View>
+    <View style={{ gap: spacing.xl }}>
+      <View style={{ gap: spacing.lg }}>
         <Input
-          label="Password"
-          value={password}
+          label="Email"
+          value={email}
           onChangeText={text => {
-            setPassword(text);
+            setEmail(text);
             setError(null);
           }}
-          placeholder={t('Password')}
-          inputType="password"
+          placeholder={t('EmailAddress')}
+          inputType="email"
           enableNativeAutocomplete={true}
-          leftIcon={<Lock size={20} color={colors.text.tertiary} />}
-          rightIcon={
-            showPassword ? (
-              <EyeOff size={20} color={colors.text.tertiary} />
-            ) : (
-              <Eye size={20} color={colors.text.tertiary} />
-            )
-          }
-          onRightIconPress={() => setShowPassword(v => !v)}
-          error={error && !error.includes('email') ? error : undefined}
+          leftIcon={<Mail size={20} color={colors.text.tertiary} />}
+          error={error && error.toLowerCase().includes('email') ? error : undefined}
           containerStyle={{ marginBottom: 0 }}
         />
+
+        <View>
+          <Input
+            label="Password"
+            value={password}
+            onChangeText={text => {
+              setPassword(text);
+              setError(null);
+            }}
+            placeholder={t('Password')}
+            inputType="password"
+            enableNativeAutocomplete={true}
+            leftIcon={<Lock size={20} color={colors.text.tertiary} />}
+            rightIcon={
+              showPassword ? (
+                <EyeOff size={20} color={colors.text.tertiary} />
+              ) : (
+                <Eye size={20} color={colors.text.tertiary} />
+              )
+            }
+            onRightIconPress={() => setShowPassword(v => !v)}
+            error={error && !error.toLowerCase().includes('email') ? error : undefined}
+            containerStyle={{ marginBottom: 0 }}
+          />
+          <TouchableOpacity
+            onPress={() => onForgotPassword?.()}
+            style={{ marginTop: spacing.sm, alignSelf: 'flex-end' }}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={{
+                color: brand.primary,
+                fontSize: typography.size.xs,
+                fontWeight: typography.weight.medium,
+                letterSpacing: 0.1,
+              }}
+            >
+              Forgot password?
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs }}>
         <TouchableOpacity
-          onPress={() => setForgotVisible(true)}
-          style={{ marginTop: spacing.xs, alignSelf: 'flex-end' }}
+          onPress={() => setRememberMe(!rememberMe)}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.sm,
+          }}
+          activeOpacity={0.7}
         >
-          <Text
+          <View
             style={{
-              color: brand.primary,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium,
+              width: 18,
+              height: 18,
+              borderRadius: 4,
+              borderWidth: 1.5,
+              borderColor: rememberMe ? brand.primary : colors.border,
+              backgroundColor: rememberMe ? brand.primary : 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            Forgot password?
+            {rememberMe && (
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 2,
+                  backgroundColor: colors.text.inverse,
+                }}
+              />
+            )}
+          </View>
+          <Text
+            style={{
+            color: colors.text.secondary,
+            fontSize: typography.size.xs,
+            fontWeight: typography.weight.regular,
+            letterSpacing: 0.1,
+          }}
+        >
+          Remember me
           </Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        onPress={() => setRememberMe(!rememberMe)}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: spacing.sm,
-          marginTop: spacing.xs,
-        }}
-        activeOpacity={0.7}
-      >
-        <View
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: borderRadius.sm,
-            borderWidth: 2,
-            borderColor: rememberMe ? brand.primary : colors.border,
-            backgroundColor: rememberMe ? brand.primary : 'transparent',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {rememberMe && (
-            <Text
-              style={{
-                color: colors.text.inverse,
-                fontSize: 12,
-                fontWeight: typography.weight.bold,
-              }}
-            >
-            </Text>
-          )}
+      {error && !error.toLowerCase().includes('email') && !error.toLowerCase().includes('password') ? (
+        <View style={{ marginTop: spacing.sm }}>
+          <Text
+            style={{
+              color: colors.semantic.error,
+              textAlign: 'center',
+              fontSize: typography.size.xs,
+              fontWeight: typography.weight.regular,
+            }}
+          >
+            {error}
+          </Text>
         </View>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium,
-          }}
-        >
-          Remember me
-        </Text>
-      </TouchableOpacity>
-
-      {error && !error.includes('email') && !error.includes('password') ? (
-        <Text
-          style={{
-            color: colors.semantic.error,
-            textAlign: 'center',
-            fontSize: typography.size.sm,
-          }}
-        >
-          {error}
-        </Text>
       ) : null}
 
-      <Button
-        onPress={async () => {
-          try {
-            setSubmitting(true);
-            setError(null);
-            const loginRequest: LoginRequest = {
-              email,
-              password,
-              rememberMe,
-              // deviceId is generated by backend and returned in response
-            };
-            const authResponse = await authService.loginNew(loginRequest);
-            await setUser(authResponse.user);
-            
-            // Create user object with onboardingRequired flag from backend response
-            const mapped: User = {
-              id: authResponse.user.id ?? authResponse.user.email,
-              email: authResponse.user.email,
-              name: authResponse.user.name,
-              provider: 'password',
-            };
-            
-            // Pass onboardingRequired flag to parent component
-            onLogin?.(mapped, authResponse.onboardingRequired);
-          } catch (e: any) {
-            const errorMessage = e?.message || '';
-            // Check if error is related to password/authentication failure
-            const isPasswordError = 
-              errorMessage.toLowerCase().includes('password') ||
-              errorMessage.toLowerCase().includes('incorrect') ||
-              errorMessage.toLowerCase().includes('invalid credentials') ||
-              errorMessage.toLowerCase().includes('authentication failed') ||
-              (e?.status === 401 && !errorMessage.toLowerCase().includes('email'));
-            
-            if (isPasswordError) {
-              setError('Sorry, your password was incorrect. Please double-check your password.');
-            } else {
-              setError(errorMessage || t('SignIn'));
+      <View style={{ marginTop: spacing.lg }}>
+        <Button
+          onPress={async () => {
+            try {
+              setSubmitting(true);
+              setError(null);
+              const loginRequest: LoginRequest = {
+                email,
+                password,
+                rememberMe,
+              };
+              const authResponse = await authService.loginNew(loginRequest);
+              await setUser(authResponse.user);
+              
+              const mapped: User = {
+                id: authResponse.user.id ?? authResponse.user.email,
+                email: authResponse.user.email,
+                name: authResponse.user.name,
+                provider: 'password',
+              };
+              
+              onLogin?.(mapped);
+            } catch (e: any) {
+              const errorMessage = e?.message || '';
+              // Check if error is related to password/authentication failure
+              const isPasswordError = 
+                errorMessage.toLowerCase().includes('password') ||
+                errorMessage.toLowerCase().includes('incorrect') ||
+                errorMessage.toLowerCase().includes('invalid credentials') ||
+                errorMessage.toLowerCase().includes('authentication failed') ||
+                (e?.status === 401 && !errorMessage.toLowerCase().includes('email'));
+              
+              if (isPasswordError) {
+                setError('Sorry, your password was incorrect. Please double-check your password.');
+              } else {
+                setError(errorMessage || t('SignIn'));
+              }
+            } finally {
+              setSubmitting(false);
             }
-          } finally {
-            setSubmitting(false);
-          }
-        }}
-        disabled={!canSignIn || submitting}
-        loading={submitting}
-        variant="primary"
-        size="lg"
-        fullWidth
-        style={{ marginTop: spacing.sm, backgroundColor: brand.primary }}
-      >
-        {t('SignIn')}
-      </Button>
+          }}
+          disabled={!canSignIn || submitting}
+          loading={submitting}
+          variant="primary"
+          size="lg"
+          fullWidth
+        >
+          {t('SignIn')}
+        </Button>
+      </View>
 
       <View
         style={{
           flexDirection: 'row',
           justifyContent: 'center',
-          marginTop: spacing.md,
+          marginTop: spacing.xl,
           gap: spacing.xs,
         }}
       >
         <Text
           style={{
             color: colors.text.secondary,
-            fontSize: typography.size.base,
+            fontSize: typography.size.sm,
+            fontWeight: typography.weight.regular,
           }}
         >
           {t('DontHaveAccount')}
         </Text>
-        <TouchableOpacity onPress={onSwitchToSignUp}>
+        <TouchableOpacity onPress={onSwitchToSignUp} activeOpacity={0.7}>
           <Text
             style={{
               color: brand.primary,
-              fontSize: typography.size.base,
+              fontSize: typography.size.sm,
               fontWeight: typography.weight.semibold,
+              letterSpacing: 0.1,
             }}
           >
             {t('SignUp')}
           </Text>
         </TouchableOpacity>
       </View>
-
-      <ForgotPasswordModal
-        visible={forgotVisible}
-        initialEmail={email.trim()}
-        onClose={() => setForgotVisible(false)}
-      />
     </View>
   );
 };
