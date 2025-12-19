@@ -1,5 +1,5 @@
-import { http } from '../../../../common/services/httpClient';
-import { ApiResponse, PaginatedResponse } from '../../../../features/auth/types/auth';
+import { http } from '../../../common/services/httpClient';
+import { ApiResponse, PaginatedResponse } from '../../auth/types/auth';
 import { Attendee, AttendeeEmergencyContact, InvitationResponse } from '../types/attendees';
 
 export type CreateAttendeeRequest = {

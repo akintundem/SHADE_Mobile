@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Search, Plus, Store, MapPin, Phone, Mail, Globe, Star, Filter, Sparkles, Award } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { Vendor } from '../../types/vendors';
+import { Vendor } from '../../../../core/events/types';
 
 type Props = {
   eventId: string;

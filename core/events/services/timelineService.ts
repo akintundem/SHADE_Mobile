@@ -1,5 +1,5 @@
-import { http } from '../../../../common/services/httpClient';
-import { ApiResponse } from '../../../auth/types/auth';
+import { http } from '../../../common/services/httpClient';
+import { ApiResponse } from '../../auth/types/auth';
 import { Timeline, Milestone } from '../types/timeline';
 
 export type CreateTimelineRequest = {

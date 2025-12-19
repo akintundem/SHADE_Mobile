@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ArrowLeft, Plus, Filter, Download } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { BudgetDTO, ExpenseDTO } from '../../types/events';
+import { BudgetDTO, ExpenseDTO } from '../../../core/events/types';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../../common/components/common/ErrorModal';
 

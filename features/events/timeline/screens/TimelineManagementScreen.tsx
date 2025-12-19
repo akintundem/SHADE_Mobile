@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ArrowLeft, Plus, Calendar, Clock, CheckCircle, Circle, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { TimelineDTO, TaskDTO } from '../../types/events';
+import { TimelineDTO, TaskDTO } from '../../../core/events/types';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../../common/components/common/ErrorModal';
 

@@ -26,7 +26,7 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { ThreadPost } from '../components/EventThreadModal';
 import { ComposePostModal } from '../components/ComposePostModal';
 import { useEventFeed } from '../../../../common/hooks/useEventFeed';
-import { FeedPost } from '../../types/events';
+import { FeedPost } from '../../../../core/events/types';
 import { dateUtils } from '../../../../common/utils/helpers';
 
 type Props = {

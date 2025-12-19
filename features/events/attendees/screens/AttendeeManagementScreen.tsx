@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { ArrowLeft, Search, UserPlus, Phone, Calendar, CheckCircle, XCircle, Clock, Filter } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { AttendeeDTO } from '../../types/events';
+import { AttendeeDTO } from '../../../core/events/types';
 import { StatCard } from '../../../../common/components/common/FormComponents';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 

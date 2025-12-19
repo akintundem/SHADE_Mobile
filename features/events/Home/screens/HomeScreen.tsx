@@ -9,8 +9,8 @@ import {
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { TabBar } from '../components/TabBar';
-import { eventService } from '../../services/eventService';
-import { EventResponse } from '../../types/events';
+import { eventService } from '../../../../core/events/services';
+import { EventResponse } from '../../../../core/events/types';
 import LoadingState from '../../../../common/components/LoadingState';
 import { EventsList } from '../components/EventsList';
 import { convertEventsToItems } from '../utils/eventUtils';

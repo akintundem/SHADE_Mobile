@@ -4,7 +4,7 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { CalendarClock, MapPin, Users } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { EventStatus } from '../../types/events';
+import { EventStatus } from '../../../core/events/types';
 
 type Props = {
   eventId: string;

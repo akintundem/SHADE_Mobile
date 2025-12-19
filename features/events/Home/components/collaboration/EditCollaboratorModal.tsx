@@ -2,8 +2,8 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
-import { EventCollaboratorResponse } from '../../../types/events';
-import { EventUserType } from '../../../types/enums';
+import { EventCollaboratorResponse } from '../../../../../core/events/types';
+import { EventUserType } from '../../../../../core/events/types';
 import { RoleSelection } from './RoleSelection';
 
 type Props = {

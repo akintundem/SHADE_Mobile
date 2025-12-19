@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import Auth from './features/auth/screens/AuthScreen';
 import ThemeProvider from './common/theme/ThemeProvider';
 import LoadingState from './common/components/LoadingState';
-import WelcomeScreen from './WelcomeScreen';
+import MainApp from './features/social/screens/MainApp';
 import OnboardingScreen from './features/auth/screens/OnboardingScreen';
 import { User } from './core/auth/types/auth';
 import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
@@ -104,7 +104,7 @@ function App() {
               ) : onboardingRequired ? (
                 <OnboardingScreen user={user} onComplete={handleOnboardingComplete} />
               ) : (
-                <WelcomeScreen user={user} onLogout={handleLogout} />
+                <MainApp user={user} onLogout={handleLogout} />
               )}
             </NavigationContainer>
           </ThemeProvider>

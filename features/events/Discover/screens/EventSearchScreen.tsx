@@ -22,8 +22,8 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { EventCard, EventItem } from '../../Home/components/EventCard';
 import { EmptyState } from '../../../../common/components/LoadingStates';
-import { eventService } from '../../services/eventService';
-import { EventResponse, EventType, EventStatus } from '../../types/events';
+import { eventService } from '../../../core/events/services';
+import { EventResponse, EventType, EventStatus } from '../../../core/events/types';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 
 type Props = {

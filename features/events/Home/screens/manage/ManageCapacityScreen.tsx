@@ -4,13 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Users, CalendarClock, CheckCircle, Plus, Minus, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../services/eventService';
+import { eventService } from '../../../../../core/events/services';
 import { EventCapacityResponse } from '../../../../../common/types';
 import { DateTimePickerModal } from '../../../../../common/datetime';
 import { dateUtils } from '../../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../../common/utils/constants';
 import { ErrorHandler } from '../../../../../common/utils/errorHandler';
-import { isFullEventResponse, Event, EventStatus } from '../../../types/events';
+import { isFullEventResponse, Event, EventStatus } from '../../../../../core/events/types';
 
 type RouteParams = { eventId: string };
 

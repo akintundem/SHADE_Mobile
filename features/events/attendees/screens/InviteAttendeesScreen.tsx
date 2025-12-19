@@ -4,7 +4,7 @@ import { ArrowLeft, Mail, UserPlus, Plus, X, Upload } from 'lucide-react-native'
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useFormValidation } from '../../../../common/utils/formValidation';
 import { invitationValidator } from '../../../../common/utils/validationSchemas';
-import { InvitationDTO } from '../../types/events';
+import { InvitationDTO } from '../../../core/events/types';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../../common/components/common/ErrorModal';
 import { Section, FieldLabel, Input } from '../../../../common/components/common/FormComponents';

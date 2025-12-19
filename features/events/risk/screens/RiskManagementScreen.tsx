@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { ArrowLeft, AlertTriangle, Shield, Plus, CheckCircle, XCircle, Clock } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { RiskDTO, EmergencyPlanDTO } from '../../types/events';
+import { RiskDTO, EmergencyPlanDTO } from '../../../core/events/types';
 import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
 import ErrorModal from '../../../../common/components/common/ErrorModal';
 import { StatCard } from '../../../../common/components/common/FormComponents';

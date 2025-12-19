@@ -3,7 +3,7 @@ import { MapPin, Clock } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useNavigation } from '@react-navigation/native';
-import { EventStatus } from '../../types/events';
+import { EventStatus } from '../../../../core/events/types';
 import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';
 

@@ -11,7 +11,7 @@ import {
   ChevronDown,
 } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../services/eventService';
+import { eventService } from '../../../../../core/events/services';
 import { EventStatus } from '../../../../../common/types';
 
 type RouteParams = { eventId: string };

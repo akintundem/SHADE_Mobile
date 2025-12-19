@@ -1,4 +1,4 @@
-import { Event, EventStatus } from '../../types/events';
+import { Event, EventStatus } from '../../../../core/events/types';
 import { EventItem } from '../components/EventCard';
 
 /**

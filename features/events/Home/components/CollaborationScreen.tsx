@@ -3,10 +3,10 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, RefreshControl } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Users, Plus } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { eventService } from '../../services/eventService';
+import { eventService } from '../../../../core/events/services';
 import { authService } from '../../../auth/services/authService';
-import { EventCollaboratorResponse, EventCollaboratorRequest } from '../../types/events';
-import { EventUserType } from '../../types/enums';
+import { EventCollaboratorResponse, EventCollaboratorRequest } from '../../../../core/events/types';
+import { EventUserType } from '../../../../core/events/types';
 import { UserResponse } from '../../../auth/types/auth';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 import { LoadingOverlay } from '../../../../common/components/LoadingStates';

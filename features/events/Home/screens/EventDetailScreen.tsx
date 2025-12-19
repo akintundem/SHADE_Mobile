@@ -24,8 +24,8 @@ import {
   Settings,
 } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { Event, EventResponse, EventStatus, EventData, isFullEventResponse, isFeedResponse, EventFeedResponse } from '../../types/events';
-import { eventService } from '../../services/eventService';
+import { Event, EventResponse, EventStatus, EventData, isFullEventResponse, isFeedResponse, EventFeedResponse } from '../../../../core/events/types';
+import { eventService } from '../../../../core/events/services';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';

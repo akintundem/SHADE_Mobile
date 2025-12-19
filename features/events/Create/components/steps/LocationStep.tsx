@@ -11,7 +11,18 @@ import {
 } from 'react-native';
 import { MapPin, X } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
-import { Venue } from '../types';
+// Local Venue type for form input
+type Venue = {
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+  latitude?: number;
+  longitude?: number;
+  googlePlaceId?: string;
+  googlePlaceData?: string;
+};
 
 type Props = {
   venue: Venue | null;
