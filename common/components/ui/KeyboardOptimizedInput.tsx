@@ -72,10 +72,11 @@ export default function KeyboardOptimizedInput({
           autoCapitalize: 'none' as const,
           autoCorrect: false,
           secureTextEntry: !showPassword,
-          textContentType: 'password' as const,
-          autoComplete: Platform.OS === 'android' ? 'password' as const : undefined,
-          // iOS: Uses native password autocomplete from Keychain
-          // Android: Uses system password autocomplete
+          textContentType: 'newPassword' as const, // iOS: Enables strong password suggestions for sign-up
+          autoComplete: Platform.OS === 'ios' ? 'password' as const : (Platform.OS === 'android' ? 'password-new' as const : undefined), // iOS: Triggers AutoFill, Android: Password suggestions
+          passwordRules: Platform.OS === 'ios' ? 'required: upper; required: lower; required: digit; required: [-]; minlength: 8; maxlength: 128;' : undefined, // iOS: Password requirements for strong password generation
+          // iOS: Uses native strong password suggestions with iCloud Keychain
+          // Android: Uses system password suggestions
         };
       case 'phone':
         return {

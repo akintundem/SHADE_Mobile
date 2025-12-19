@@ -159,6 +159,9 @@ export type UpdateUserProfileRequest = {
   username?: string; // Optional, 3-30 characters, letters, numbers, '.' or '_' (cannot start/end with '.' or '_')
   phoneNumber?: string; // Optional, valid phone format: +?[0-9 .-]{7,20}
   profilePictureUrl?: string; // Optional, max 500 characters
+  dateOfBirth?: string; // Optional, ISO date format "YYYY-MM-DD", must be in past
+  acceptTerms?: boolean; // Optional, for onboarding
+  acceptPrivacy?: boolean; // Optional, for onboarding
   userType?: string; // Optional
   preferences?: string; // Optional, max 2000 characters
   marketingOptIn?: boolean; // Optional, default: false

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../common/theme/ThemeProvider';
@@ -7,6 +7,7 @@ import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareC
 import BrandLogo from '../../../common/components/brand/BrandLogo';
 import { SignUpForm } from '../components';
 import { AppleIcon, SpotifyIcon } from '../components/icons';
+import EmailSentConfirmationScreen from './EmailSentConfirmationScreen';
 
 type Props = {
   onSwitchToSignIn?: () => void;
@@ -16,6 +17,22 @@ export default function SignUpScreen({ onSwitchToSignIn }: Props) {
   const { colors, spacing, typography, borderRadius, shadows } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+
+  if (showConfirmation) {
+    return (
+      <EmailSentConfirmationScreen
+        email={registeredEmail}
+        title={t('AccountCreated')}
+        message={t('AccountCreatedDescription', { email: registeredEmail })}
+        onBackToSignIn={() => {
+          setShowConfirmation(false);
+          onSwitchToSignIn?.();
+        }}
+      />
+    );
+  }
 
   const ICON_SIZE = 56;
   const ICON_RADIUS = Math.round(ICON_SIZE * 0.225);
@@ -35,7 +52,7 @@ export default function SignUpScreen({ onSwitchToSignIn }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         extraScrollHeight={spacing.lg}
-        scrollEnabled={false}
+        scrollEnabled={true}
       >
         {/* Header */}
         <View style={{ alignItems: 'center', marginBottom: spacing['3xl'] }}>
@@ -59,8 +76,9 @@ export default function SignUpScreen({ onSwitchToSignIn }: Props) {
         </View>
 
         <SignUpForm
-          onSignedUp={() => {
-            onSwitchToSignIn?.();
+          onSignedUp={(email) => {
+            setRegisteredEmail(email);
+            setShowConfirmation(true);
           }}
           onSwitchToSignIn={onSwitchToSignIn}
         />

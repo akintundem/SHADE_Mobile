@@ -4,7 +4,7 @@ import SignInScreen from './SignInScreen';
 import SignUpScreen from './SignUpScreen';
 
 type Props = {
-  onLogin?: (user: User) => void;
+  onLogin?: (user: User, onboardingRequired: boolean) => void;
   initialScreen?: 'signIn' | 'signUp';
 };
 

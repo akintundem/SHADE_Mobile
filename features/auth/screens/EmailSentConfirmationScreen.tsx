@@ -8,10 +8,12 @@ import Button from '../../../common/components/ui/Button';
 
 type Props = {
   email: string;
+  title: string;
+  message: string;
   onBackToSignIn: () => void;
 };
 
-export default function ResetPasswordSentScreen({ email, onBackToSignIn }: Props) {
+export default function EmailSentConfirmationScreen({ email, title, message, onBackToSignIn }: Props) {
   const { colors, spacing, typography } = useTheme();
   const { t } = useI18n();
 
@@ -58,7 +60,7 @@ export default function ResetPasswordSentScreen({ email, onBackToSignIn }: Props
             textAlign: 'center',
             marginBottom: spacing.sm,
           }}>
-            {t('EmailSent')}
+            {title}
           </Text>
           <Text style={{
             fontSize: typography.size.sm,
@@ -69,7 +71,7 @@ export default function ResetPasswordSentScreen({ email, onBackToSignIn }: Props
             textAlign: 'center',
             paddingHorizontal: spacing.xl,
           }}>
-            {t('EmailSentDescription', { email })}
+            {message}
           </Text>
         </View>
 

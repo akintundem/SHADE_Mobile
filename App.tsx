@@ -6,12 +6,14 @@ import Auth from './features/auth/screens/AuthScreen';
 import ThemeProvider from './common/theme/ThemeProvider';
 import LoadingState from './common/components/LoadingState';
 import WelcomeScreen from './WelcomeScreen';
+import OnboardingScreen from './features/auth/screens/OnboardingScreen';
 import { User } from './core/auth/types/auth';
 import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [onboardingRequired, setOnboardingRequired] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -35,6 +37,8 @@ function App() {
                   name: validatedUser.name || cached.username,
                   provider: 'password'
                 });
+                // Check if profile is complete from cache
+                setOnboardingRequired(cached.profileComplete === false);
               } else {
                 // Token validation returned invalid
                 const { clearAllAuth } = await import('./common/storage/authStorage');
@@ -63,7 +67,15 @@ function App() {
     })();
   }, []);
 
-  const handleLogin = (u: User) => setUser(u);
+  const handleLogin = (u: User, requiresOnboarding: boolean) => {
+    setUser(u);
+    setOnboardingRequired(requiresOnboarding);
+  };
+
+  const handleOnboardingComplete = (u: User) => {
+    setUser(u);
+    setOnboardingRequired(false);
+  };
   const handleLogout = async () => {
     try {
       // Call logout service to invalidate session on server and clear local data
@@ -89,6 +101,8 @@ function App() {
                 <Auth
                   onLogin={handleLogin}
                 />
+              ) : onboardingRequired ? (
+                <OnboardingScreen user={user} onComplete={handleOnboardingComplete} />
               ) : (
                 <WelcomeScreen user={user} onLogout={handleLogout} />
               )}

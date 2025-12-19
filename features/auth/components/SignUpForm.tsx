@@ -1,15 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Mail, Lock } from 'lucide-react-native';
 import { RegisterRequest } from '../../../core/auth/types/auth';
 import { authService } from '../../../core/auth/services/authService';
 import { useTheme } from '../../../common/theme/ThemeProvider';
-import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
+import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
 import { useI18n } from '../../../common/i18n/I18nProvider';
 import NotificationModal, { NotificationInfo } from '../../../common/components/common/NotificationModal';
 
 type Props = {
-  onSignedUp?: () => void;
+  onSignedUp?: (email: string) => void;
   onSwitchToSignIn?: () => void;
 };
 
@@ -86,16 +87,17 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
     <View style={{ gap: spacing.xl }}>
       <View style={{ gap: spacing.lg }}>
         <View>
-          <KeyboardOptimizedInput
+          <Input
             label={t('Email')}
             value={email}
             onChangeText={text => {
               setEmail(text);
               setError(null);
             }}
-            placeholder="you@example.com"
+            placeholder={t('EmailAddress')}
             inputType="email"
             enableNativeAutocomplete={true}
+            leftIcon={<Mail size={18} color={colors.text.tertiary} />}
             containerStyle={{ marginBottom: 0 }}
           />
           {email.length > 0 && !isValidEmail && (
@@ -111,7 +113,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
         </View>
 
         <View>
-          <KeyboardOptimizedInput
+          <Input
             label={t('Password')}
             value={password}
             onChangeText={text => {
@@ -121,51 +123,58 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             placeholder={t('EnterYourPassword')}
             inputType="password"
             enableNativeAutocomplete={true}
+            leftIcon={<Lock size={18} color={colors.text.tertiary} />}
             containerStyle={{ marginBottom: 0 }}
           />
           {password.length > 0 && (
             <View style={{ marginTop: spacing.md, gap: spacing.xs }}>
-              <RequirementItem
-                met={passwordRequirements.length}
-                text={t('PasswordRequirementLength')}
-                colors={colors}
-                typography={typography}
-                spacing={spacing}
-              />
-              <RequirementItem
-                met={passwordRequirements.hasLowercase}
-                text={t('PasswordRequirementLowercase')}
-                colors={colors}
-                typography={typography}
-                spacing={spacing}
-              />
-              <RequirementItem
-                met={passwordRequirements.hasUppercase}
-                text={t('PasswordRequirementUppercase')}
-                colors={colors}
-                typography={typography}
-                spacing={spacing}
-              />
-              <RequirementItem
-                met={passwordRequirements.hasDigit}
-                text={t('PasswordRequirementDigit')}
-                colors={colors}
-                typography={typography}
-                spacing={spacing}
-              />
-              <RequirementItem
-                met={passwordRequirements.hasSpecialChar}
-                text={t('PasswordRequirementSpecialChar')}
-                colors={colors}
-                typography={typography}
-                spacing={spacing}
-              />
+              {!passwordRequirements.length ? (
+                <RequirementItem
+                  met={false}
+                  text={t('PasswordRequirementLength')}
+                  colors={colors}
+                  typography={typography}
+                  spacing={spacing}
+                />
+              ) : !passwordRequirements.hasLowercase ? (
+                <RequirementItem
+                  met={false}
+                  text={t('PasswordRequirementLowercase')}
+                  colors={colors}
+                  typography={typography}
+                  spacing={spacing}
+                />
+              ) : !passwordRequirements.hasUppercase ? (
+                <RequirementItem
+                  met={false}
+                  text={t('PasswordRequirementUppercase')}
+                  colors={colors}
+                  typography={typography}
+                  spacing={spacing}
+                />
+              ) : !passwordRequirements.hasDigit ? (
+                <RequirementItem
+                  met={false}
+                  text={t('PasswordRequirementDigit')}
+                  colors={colors}
+                  typography={typography}
+                  spacing={spacing}
+                />
+              ) : !passwordRequirements.hasSpecialChar ? (
+                <RequirementItem
+                  met={false}
+                  text={t('PasswordRequirementSpecialChar')}
+                  colors={colors}
+                  typography={typography}
+                  spacing={spacing}
+                />
+              ) : null}
             </View>
           )}
         </View>
 
         <View>
-          <KeyboardOptimizedInput
+          <Input
             label={t('ConfirmPassword')}
             value={confirm}
             onChangeText={text => {
@@ -175,6 +184,7 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
             placeholder={t('ConfirmYourPassword')}
             inputType="password"
             enableNativeAutocomplete={true}
+            leftIcon={<Lock size={18} color={colors.text.tertiary} />}
             containerStyle={{ marginBottom: 0 }}
           />
           {confirm.length > 0 && !passwordsMatch && (
@@ -300,8 +310,8 @@ export const SignUpForm = ({ onSignedUp, onSwitchToSignIn }: Props) => {
               
               await authService.registerNew(registerRequest);
               
-              // Registration successful - trigger success callback
-              onSignedUp?.();
+              // Registration successful - trigger success callback with email
+              onSignedUp?.(email.trim());
             } catch (e: any) {
               const errorMessage = e?.message || t('RegistrationFailed');
               let errorTitle = t('RegistrationFailed');

@@ -8,7 +8,7 @@ import { authService } from '../../../core/auth/services/authService';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
-import ResetPasswordSentScreen from './ResetPasswordSentScreen';
+import EmailSentConfirmationScreen from './EmailSentConfirmationScreen';
 
 type Props = {
   email?: string;
@@ -51,8 +51,10 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
 
   if (showSentScreen) {
     return (
-      <ResetPasswordSentScreen
+      <EmailSentConfirmationScreen
         email={email.trim()}
+        title={t('EmailSent')}
+        message={t('EmailSentDescription', { email: email.trim() })}
         onBackToSignIn={onSuccess}
       />
     );

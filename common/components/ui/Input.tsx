@@ -1,5 +1,6 @@
 import React, { useState, forwardRef } from 'react';
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, TextInputProps, Platform } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 
 type Props = TextInputProps & {
@@ -25,8 +26,9 @@ const Input = forwardRef<TextInput, Props>(({
   style,
   ...textInputProps
 }, ref) => {
-  const { colors, typography, spacing, borderRadius, shadows } = useTheme();
+  const { colors, typography, spacing, borderRadius, shadows, isDark } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
+  const [showPasswordState, setShowPasswordState] = useState(false);
 
   // Get native keyboard and autocomplete configuration
   const getNativeConfig = () => {
@@ -56,9 +58,9 @@ const Input = forwardRef<TextInput, Props>(({
           keyboardType: 'default' as const,
           autoCapitalize: 'none' as const,
           autoCorrect: false,
-          secureTextEntry: true,
-          textContentType: 'password' as const,
-          autoComplete: Platform.OS === 'android' ? 'password' as const : undefined,
+          textContentType: 'newPassword' as const, // iOS: Enables strong password suggestions for sign-up
+          autoComplete: Platform.OS === 'ios' ? 'password' as const : (Platform.OS === 'android' ? 'password-new' as const : undefined), // iOS: Triggers AutoFill, Android: Password suggestions
+          passwordRules: Platform.OS === 'ios' ? 'required: upper; required: lower; required: digit; required: [-]; minlength: 8; maxlength: 128;' : undefined, // iOS: Password requirements for strong password generation
         };
       case 'phone':
         return {
@@ -172,6 +174,7 @@ const Input = forwardRef<TextInput, Props>(({
           ref={ref}
           {...nativeConfig}
           {...textInputProps}
+          secureTextEntry={inputType === 'password' ? !showPasswordState : false}
           style={[
             {
               flex: 1,
@@ -185,7 +188,7 @@ const Input = forwardRef<TextInput, Props>(({
             style,
           ]}
           placeholderTextColor={colors.text.tertiary}
-          keyboardAppearance={colors.background === '#FFFFFF' ? 'light' : 'dark'}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           onFocus={(e) => {
             setIsFocused(true);
             textInputProps.onFocus?.(e);
@@ -196,7 +199,22 @@ const Input = forwardRef<TextInput, Props>(({
           }}
         />
         
-        {rightIcon && (
+        {inputType === 'password' && !rightIcon ? (
+          <TouchableOpacity
+            onPress={() => setShowPasswordState(!showPasswordState)}
+            style={{ 
+              marginLeft: spacing.md,
+              padding: spacing.xs,
+            }}
+            activeOpacity={0.6}
+          >
+            {showPasswordState ? (
+              <EyeOff size={18} color={colors.text.tertiary} />
+            ) : (
+              <Eye size={18} color={colors.text.tertiary} />
+            )}
+          </TouchableOpacity>
+        ) : rightIcon ? (
           <TouchableOpacity
             onPress={onRightIconPress}
             disabled={!onRightIconPress}
@@ -208,7 +226,7 @@ const Input = forwardRef<TextInput, Props>(({
           >
             {rightIcon}
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
       
       {error && (

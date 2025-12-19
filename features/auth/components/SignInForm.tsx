@@ -10,7 +10,7 @@ import Button from '../../../common/components/ui/Button';
 import { useI18n } from '../../../common/i18n/I18nProvider';
 
 type Props = {
-  onLogin?: (user: User) => void;
+  onLogin?: (user: User, onboardingRequired: boolean) => void;
   onSwitchToSignUp?: () => void;
   onForgotPassword?: () => void;
 };
@@ -168,7 +168,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
                 provider: 'password',
               };
               
-              onLogin?.(mapped);
+              onLogin?.(mapped, authResponse.onboardingRequired);
             } catch (e: any) {
               const errorMessage = e?.message || '';
               // Check if error is related to password/authentication failure

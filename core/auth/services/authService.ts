@@ -6,9 +6,6 @@ import {
   RefreshTokenRequest,
   RegisterRequest,
   RegisterResponse,
-  OnboardingRequest,
-  CompleteOnboardingWithImageRequest,
-  CompleteOnboardingWithImageResponse,
   PaginatedResponse,
   PublicUserResponse,
   SecureUserResponse,
@@ -254,56 +251,7 @@ export const securityService = {
   },
 
   /**
-   * Complete user onboarding/profile setup
-   * @param request - Onboarding data
-   * @returns Updated user information
-   */
-  async completeOnboarding(request: OnboardingRequest): Promise<SecureUserResponse> {
-    const res = await http.post<SecureUserResponse>('/api/v1/auth/complete-onboarding', {
-      name: request.name.trim(),
-      username: request.username?.trim() || undefined,
-      phoneNumber: request.phoneNumber || null,
-      profilePictureUrl: request.profilePictureUrl || undefined,
-      dateOfBirth: request.dateOfBirth || null,
-      acceptTerms: request.acceptTerms,
-      acceptPrivacy: request.acceptPrivacy,
-      marketingOptIn: request.marketingOptIn ?? false,
-    });
-
-    await updateUserCache(res.data);
-
-    return res.data;
-  },
-
-  /**
-   * Complete onboarding with profile image upload
-   * @param request - Onboarding data with optional image upload metadata
-   * @returns Updated user information and optional upload URL
-   */
-  async completeOnboardingWithImage(request: CompleteOnboardingWithImageRequest): Promise<CompleteOnboardingWithImageResponse> {
-    const res = await http.post<CompleteOnboardingWithImageResponse>('/api/v1/auth/complete-onboarding-with-image', {
-      onboarding: {
-        name: request.onboarding.name.trim(),
-        username: request.onboarding.username?.trim() || undefined,
-        phoneNumber: request.onboarding.phoneNumber || null,
-        profilePictureUrl: request.onboarding.profilePictureUrl || undefined,
-        dateOfBirth: request.onboarding.dateOfBirth || null,
-        acceptTerms: request.onboarding.acceptTerms,
-        acceptPrivacy: request.onboarding.acceptPrivacy,
-        marketingOptIn: request.onboarding.marketingOptIn ?? false,
-      },
-      imageUpload: request.imageUpload || undefined,
-    });
-
-    if (res.data.user) {
-      await updateUserCache(res.data.user);
-    }
-
-    return res.data;
-  },
-
-  /**
-   * Update user profile information
+   * Update user profile information (handles both onboarding and profile updates)
    * @param userId - User ID to update
    * @param request - Profile update data
    * @returns Updated user information
@@ -314,6 +262,9 @@ export const securityService = {
       username: request.username?.trim() || undefined,
       phoneNumber: request.phoneNumber || null,
       profilePictureUrl: request.profilePictureUrl || undefined,
+      dateOfBirth: request.dateOfBirth || null,
+      acceptTerms: request.acceptTerms,
+      acceptPrivacy: request.acceptPrivacy,
       userType: request.userType,
       preferences: request.preferences || undefined,
       marketingOptIn: request.marketingOptIn ?? false,
@@ -322,37 +273,6 @@ export const securityService = {
 
     await updateUserCache(res.data);
 
-    return res.data;
-  },
-
-  /**
-   * Get user by ID (admin only)
-   * @param userId - User ID
-   * @returns User information
-   */
-  async getUser(userId: string): Promise<SecureUserResponse> {
-    const res = await http.get<SecureUserResponse>(`/api/v1/auth/users/${userId}`);
-    return res.data;
-  },
-
-  /**
-   * Search for users (admin only)
-   * @param searchTerm - Search query
-   * @param params - Optional pagination parameters
-   * @returns Paginated list of users
-   */
-  async searchUsers(searchTerm: string, params?: { page?: number; size?: number }): Promise<PaginatedResponse<SecureUserResponse>> {
-    const queryParams = new URLSearchParams({ searchTerm: searchTerm.trim() });
-    if (params?.page !== undefined) {
-      queryParams.append('page', params.page.toString());
-    }
-    if (params?.size !== undefined) {
-      queryParams.append('size', params.size.toString());
-    }
-
-    const res = await http.get<PaginatedResponse<SecureUserResponse>>(
-      `/api/v1/auth/users/search?${queryParams.toString()}`
-    );
     return res.data;
   },
 

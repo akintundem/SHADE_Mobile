@@ -11,7 +11,7 @@ import { AppleIcon, SpotifyIcon } from '../components/icons';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
 
 type Props = {
-  onLogin?: (user: User) => void;
+  onLogin?: (user: User, onboardingRequired: boolean) => void;
   onSwitchToSignUp?: () => void;
 };
 
