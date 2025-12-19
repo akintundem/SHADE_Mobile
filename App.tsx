@@ -1,29 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Linking } from 'react-native';
 import { I18nProvider } from './common/i18n/I18nProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import Auth from './features/auth/screens/AuthScreen';
 import ThemeProvider from './common/theme/ThemeProvider';
 import LoadingState from './common/components/LoadingState';
 import WelcomeScreen from './WelcomeScreen';
-import { User } from './features/auth/types/auth';
+import { User } from './core/auth/types/auth';
 import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [authScreen, setAuthScreen] = useState<'signIn' | 'signUp'>('signIn');
 
   useEffect(() => {
     (async () => {
       try {
-        // Check for deep link on app start
-        const url = await Linking.getInitialURL();
-        if (url) {
-          handleDeepLink(url);
-        }
-
         // Attempt to restore session from storage
         const token = await getToken();
         if (token) {
@@ -31,7 +23,7 @@ function App() {
           if (cached) {
             // Validate token on app startup
             try {
-              const { authService } = await import('./features/auth/services/authService');
+              const { authService } = await import('./core/auth/authService');
               const validationResult = await authService.validateToken({ token });
 
               if (validationResult.valid && validationResult.user) {
@@ -69,29 +61,9 @@ function App() {
         setIsLoading(false);
       }
     })();
-
-    // Listen for deep links while app is running
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      handleDeepLink(url);
-    });
-
-    return () => {
-      subscription.remove();
-    };
   }, []);
 
-  const handleDeepLink = (url: string) => {
-    // Deep link handling can be added here if needed in the future
-    try {
-      // Handle any deep links if needed
-    } catch (error) {
-      // Error parsing deep link
-    }
-  };
-
   const handleLogin = (u: User) => setUser(u);
-  const handleLogout = () => setUser(null);
-  const handleUpdateUser = (u: User) => setUser(u);
 
   return (
     <SafeAreaProvider>
@@ -103,7 +75,6 @@ function App() {
               ) : !user ? (
                 <Auth
                   onLogin={handleLogin}
-                  initialScreen={authScreen}
                 />
               ) : (
                 <WelcomeScreen user={user} />

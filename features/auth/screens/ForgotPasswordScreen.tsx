@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Mail } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 import { authService } from '../services/authService';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import Input from '../../../common/components/ui/Input';
@@ -16,6 +17,7 @@ type Props = {
 
 export default function ForgotPasswordScreen({ email: initialEmail = '', onBack, onSuccess }: Props) {
   const { colors, brand, typography, spacing } = useTheme();
+  const { t } = useI18n();
   const [email, setEmail] = useState(initialEmail);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
   const handleSubmit = async () => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setMessage('Please enter your email address');
+      setMessage(t('PleaseEnterEmail'));
       setSuccess(false);
       return;
     }
@@ -35,17 +37,17 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
       const response = await authService.forgotPassword(trimmedEmail.toLowerCase());
       
       if (response.success) {
-        setMessage('If an account exists with this email, we\'ve sent a password reset link.');
+        setMessage(t('ResetLinkSent'));
         setSuccess(true);
         setTimeout(() => {
           onSuccess();
         }, 2000);
       } else {
-        setMessage(response.message || 'Unable to send reset email. Please try again.');
+        setMessage(response.message || t('UnableToSendResetEmail'));
         setSuccess(false);
       }
     } catch (err: any) {
-      const errorMessage = err?.message || 'Unable to send reset email. Please try again.';
+      const errorMessage = err?.message || t('UnableToSendResetEmail');
       setMessage(errorMessage);
       setSuccess(false);
     } finally {
@@ -90,7 +92,7 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
                 letterSpacing: -1,
               }}
             >
-              Reset password
+              {t('ResetPassword')}
             </Text>
             <Text
               style={{
@@ -101,19 +103,19 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
                 letterSpacing: 0.1,
               }}
             >
-              Enter your email and we'll send you a link to reset your password.
+              {t('ResetPasswordDescription')}
             </Text>
           </View>
 
           <View style={{ gap: spacing.xl }}>
             <Input
-              label="Email"
+              label={t('Email')}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
                 setMessage(null);
               }}
-              placeholder="Enter your email address"
+              placeholder={t('EnterYourEmailAddress')}
               inputType="email"
               enableNativeAutocomplete={true}
               leftIcon={<Mail size={18} color={colors.text.tertiary} />}
@@ -159,7 +161,7 @@ export default function ForgotPasswordScreen({ email: initialEmail = '', onBack,
                 loading={submitting}
                 disabled={!email.trim() || submitting}
               >
-                Send reset link
+                {t('SendResetLink')}
               </Button>
             </View>
           </View>

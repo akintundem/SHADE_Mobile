@@ -3,10 +3,10 @@ import Svg, { Path } from 'react-native-svg';
 
 type Props = {
   size?: number;
-  color?: string;
+  color: string;
 };
 
-export const AppleIcon = ({ size = 24, color = '#FFFFFF' }: Props) => {
+export const AppleIcon = ({ size = 24, color }: Props) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

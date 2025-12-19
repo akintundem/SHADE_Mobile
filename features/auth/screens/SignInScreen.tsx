@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 import { User } from '../types/auth';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import BrandLogo from '../../../common/components/brand/BrandLogo';
@@ -16,6 +17,7 @@ type Props = {
 
 export default function SignInScreen({ onLogin, onSwitchToSignUp }: Props) {
   const { colors, spacing, typography, borderRadius, shadows } = useTheme();
+  const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
@@ -88,9 +90,9 @@ export default function SignInScreen({ onLogin, onSwitchToSignUp }: Props) {
             fontWeight: typography.weight.regular,
             letterSpacing: 0.2,
             textTransform: 'uppercase',
-          }}>
-            or
-          </Text>
+              }}>
+                {t('Or')}
+              </Text>
           <View style={{ flex: 1, height: 1, backgroundColor: colors.divider }} />
         </View>
 
@@ -113,7 +115,7 @@ export default function SignInScreen({ onLogin, onSwitchToSignUp }: Props) {
               ...shadows.md,
             }}
           >
-            <AppleIcon size={iconSize} color="#FFFFFF" />
+            <AppleIcon size={iconSize} color={colors.text.inverse} />
           </View>
 
           <View 
@@ -128,7 +130,7 @@ export default function SignInScreen({ onLogin, onSwitchToSignUp }: Props) {
               ...shadows.md,
             }}
           >
-            <SpotifyIcon size={iconSize} color="#FFFFFF" />
+            <SpotifyIcon size={iconSize} color={colors.text.inverse} />
           </View>
         </View>
 
@@ -147,19 +149,19 @@ export default function SignInScreen({ onLogin, onSwitchToSignUp }: Props) {
             fontWeight: typography.weight.regular,
             letterSpacing: 0.1,
           }}>
-            By continuing, you agree to our{' '}
+            {t('ByContinuing')}{' '}
             <Text style={{ 
               color: colors.text.secondary,
               fontWeight: typography.weight.medium,
             }}>
-              Terms of Service
+              {t('TermsOfService')}
             </Text>
-            {' '}and{' '}
+            {' '}{t('And')}{' '}
             <Text style={{ 
               color: colors.text.secondary,
               fontWeight: typography.weight.medium,
             }}>
-              Privacy Policy
+              {t('PrivacyPolicy')}
             </Text>
           </Text>
         </View>

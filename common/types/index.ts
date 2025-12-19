@@ -5,5 +5,5 @@
  */
 
 // Authentication
-export * from '../../features/auth/types/auth';
+export * from '../../core/auth/types/auth';
 

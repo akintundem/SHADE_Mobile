@@ -30,7 +30,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
     <View style={{ gap: spacing.xl }}>
       <View style={{ gap: spacing.lg }}>
         <Input
-          label="Email"
+          label={t('Email')}
           value={email}
           onChangeText={text => {
             setEmail(text);
@@ -46,7 +46,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
 
         <View>
           <Input
-            label="Password"
+            label={t('Password')}
             value={password}
             onChangeText={text => {
               setPassword(text);
@@ -80,7 +80,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
                 letterSpacing: 0.1,
               }}
             >
-              Forgot password?
+              {t('ForgotPassword')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -127,7 +127,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
             letterSpacing: 0.1,
           }}
         >
-          Remember me
+          {t('RememberMe')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -180,7 +180,7 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
                 (e?.status === 401 && !errorMessage.toLowerCase().includes('email'));
               
               if (isPasswordError) {
-                setError('Sorry, your password was incorrect. Please double-check your password.');
+                setError(t('PasswordIncorrect'));
               } else {
                 setError(errorMessage || t('SignIn'));
               }
