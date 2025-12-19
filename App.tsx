@@ -3,22 +3,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
 import { I18nProvider } from './common/i18n/I18nProvider';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Auth from './features/auth/screens/AuthScreen';
 import ThemeProvider from './common/theme/ThemeProvider';
 import LoadingState from './common/components/LoadingState';
-import SocialApp from './features/social/screens/SocialApp';
+import WelcomeScreen from './WelcomeScreen';
 import { User } from './features/auth/types/auth';
 import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
-import { EventProfileRoute } from './features/events/Home/screens/EventProfileRoute';
-import EventManageScreen from './features/events/Home/screens/EventManageScreen';
-import EventAdminScreen from './features/events/Home/screens/EventAdminScreen';
-import ManageCapacityScreen from './features/events/Home/screens/manage/ManageCapacityScreen';
-import ManageVisibilityScreen from './features/events/Home/screens/manage/ManageVisibilityScreen';
-import ManageNotificationsScreen from './features/events/Home/screens/manage/ManageNotificationsScreen';
-import ManageCollaboratorsScreen from './features/events/Home/screens/manage/ManageCollaboratorsScreen';
-import ManageLifecycleScreen from './features/events/Home/screens/manage/ManageLifecycleScreen';
-import ChatScreen from './features/chat/screens/ChatScreen';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -127,8 +117,6 @@ function App() {
   const handleLogout = () => setUser(null);
   const handleUpdateUser = (u: User) => setUser(u);
 
-  const Stack = createNativeStackNavigator();
-
   return (
     <SafeAreaProvider>
       <I18nProvider>
@@ -144,88 +132,7 @@ function App() {
                   verifyToken={verifyToken}
                 />
               ) : (
-                <Stack.Navigator
-                  screenOptions={{
-                    headerShown: false,
-                    gestureEnabled: true,
-                    fullScreenGestureEnabled: true,
-                  }}
-                >
-                  <Stack.Screen name="Main">
-                    {() => (
-                      <SocialApp user={user} onLogout={handleLogout} onUpdateUser={handleUpdateUser} />
-                    )}
-                  </Stack.Screen>
-                  <Stack.Screen
-                    name="EventProfile"
-                    component={EventProfileRoute}
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: true,
-                      fullScreenGestureEnabled: true,
-                      animation: 'slide_from_right',
-                    }}
-                  />
-                  <Stack.Screen
-                    name="EventManage"
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: true,
-                      fullScreenGestureEnabled: true,
-                      animation: 'slide_from_right',
-                    }}
-                  >
-                    {(props) => (
-                      // Render-as-child to avoid strict typing mismatch on route props
-                      <EventManageScreen {...(props as any)} />
-                    )}
-                  </Stack.Screen>
-                  <Stack.Screen
-                    name="EventAdmin"
-                    component={EventAdminScreen}
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: true,
-                      fullScreenGestureEnabled: true,
-                      animation: 'slide_from_right',
-                    }}
-                  />
-                  <Stack.Screen
-                    name="EventManageCapacity"
-                    component={ManageCapacityScreen}
-                    options={{ headerShown: false, animation: 'slide_from_right' }}
-                  />
-                  <Stack.Screen
-                    name="EventManageVisibility"
-                    component={ManageVisibilityScreen}
-                    options={{ headerShown: false, animation: 'slide_from_right' }}
-                  />
-                  <Stack.Screen
-                    name="EventManageNotifications"
-                    component={ManageNotificationsScreen}
-                    options={{ headerShown: false, animation: 'slide_from_right' }}
-                  />
-                  <Stack.Screen
-                    name="EventManageCollaborators"
-                    component={ManageCollaboratorsScreen}
-                    options={{ headerShown: false, animation: 'slide_from_right' }}
-                  />
-                  <Stack.Screen
-                    name="EventManageLifecycle"
-                    component={ManageLifecycleScreen}
-                    options={{ headerShown: false, animation: 'slide_from_right' }}
-                  />
-                  <Stack.Screen
-                    name="Chat"
-                    component={ChatScreen}
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: true,
-                      fullScreenGestureEnabled: true,
-                      animation: 'slide_from_bottom',
-                    }}
-                  />
-                </Stack.Navigator>
+                <WelcomeScreen user={user} />
               )}
             </NavigationContainer>
           </ThemeProvider>
