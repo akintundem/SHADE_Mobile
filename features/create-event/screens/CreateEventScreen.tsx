@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { View, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { Asset } from 'react-native-image-picker';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
-import { LoadingOverlay } from '../../../../common/components/LoadingStates';
-import { eventService } from '../../../../core/events/services';
-import { CreateEventRequest, EventType, EventStatus } from '../../../../core/events/types';
-import { ErrorHandler } from '../../../../common/utils/errorHandler';
-import { generateUUID } from '../../../../common/utils/uuid';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { SafeAreaWrapper } from '../../../common/components/SafeAreaWrapper';
+import { LoadingOverlay } from '../../../common/components/LoadingStates';
+import { eventService } from '../../../core/events/services';
+import { CreateEventRequest, EventType, EventStatus } from '../../../core/events/types';
+import { ErrorHandler } from '../../../common/utils/errorHandler';
+import { generateUUID } from '../../../common/utils/uuid';
 import { STEPS } from '../constants';
 import { useCreateEventForm } from '../hooks/useCreateEventForm';
-import { useI18n } from '../../../../common/i18n/I18nProvider';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 import {
   EventBasicsStep,
   CategorizeStep,

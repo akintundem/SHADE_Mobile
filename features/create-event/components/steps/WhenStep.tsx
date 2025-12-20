@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { CalendarDays, Clock, ChevronRight } from 'lucide-react-native';
-import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import {
   DateTimePickerModal,
   formatDisplayDateTime,
@@ -9,7 +9,7 @@ import {
   parseTimeInput,
   toIsoDateString,
   toTimeString,
-} from '../../../../../common/datetime';
+} from '../../../../common/datetime';
 
 type Props = {
   startDate: string;

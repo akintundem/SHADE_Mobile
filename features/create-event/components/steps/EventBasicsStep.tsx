@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, TextInput } from 'react-native';
-import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
 type Props = {
   title: string;

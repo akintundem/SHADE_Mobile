@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { EventMiniCard } from '../components/EventMiniCard';
-import { TabBar } from '../../events/Home/components/TabBar';
+import { TabBar } from '../../events-dashboard/Home/components/TabBar';
 import SettingsScreen from '../../settings/screens/main/SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { User } from '../../../core/auth/types/auth';

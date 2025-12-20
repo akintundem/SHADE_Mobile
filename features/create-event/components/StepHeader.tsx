@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Step = {
   id: number;

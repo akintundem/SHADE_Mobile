@@ -3,8 +3,8 @@ import { View } from 'react-native';
 import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
-import HomeScreen from '../../events/Home/screens/HomeScreen';
-import ManageScreen from '../../events/Home/screens/ManageScreen';
+import HomeScreen from '../../events-dashboard/Home/screens/HomeScreen';
+import ManageScreen from '../../events-dashboard/Home/screens/ManageScreen';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
 
 type Props = {
@@ -54,4 +54,3 @@ export default function MainApp({ user, onLogout }: Props) {
     </View>
   );
 }
-

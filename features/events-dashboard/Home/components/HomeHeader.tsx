@@ -4,9 +4,10 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 
 type Props = {
   title?: string;
+  rightAction?: React.ReactNode;
 };
 
-export const HomeHeader = ({ title = 'Shade' }: Props) => {
+export const HomeHeader = ({ title = 'Shade', rightAction }: Props) => {
   const { colors, typography, spacing } = useTheme();
 
   return (
@@ -33,6 +34,7 @@ export const HomeHeader = ({ title = 'Shade' }: Props) => {
             {title}
           </Text>
         </View>
+        {rightAction ? <View>{rightAction}</View> : null}
       </View>
     </View>
   );

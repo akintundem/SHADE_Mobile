@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { MapPin, X } from 'lucide-react-native';
-import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 // Local Venue type for form input
 type Venue = {
   address?: string;

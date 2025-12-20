@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { EventType } from '../../../../../common/types';
-import { useTheme } from '../../../../../common/theme/ThemeProvider';
+import { EventType } from '../../../../common/types';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { EVENT_CATEGORIES, AVAILABLE_TAGS } from '../../constants';
 
 type Props = {

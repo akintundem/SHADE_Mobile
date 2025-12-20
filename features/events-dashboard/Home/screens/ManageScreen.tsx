@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, RefreshControl } from 'react-native';
+import { ScrollView, View, RefreshControl, TouchableOpacity } from 'react-native';
 import { HomeHeader } from '../components/HomeHeader';
 import { EventSegmentedControl, SegmentType } from '../components/EventSegmentedControl';
 import { EventCard, EventItem } from '../components/EventCard';
@@ -11,7 +11,7 @@ import { useEvents } from '../hooks/useEvents';
 import { useEventFilters } from '../hooks/useEventFilters';
 import { convertEventsToItems } from '../utils/eventUtils';
 import { EventListSkeleton, EmptyState } from '../../../../common/components/LoadingStates';
-import { Calendar } from 'lucide-react-native';
+import { Calendar, Plus } from 'lucide-react-native';
 
 type Props = {
   user: User;
@@ -40,7 +40,29 @@ export default function ManageScreen({
     <SafeAreaWrapper edges={['top']}>
       <View style={{ flex: 1 }}>
         <View style={{ backgroundColor: colors.background }}>
-          <HomeHeader title="Manage" />
+          <HomeHeader
+            title="Manage"
+            rightAction={
+              onCreateEvent ? (
+                <TouchableOpacity
+                  onPress={onCreateEvent}
+                  activeOpacity={0.8}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: colors.text.primary,
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Create event"
+                >
+                  <Plus size={20} color={colors.background} />
+                </TouchableOpacity>
+              ) : null
+            }
+          />
           <EventSegmentedControl
             activeSegment={activeSegment}
             onSegmentChange={setActiveSegment}
