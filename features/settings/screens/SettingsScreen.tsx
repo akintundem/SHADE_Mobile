@@ -1,34 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import {
   Bell,
-  Download,
-  FileText,
   Globe,
   HardDrive,
   HelpCircle,
   Info,
-  Key,
   Lock,
   LogOut,
-  Mail,
   Moon,
   Shield,
   Trash2,
-  User,
   X,
-  Settings as SettingsIcon,
 } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../common/i18n/I18nProvider';
-import CustomSwitch from '../../../common/components/ui/CustomSwitch';
-import { User as AuthUser } from '../../../core/auth/types/auth';
 import { SettingsHeader, SettingsSection, SettingsRow } from '../components';
 import ChangePasswordScreen from './ChangePasswordScreen';
+import PrivacySettingsScreen from './PrivacySettingsScreen';
+import NotificationSettingsScreen from './NotificationSettingsScreen';
+import SecuritySettingsScreen from './SecuritySettingsScreen';
+import DataSettingsScreen from './DataSettingsScreen';
+import { useCurrentUser } from '../../../common/hooks/useCurrentUser';
+import { authService } from '../../../core/auth/services/authService';
+import { ThemePreference } from '../../../core/auth/types/auth';
 
 type Props = {
-  user: AuthUser;
   onClose?: () => void;
   onLogout?: () => void;
 };
@@ -38,32 +36,111 @@ type BannerState = {
   tone: 'success' | 'error';
 };
 
+type ActiveScreen = 
+  | 'main' 
+  | 'changePassword' 
+  | 'privacy' 
+  | 'notifications' 
+  | 'security' 
+  | 'data';
+
 export default function SettingsScreen({
-  user,
   onClose,
   onLogout,
 }: Props) {
-  const { isDark, setDark, colors, spacing, typography } = useTheme();
+  const { themePreference, setThemePreference, colors, spacing, typography, borderRadius } = useTheme();
   const { lang, setLang, t } = useI18n();
+  const { user, refetch } = useCurrentUser();
+  
+  const settings = user?.settings;
 
-  const [isPrivate, setIsPrivate] = useState(false);
-  const [pushEnabled, setPushEnabled] = useState(true);
+  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('main');
   const [banner, setBanner] = useState<BannerState | null>(null);
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  const [isResendingVerification, setIsResendingVerification] = useState(false);
 
-  if (showChangePassword) {
+  // Sync theme preference from user settings on load (only if different)
+  useEffect(() => {
+    if (settings?.themePreference && settings.themePreference !== themePreference) {
+      setThemePreference(settings.themePreference);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings?.themePreference]);
+
+  // Handle theme preference change
+  const handleThemePreferenceChange = async (pref: ThemePreference) => {
+    if (!user) return;
+    // Update local state immediately for instant feedback
+    setThemePreference(pref);
+    try {
+      await authService.updateUserProfile(user.id, {
+        name: user.name,
+        settings: { themePreference: pref },
+      });
+      // Refetch to sync with backend
+      await refetch();
+    } catch (error) {
+      // Revert on error
+      if (settings?.themePreference) {
+        setThemePreference(settings.themePreference);
+      } else {
+        setThemePreference(ThemePreference.SYSTEM);
+      }
+    }
+  };
+
+  // Handle language change
+  const handleLanguageChange = async (value: string) => {
+    if (!user) return;
+    // Immediately update the app language for instant feedback
+    setLang(value as 'en' | 'fr');
+    try {
+      await authService.updateUserProfile(user.id, {
+        name: user.name,
+        settings: { preferredLanguage: value },
+      });
+      // Refetch to sync with backend
+      await refetch();
+    } catch (error) {
+      // Revert on error
+      const previousLang = settings?.preferredLanguage || 'en';
+      setLang(previousLang as 'en' | 'fr');
+    }
+  };
+
+  if (activeScreen === 'changePassword') {
     return (
       <ChangePasswordScreen
-        onBack={() => setShowChangePassword(false)}
+        onBack={() => setActiveScreen('main')}
         onSuccess={() => {
           setBanner({
             text: t('PasswordChangedSuccessfully'),
             tone: 'success',
           });
+          setActiveScreen('main');
         }}
       />
     );
+  }
+
+  if (activeScreen === 'privacy') {
+    return <PrivacySettingsScreen onBack={() => setActiveScreen('main')} />;
+  }
+
+  if (activeScreen === 'notifications') {
+    return <NotificationSettingsScreen onBack={() => setActiveScreen('main')} />;
+  }
+
+
+  if (activeScreen === 'security') {
+    return (
+      <SecuritySettingsScreen
+        onBack={() => setActiveScreen('main')}
+        onChangePassword={() => setActiveScreen('changePassword')}
+      />
+    );
+  }
+
+  if (activeScreen === 'data') {
+    return <DataSettingsScreen onBack={() => setActiveScreen('main')} />;
   }
 
   return (
@@ -128,140 +205,148 @@ export default function SettingsScreen({
 
         <SettingsSection title={t('Account')} />
         <SettingsRow
-          icon={User}
-          title={t('EditProfile')}
-          subtitle={t('UpdateYourProfileInformation')}
-        />
-        <SettingsRow
-          icon={Key}
-          title={t('ChangePassword')}
-          subtitle={t('UpdateYourPasswordSecurely')}
-          onPress={() => {
-            setBanner(null);
-            setShowChangePassword(true);
-          }}
-        />
-        <SettingsRow
-          icon={Mail}
-          title={t('ResendVerificationEmail')}
-          subtitle={`${t('SendTo')} ${user.email ?? t('YourEmail')}`}
-          end={
-            <Text
-              style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.xs,
-              }}
-            >
-              {isResendingVerification ? t('Sending') : t('Send')}
-            </Text>
-          }
-        />
-        <SettingsRow
           icon={Lock}
           title={t('PrivacyAndSafety')}
           subtitle={t('ControlWhoCanSeeYourContent')}
+          onPress={() => setActiveScreen('privacy')}
         />
         <SettingsRow
           icon={Bell}
           title={t('Notifications')}
           subtitle={t('ManageYourNotificationPreferences')}
+          onPress={() => setActiveScreen('notifications')}
         />
         <SettingsRow
           icon={Shield}
           title={t('Security')}
           subtitle={t('TwoFactorAuthenticationAndMore')}
+          onPress={() => setActiveScreen('security')}
           end={
-            <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs }}>
-              {t('SetupRecommended')}
-            </Text>
+            settings?.mfaEnabled ? (
+              <Text style={{ color: colors.semantic.success, fontSize: typography.size.xs }}>
+                {t('Enabled')}
+              </Text>
+            ) : (
+              <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs }}>
+                {t('SetupRecommended')}
+              </Text>
+            )
           }
         />
 
         <SettingsSection title={t('QuickSettings')} />
-        <SettingsRow
-          icon={Lock}
-          title={t('PrivateAccount')}
-          subtitle={t('OnlyFollowersCanSeeYourPosts')}
-          end={<CustomSwitch value={isPrivate} onValueChange={setIsPrivate} />}
-        />
-        <SettingsRow
-          icon={Bell}
-          title={t('PushNotifications')}
-          subtitle={t('GetNotifiedAboutActivity')}
-          end={<CustomSwitch value={pushEnabled} onValueChange={setPushEnabled} />}
-        />
-        <SettingsRow
-          icon={Moon}
-          title={t('Theme')}
-          subtitle={isDark ? t('Dark') : t('Light')}
-          end={<CustomSwitch value={isDark} onValueChange={setDark} />}
-        />
-
-        <SettingsSection title={t('AppPreferences')} />
-        <SettingsRow
-          icon={Globe}
-          title={t('Language')}
-          subtitle={lang === 'en' ? t('English') : t('French')}
-          end={
-            <View style={{ flexDirection: 'row', gap: spacing.xs }}>
-              <TouchableOpacity
-                onPress={() => setLang('en')}
-                style={{
-                  paddingHorizontal: spacing.sm,
-                  paddingVertical: spacing.xs / 2,
-                  borderRadius: 6,
-                  backgroundColor:
-                    lang === 'en'
-                      ? colors.text.primary
-                      : colors.surfaceElevated,
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      lang === 'en' ? colors.text.inverse : colors.text.primary,
-                    fontSize: typography.size.xs,
-                    fontWeight: typography.weight.semibold,
-                  }}
-                >
-                  EN
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setLang('fr')}
-                style={{
-                  paddingHorizontal: spacing.sm,
-                  paddingVertical: spacing.xs / 2,
-                  borderRadius: 6,
-                  backgroundColor:
-                    lang === 'fr'
-                      ? colors.text.primary
-                      : colors.surfaceElevated,
-                }}
-              >
-                <Text
-                  style={{
-                    color:
-                      lang === 'fr' ? colors.text.inverse : colors.text.primary,
-                    fontSize: typography.size.xs,
-                    fontWeight: typography.weight.semibold,
-                  }}
-                >
-                  FR
-                </Text>
-              </TouchableOpacity>
+        <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: 0.5, borderColor: colors.divider }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+            <View style={{
+              width: 28,
+              height: 28,
+              borderRadius: 6,
+              backgroundColor: colors.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Moon size={16} color={colors.text.primary} strokeWidth={1.5} />
             </View>
-          }
-        />
+            <Text style={{
+              color: colors.text.primary,
+              fontWeight: typography.weight.semibold,
+              fontSize: typography.size.sm,
+              letterSpacing: -0.1,
+            }}>
+              {t('Theme')}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: spacing.xs, marginLeft: 36 }}>
+            {[
+              { value: ThemePreference.LIGHT, label: t('Light') },
+              { value: ThemePreference.DARK, label: t('Dark') },
+              { value: ThemePreference.SYSTEM, label: t('System') },
+            ].map((option) => {
+              const isActive = themePreference === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  onPress={() => handleThemePreferenceChange(option.value)}
+                  style={{
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.xs,
+                    borderRadius: borderRadius.md,
+                    backgroundColor: isActive ? colors.text.primary : colors.surface,
+                    borderWidth: 1,
+                    borderColor: isActive ? colors.text.primary : colors.divider,
+                  }}
+                >
+                  <Text style={{
+                    color: isActive ? colors.text.inverse : colors.text.secondary,
+                    fontSize: typography.size.xs,
+                    fontWeight: isActive ? typography.weight.semibold : typography.weight.medium,
+                  }}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+        <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: 0.5, borderColor: colors.divider }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
+            <View style={{
+              width: 28,
+              height: 28,
+              borderRadius: 6,
+              backgroundColor: colors.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <Globe size={16} color={colors.text.primary} strokeWidth={1.5} />
+            </View>
+            <Text style={{
+              color: colors.text.primary,
+              fontWeight: typography.weight.semibold,
+              fontSize: typography.size.sm,
+              letterSpacing: -0.1,
+            }}>
+              {t('Language')}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: spacing.xs, marginLeft: 36 }}>
+            {[
+              { value: 'en', label: t('English') },
+              { value: 'fr', label: t('French') },
+            ].map((option) => {
+              const isActive = lang === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  onPress={() => handleLanguageChange(option.value)}
+                  style={{
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.xs,
+                    borderRadius: borderRadius.md,
+                    backgroundColor: isActive ? colors.text.primary : colors.surface,
+                    borderWidth: 1,
+                    borderColor: isActive ? colors.text.primary : colors.divider,
+                  }}
+                >
+                  <Text style={{
+                    color: isActive ? colors.text.inverse : colors.text.secondary,
+                    fontSize: typography.size.xs,
+                    fontWeight: isActive ? typography.weight.semibold : typography.weight.medium,
+                  }}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        <SettingsSection title={t('DataAndStorage')} />
         <SettingsRow
           icon={HardDrive}
           title={t('DataAndStorage')}
           subtitle={t('ManageDownloadsAndStorage')}
-        />
-        <SettingsRow
-          icon={SettingsIcon}
-          title={t('Accessibility')}
-          subtitle={t('FeaturesToImproveYourExperience')}
+          onPress={() => setActiveScreen('data')}
         />
 
         <SettingsSection title={t('SupportAbout')} />
@@ -275,27 +360,8 @@ export default function SettingsScreen({
           title={t('About')}
           subtitle={t('AppVersionAndLegalInformation')}
         />
-        <SettingsRow
-          icon={FileText}
-          title={t('ReportAProblem')}
-          subtitle={t('LetUsKnowAboutAnyIssues')}
-        />
 
         <SettingsSection title={t('AccountManagement')} />
-        <SettingsRow
-          icon={LogOut}
-          title={t('LogOut')}
-          subtitle={t('SignOutOfYourAccount')}
-          onPress={onLogout}
-          danger
-        />
-
-        <SettingsSection title={t('DangerZone')} />
-        <SettingsRow
-          icon={Download}
-          title={t('DownloadYourData')}
-          subtitle={t('RequestACopyOfYourInformation')}
-        />
         <SettingsRow
           icon={X}
           title={t('DeactivateAccount')}
@@ -307,22 +373,29 @@ export default function SettingsScreen({
           subtitle={t('PermanentlyDeleteYourAccountAndData')}
           danger
         />
+        <SettingsRow
+          icon={LogOut}
+          title={t('LogOut')}
+          subtitle={t('SignOutOfYourAccount')}
+          onPress={onLogout}
+          danger
+        />
 
         <View
           style={{
-            alignItems: 'flex-start',
+            alignItems: 'center',
             paddingHorizontal: spacing.xl,
             paddingTop: spacing.md,
             paddingBottom: spacing.xs,
             gap: spacing.xs / 2,
           }}
         >
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium }}>Capsule v1.0.0</Text>
+          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium }}>Shade v1.0.0</Text>
           <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
             Terms • Privacy • Cookies
           </Text>
           <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginTop: spacing.xs / 2 }}>
-            © {new Date().getFullYear()} Capsule. All rights reserved.
+            © {new Date().getFullYear()} Shade. All rights reserved.
           </Text>
         </View>
       </ScrollView>

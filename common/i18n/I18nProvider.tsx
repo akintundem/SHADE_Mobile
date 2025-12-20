@@ -45,28 +45,56 @@ const getDeviceLocale = (): Language => {
   }
 };
 
-export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
-  const [lang, setLangState] = useState<Language>('en');
+type I18nProviderProps = {
+  children: React.ReactNode;
+  userLanguagePreference?: string | null; // Optional user language preference from settings
+};
 
+export const I18nProvider = ({ children, userLanguagePreference }: I18nProviderProps) => {
+  const [lang, setLangState] = useState<Language>('en');
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize language on mount - priority: userLanguagePreference > AsyncStorage > device locale
   useEffect(() => {
     (async () => {
       try {
+        // Priority 1: User settings (if provided)
+        if (userLanguagePreference && (userLanguagePreference === 'en' || userLanguagePreference === 'fr')) {
+          setLangState(userLanguagePreference as Language);
+          await AsyncStorage.setItem(STORAGE_KEY, userLanguagePreference);
+          setIsInitialized(true);
+          return;
+        }
+        
+        // Priority 2: Local storage
         const saved = await AsyncStorage.getItem(STORAGE_KEY);
         if (saved === 'en' || saved === 'fr') {
           setLangState(saved);
-        } else {
-          // No saved preference, detect from device locale
-          const deviceLang = getDeviceLocale();
-          setLangState(deviceLang);
-          await AsyncStorage.setItem(STORAGE_KEY, deviceLang);
+          setIsInitialized(true);
+          return;
         }
+        
+        // Priority 3: Device locale
+        const deviceLang = getDeviceLocale();
+        setLangState(deviceLang);
+        await AsyncStorage.setItem(STORAGE_KEY, deviceLang);
+        setIsInitialized(true);
       } catch {
         // Fallback to device locale if storage fails
         const deviceLang = getDeviceLocale();
         setLangState(deviceLang);
+        setIsInitialized(true);
       }
     })();
   }, []);
+
+  // Update language when user settings change (after initial load)
+  useEffect(() => {
+    if (isInitialized && userLanguagePreference && (userLanguagePreference === 'en' || userLanguagePreference === 'fr')) {
+      setLangState(userLanguagePreference as Language);
+      AsyncStorage.setItem(STORAGE_KEY, userLanguagePreference).catch(() => {});
+    }
+  }, [userLanguagePreference, isInitialized]);
 
   const setLang = useCallback((l: Language) => {
     setLangState(l);

@@ -90,18 +90,34 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
 
   if (view === 'settings') {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <SettingsScreen user={user} onClose={() => setView('profile')} onLogout={onLogout} />
-        <TabBar active="profile" onChange={onTabChange} />
+      <View style={{ 
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        backgroundColor: colors.background, 
+        zIndex: 1000,
+        elevation: 1000,
+      }}>
+        <SettingsScreen onClose={() => setView('profile')} onLogout={onLogout} />
       </View>
     );
   }
 
   if (view === 'edit') {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <View style={{ 
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        backgroundColor: colors.background, 
+        zIndex: 1000,
+        elevation: 1000,
+      }}>
         <EditProfileScreen user={user} onBack={() => setView('profile')} />
-        <TabBar active="profile" onChange={onTabChange} />
       </View>
     );
   }

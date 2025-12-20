@@ -7,13 +7,15 @@ import ThemeProvider from './common/theme/ThemeProvider';
 import LoadingState from './common/components/LoadingState';
 import MainApp from './features/social/screens/MainApp';
 import OnboardingScreen from './features/auth/screens/OnboardingScreen';
-import { User } from './core/auth/types/auth';
+import { User, ThemePreference } from './core/auth/types/auth';
 import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [onboardingRequired, setOnboardingRequired] = useState(false);
+  const [userThemePreference, setUserThemePreference] = useState<ThemePreference | null>(null);
+  const [userLanguagePreference, setUserLanguagePreference] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -39,6 +41,20 @@ function App() {
                 });
                 // Check if profile is complete from cache
                 setOnboardingRequired(cached.profileComplete === false);
+                
+                // Fetch user settings to get theme and language preferences
+                try {
+                  const currentUser = await authService.getCurrentUser();
+                  if (currentUser.settings?.themePreference) {
+                    setUserThemePreference(currentUser.settings.themePreference);
+                  }
+                  if (currentUser.settings?.preferredLanguage) {
+                    setUserLanguagePreference(currentUser.settings.preferredLanguage);
+                  }
+                } catch (err) {
+                  // If fetching user fails, continue without preferences
+                  console.warn('Failed to fetch user settings:', err);
+                }
               } else {
                 // Token validation returned invalid
                 const { clearAllAuth } = await import('./common/storage/authStorage');
@@ -67,14 +83,46 @@ function App() {
     })();
   }, []);
 
-  const handleLogin = (u: User, requiresOnboarding: boolean) => {
+  const handleLogin = async (u: User, requiresOnboarding: boolean) => {
     setUser(u);
     setOnboardingRequired(requiresOnboarding);
+    
+    // Fetch user settings to get theme and language preferences
+    if (!requiresOnboarding) {
+      try {
+        const { authService } = await import('./core/auth/services/authService');
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser.settings?.themePreference) {
+          setUserThemePreference(currentUser.settings.themePreference);
+        }
+        if (currentUser.settings?.preferredLanguage) {
+          setUserLanguagePreference(currentUser.settings.preferredLanguage);
+        }
+      } catch (err) {
+        // If fetching user fails, continue without preferences
+        console.warn('Failed to fetch user settings:', err);
+      }
+    }
   };
 
-  const handleOnboardingComplete = (u: User) => {
+  const handleOnboardingComplete = async (u: User) => {
     setUser(u);
     setOnboardingRequired(false);
+    
+    // Fetch user settings to get theme and language preferences after onboarding
+    try {
+      const { authService } = await import('./core/auth/services/authService');
+      const currentUser = await authService.getCurrentUser();
+      if (currentUser.settings?.themePreference) {
+        setUserThemePreference(currentUser.settings.themePreference);
+      }
+      if (currentUser.settings?.preferredLanguage) {
+        setUserLanguagePreference(currentUser.settings.preferredLanguage);
+      }
+    } catch (err) {
+      // If fetching user fails, continue without preferences
+      console.warn('Failed to fetch user settings:', err);
+    }
   };
   const handleLogout = async () => {
     try {
@@ -88,12 +136,14 @@ function App() {
     }
     // Always clear user state to return to auth screen
     setUser(null);
+    setUserThemePreference(null);
+    setUserLanguagePreference(null);
   };
 
   return (
     <SafeAreaProvider>
-      <I18nProvider>
-        <ThemeProvider>
+      <I18nProvider userLanguagePreference={userLanguagePreference}>
+        <ThemeProvider userThemePreference={userThemePreference}>
           <NavigationContainer>
               {isLoading ? (
                 <LoadingState />

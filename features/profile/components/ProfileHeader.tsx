@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Settings, Edit3 } from 'lucide-react-native';
-// @ts-ignore: No type definitions, bypass for now
-import { User } from '../../auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 
 type Props = {
   user: any;
@@ -13,6 +12,7 @@ type Props = {
 
 export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) => {
   const { colors, typography, spacing, borderRadius } = useTheme();
+  const { t } = useI18n();
   
   const handle = (user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-');
 
@@ -59,7 +59,7 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
             color: colors.text.primary,
             letterSpacing: -0.5,
           }}>
-            {user.name || 'Member'}
+            {user.name || t('Member')}
           </Text>
           <TouchableOpacity 
             onPress={onEditProfile}
@@ -99,7 +99,7 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
               fontSize: typography.size.xs,
               marginTop: 2,
             }}>
-              Followers
+              {t('Followers')}
             </Text>
           </View>
           <View>
@@ -115,7 +115,7 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
               fontSize: typography.size.xs,
               marginTop: 2,
             }}>
-              Following
+              {t('Following')}
             </Text>
           </View>
           <View>
@@ -131,7 +131,7 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
               fontSize: typography.size.xs,
               marginTop: 2,
             }}>
-              Events
+              {t('Events')}
             </Text>
           </View>
         </View>

@@ -20,7 +20,6 @@ type ActionType = 'notification' | 'reminder' | 'list';
 
 const CHANNELS: { key: EventNotificationChannel; label: string; icon: React.ComponentType<{ size?: number; color?: string }> }[] = [
   { key: 'EMAIL', label: 'Email', icon: Mail },
-  { key: 'SMS', label: 'SMS', icon: MessageSquare },
   { key: 'PUSH', label: 'Push', icon: Bell },
   { key: 'IN_APP', label: 'In-App', icon: Smartphone },
 ];

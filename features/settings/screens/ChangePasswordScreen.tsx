@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, View, Text, KeyboardAvoidingView, Platform } from 'react-native';
-import { ArrowLeft } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../common/i18n/I18nProvider';
 import Button from '../../../common/components/ui/Button';
-import KeyboardOptimizedInput from '../../../common/components/ui/KeyboardOptimizedInput';
 import { authService } from '../../../core/auth/services/authService';
 
 type Props = {
@@ -20,6 +18,9 @@ export default function ChangePasswordScreen({ onBack, onSuccess }: Props) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -64,9 +65,11 @@ export default function ChangePasswordScreen({ onBack, onSuccess }: Props) {
       setError(null);
 
       const response = await authService.changePassword(
-        trimmedCurrent,
-        trimmedNew,
-        trimmedConfirm
+        {
+          currentPassword: trimmedCurrent,
+          newPassword: trimmedNew,
+          confirmPassword: trimmedConfirm,
+        }
       );
 
       if (response.success) {
@@ -118,10 +121,9 @@ export default function ChangePasswordScreen({ onBack, onSuccess }: Props) {
           </TouchableOpacity>
           <Text
             style={{
-              fontSize: typography.size['2xl'],
-              fontWeight: typography.weight.bold,
+              fontSize: typography.size.sm,
+              fontWeight: typography.weight.semibold,
               color: colors.text.primary,
-              letterSpacing: -0.5,
               marginLeft: spacing.md,
             }}
           >
@@ -131,17 +133,18 @@ export default function ChangePasswordScreen({ onBack, onSuccess }: Props) {
 
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ padding: spacing.xl }}
+          contentContainerStyle={{ paddingTop: spacing.xl, paddingBottom: spacing['3xl'] }}
           showsVerticalScrollIndicator={false}
         >
           {success ? (
             <View
               style={{
-                padding: spacing.lg,
+                padding: spacing.md,
                 borderRadius: borderRadius.md,
                 backgroundColor: colors.semantic.successLight,
                 borderWidth: 0.5,
                 borderColor: colors.semantic.success,
+                marginHorizontal: spacing.xl,
                 marginBottom: spacing.lg,
               }}
             >
@@ -149,46 +152,158 @@ export default function ChangePasswordScreen({ onBack, onSuccess }: Props) {
                 style={{
                   color: colors.semantic.successDark,
                   fontWeight: typography.weight.semibold,
-                  fontSize: typography.size.sm,
+                  fontSize: typography.size.xs,
                 }}
               >
                 {t('PasswordChangedSuccessfully')}
               </Text>
             </View>
           ) : (
-            <>
-              <KeyboardOptimizedInput
-                label={t('CurrentPassword')}
-                value={currentPassword}
-                onChangeText={text => {
-                  setCurrentPassword(text);
-                  setError(null);
-                }}
-                inputType="password"
-                enableNativeAutocomplete
-              />
-              <View style={{ height: spacing.md }} />
-              <KeyboardOptimizedInput
-                label={t('NewPassword')}
-                value={newPassword}
-                onChangeText={text => {
-                  setNewPassword(text);
-                  setError(null);
-                }}
-                inputType="password"
-                enableNativeAutocomplete
-              />
-              <View style={{ height: spacing.md }} />
-              <KeyboardOptimizedInput
-                label={t('ConfirmNewPassword')}
-                value={confirmPassword}
-                onChangeText={text => {
-                  setConfirmPassword(text);
-                  setError(null);
-                }}
-                inputType="password"
-                enableNativeAutocomplete
-              />
+            <View style={{ paddingHorizontal: spacing.xl }}>
+              {/* Current Password */}
+              <View style={{
+                paddingVertical: spacing.md,
+                borderBottomWidth: 0.5,
+                borderBottomColor: colors.divider,
+              }}>
+                <Text style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.size.xs,
+                  fontWeight: typography.weight.medium,
+                  marginBottom: spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  {t('CurrentPassword')}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput
+                    value={currentPassword}
+                    onChangeText={text => {
+                      setCurrentPassword(text);
+                      setError(null);
+                    }}
+                    secureTextEntry={!showCurrentPassword}
+                    placeholder={t('EnterCurrentPassword')}
+                    placeholderTextColor={colors.text.disabled}
+                    style={{
+                      flex: 1,
+                      fontSize: typography.size.sm,
+                      color: colors.text.primary,
+                      padding: 0,
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowCurrentPassword(!showCurrentPassword)}
+                    style={{ padding: spacing.xs }}
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                    ) : (
+                      <Eye size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* New Password */}
+              <View style={{
+                paddingVertical: spacing.md,
+                borderBottomWidth: 0.5,
+                borderBottomColor: colors.divider,
+              }}>
+                <Text style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.size.xs,
+                  fontWeight: typography.weight.medium,
+                  marginBottom: spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  {t('NewPassword')}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput
+                    value={newPassword}
+                    onChangeText={text => {
+                      setNewPassword(text);
+                      setError(null);
+                    }}
+                    secureTextEntry={!showNewPassword}
+                    placeholder={t('EnterNewPassword')}
+                    placeholderTextColor={colors.text.disabled}
+                    style={{
+                      flex: 1,
+                      fontSize: typography.size.sm,
+                      color: colors.text.primary,
+                      padding: 0,
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowNewPassword(!showNewPassword)}
+                    style={{ padding: spacing.xs }}
+                  >
+                    {showNewPassword ? (
+                      <EyeOff size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                    ) : (
+                      <Eye size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Confirm Password */}
+              <View style={{
+                paddingVertical: spacing.md,
+                borderBottomWidth: 0.5,
+                borderBottomColor: colors.divider,
+              }}>
+                <Text style={{
+                  color: colors.text.secondary,
+                  fontSize: typography.size.xs,
+                  fontWeight: typography.weight.medium,
+                  marginBottom: spacing.xs,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  {t('ConfirmNewPassword')}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TextInput
+                    value={confirmPassword}
+                    onChangeText={text => {
+                      setConfirmPassword(text);
+                      setError(null);
+                    }}
+                    secureTextEntry={!showConfirmPassword}
+                    placeholder={t('ConfirmNewPassword')}
+                    placeholderTextColor={colors.text.disabled}
+                    style={{
+                      flex: 1,
+                      fontSize: typography.size.sm,
+                      color: colors.text.primary,
+                      padding: 0,
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ padding: spacing.xs }}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                    ) : (
+                      <Eye size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               {error ? (
                 <View style={{ marginTop: spacing.md }}>
                   <Text
@@ -201,7 +316,7 @@ export default function ChangePasswordScreen({ onBack, onSuccess }: Props) {
                   </Text>
                 </View>
               ) : null}
-            </>
+            </View>
           )}
         </ScrollView>
 

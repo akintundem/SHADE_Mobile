@@ -54,15 +54,12 @@ export type UserSettings = {
   preferredLanguage?: string | null;
   profileVisibility?: VisibilityLevel;
   searchVisibility?: boolean;
-  eventParticipationVisibility?: VisibilityLevel;
   themePreference?: ThemePreference;
   emailNotificationsEnabled?: boolean;
-  smsNotificationsEnabled?: boolean;
   pushNotificationsEnabled?: boolean;
   eventInvitationsEnabled?: boolean;
   eventUpdatesEnabled?: boolean;
   eventRemindersEnabled?: boolean;
-  reminderTimingMinutes?: number;
   rsvpNotificationsEnabled?: boolean;
   commentNotificationsEnabled?: boolean;
   collaborationRequestsEnabled?: boolean;
@@ -77,27 +74,22 @@ export type UserSettings = {
 export type UserSettingsUpdateRequest = {
   bio?: string;
   location?: string;
-  timeZone?: string;
   preferredLanguage?: string;
   profileVisibility?: VisibilityLevel;
   searchVisibility?: boolean;
-  eventParticipationVisibility?: VisibilityLevel;
   themePreference?: ThemePreference;
   emailNotificationsEnabled?: boolean;
-  smsNotificationsEnabled?: boolean;
   pushNotificationsEnabled?: boolean;
   eventInvitationsEnabled?: boolean;
   eventUpdatesEnabled?: boolean;
   eventRemindersEnabled?: boolean;
-  reminderTimingMinutes?: number;
   rsvpNotificationsEnabled?: boolean;
   commentNotificationsEnabled?: boolean;
   collaborationRequestsEnabled?: boolean;
   weeklyDigestEnabled?: boolean;
   activityFeedNotificationsEnabled?: boolean;
-  autoAcceptInvitations?: boolean;
-  showInEventDirectory?: boolean;
   exportEventDataEnabled?: boolean;
+  mfaEnabled?: boolean;
 };
 
 export type PaginatedResponse<T> = {

@@ -50,7 +50,6 @@ export enum EventUserType {
 
 export enum EventNotificationChannel {
   EMAIL = 'EMAIL',
-  SMS = 'SMS',
   PUSH = 'PUSH',
   IN_APP = 'IN_APP'
 }

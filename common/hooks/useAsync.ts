@@ -7,7 +7,7 @@ export interface AsyncState<T> {
 }
 
 export interface AsyncActions<T> {
-  execute: (...args: any[]) => Promise<T>;
+  execute: (...args: any[]) => Promise<T | undefined>;
   reset: () => void;
   setData: (data: T | null) => void;
   setError: (error: Error | null) => void;
@@ -93,12 +93,15 @@ export function useAsync<T = any>(
     }
   }, []);
 
-  // Execute immediately if requested
+  // Execute immediately if requested (only once on mount)
+  const hasExecutedRef = useRef(false);
   useEffect(() => {
-    if (immediate) {
+    if (immediate && !hasExecutedRef.current) {
+      hasExecutedRef.current = true;
       execute();
     }
-  }, [immediate, execute]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [immediate]);
 
   const actions: AsyncActions<T> = {
     execute,

@@ -23,70 +23,78 @@ export function SettingsRow({
   const { colors, spacing, typography } = useTheme();
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={!onPress}
-      style={{
-        paddingHorizontal: spacing.xl,
-        paddingVertical: spacing.md,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottomWidth: 0.5,
-        borderColor: colors.divider,
-        backgroundColor: colors.background,
-      }}
-      activeOpacity={onPress ? 0.7 : 1}
-    >
-      <View
+    <View>
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={!onPress}
         style={{
+          paddingHorizontal: spacing.xl,
+          paddingVertical: spacing.md,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: spacing.md,
-          flex: 1,
+          justifyContent: 'space-between',
+          backgroundColor: colors.background,
         }}
+        activeOpacity={onPress ? 0.7 : 1}
       >
-        <View style={{
-          width: 28,
-          height: 28,
-          borderRadius: 6,
-          backgroundColor: colors.surface,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Icon
-            size={16}
-            color={danger ? colors.semantic.error : colors.text.primary}
-            strokeWidth={1.5}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={{
-              color: danger ? colors.semantic.error : colors.text.primary,
-              fontWeight: typography.weight.semibold,
-              fontSize: typography.size.sm,
-              letterSpacing: -0.1,
-            }}
-          >
-            {title}
-          </Text>
-          {subtitle ? (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: spacing.md,
+            flex: 1,
+          }}
+        >
+          <View style={{
+            width: 28,
+            height: 28,
+            borderRadius: 6,
+            backgroundColor: colors.surface,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Icon
+              size={16}
+              color={danger ? colors.semantic.error : colors.text.primary}
+              strokeWidth={1.5}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
             <Text
               style={{
-                color: colors.text.tertiary,
-                marginTop: 2,
-                fontSize: typography.size.xs,
+                color: danger ? colors.semantic.error : colors.text.primary,
+                fontWeight: typography.weight.semibold,
+                fontSize: typography.size.sm,
+                letterSpacing: -0.1,
               }}
-              numberOfLines={1}
             >
-              {subtitle}
+              {title}
             </Text>
-          ) : null}
+            {subtitle ? (
+              <Text
+                style={{
+                  color: colors.text.tertiary,
+                  marginTop: 2,
+                  fontSize: typography.size.xs,
+                }}
+                numberOfLines={1}
+              >
+                {subtitle}
+              </Text>
+            ) : null}
+          </View>
         </View>
-      </View>
-      {end ?? <ChevronRight size={16} color={colors.text.tertiary} strokeWidth={1.5} />}
-    </TouchableOpacity>
+        {end ?? <ChevronRight size={16} color={colors.text.tertiary} strokeWidth={1.5} />}
+      </TouchableOpacity>
+      <View
+        style={{
+          marginLeft: spacing.xl + 28 + spacing.md,
+          marginRight: spacing.xl,
+          height: 0.5,
+          backgroundColor: colors.divider,
+        }}
+      />
+    </View>
   );
 }
 

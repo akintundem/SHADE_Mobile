@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, Animated } from 'react-native';
+import { View, TouchableOpacity, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { Home, Calendar, User } from 'lucide-react-native';
@@ -30,7 +30,7 @@ const TabItem = ({
   active: boolean;
   onPress?: () => void;
 }) => {
-  const { colors, typography, spacing } = useTheme();
+  const { colors, spacing } = useTheme();
   const scaleAnim = React.useRef(new Animated.Value(active ? 1 : 0.95)).current;
 
   React.useEffect(() => {
@@ -50,7 +50,7 @@ const TabItem = ({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: spacing.xs / 2,
+        paddingVertical: spacing.sm,
         paddingHorizontal: spacing.xs,
       }}
       hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
@@ -62,35 +62,14 @@ const TabItem = ({
           transform: [{ scale: scaleAnim }],
         }}
       >
-        <View
+        <item.Icon
+          size={24}
+          color={active ? colors.text.primary : colors.text.tertiary}
+          strokeWidth={active ? 2.5 : 2}
           style={{
-            marginBottom: spacing.xs / 2,
-            alignItems: 'center',
-            justifyContent: 'center',
+            opacity: active ? 1 : 0.6,
           }}
-        >
-          <item.Icon
-            size={20}
-            color={active ? colors.text.primary : colors.text.tertiary}
-            strokeWidth={active ? 2.5 : 2}
-            style={{
-              opacity: active ? 1 : 0.6,
-            }}
-          />
-        </View>
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: active ? typography.weight.semibold : typography.weight.medium,
-            color: active ? colors.text.primary : colors.text.tertiary,
-            letterSpacing: -0.1,
-            marginTop: 1,
-            opacity: active ? 1 : 0.7,
-          }}
-          numberOfLines={1}
-        >
-          {item.label}
-        </Text>
+        />
       </Animated.View>
       
       {/* Active indicator */}
@@ -119,12 +98,12 @@ export const TabBar = ({ active, onChange }: Props) => {
   return (
     <View
       style={{
-        backgroundColor: colors.surface,
+        backgroundColor: colors.background,
         borderTopWidth: 0.5,
-        borderTopColor: colors.borderLight,
+        borderTopColor: colors.divider,
         flexDirection: 'row',
-        paddingTop: spacing.xs / 2,
-        paddingBottom: Math.max(insets.bottom, spacing.xs),
+        paddingTop: spacing.sm,
+        paddingBottom: Math.max(insets.bottom, spacing.sm),
         shadowColor: '#000',
         shadowOffset: {
           width: 0,

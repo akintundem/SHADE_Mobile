@@ -57,6 +57,5 @@ export type WeatherThresholds = {
 
 export type NotificationSettings = {
   email: boolean;
-  sms: boolean;
   push: boolean;
 };
