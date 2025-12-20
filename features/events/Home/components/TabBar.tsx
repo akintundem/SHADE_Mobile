@@ -1,72 +1,148 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Text, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { useI18n } from '../../../../common/i18n/I18nProvider';
-import { Home, ClipboardList, User } from 'lucide-react-native';
+import { Home, Calendar, User } from 'lucide-react-native';
 
 type Props = {
   active: 'home' | 'manage' | 'profile';
   onChange?: (tab: Props['active']) => void;
 };
 
-const Item = ({
+type TabItem = {
+  id: 'home' | 'manage' | 'profile';
+  label: string;
+  Icon: any;
+};
+
+const tabs: TabItem[] = [
+  { id: 'home', label: 'Home', Icon: Home },
+  { id: 'manage', label: 'Manage', Icon: Calendar },
+  { id: 'profile', label: 'Profile', Icon: User },
+];
+
+const TabItem = ({
+  item,
   active,
   onPress,
-  Icon,
 }: {
+  item: TabItem;
   active: boolean;
   onPress?: () => void;
-  Icon: any;
 }) => {
-  const { colors, brand } = useTheme();
+  const { colors, typography, spacing } = useTheme();
+  const scaleAnim = React.useRef(new Animated.Value(active ? 1 : 0.95)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: active ? 1 : 0.95,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 20,
+    }).start();
+  }, [active, scaleAnim]);
+
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.8}
-      style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-      hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
+      activeOpacity={0.6}
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: spacing.xs / 2,
+        paddingHorizontal: spacing.xs,
+      }}
+      hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
     >
-      <Icon
-        size={24}
-        color={active ? brand.primary : colors.text.tertiary}
-        strokeWidth={active ? 2.4 : 2}
-      />
+      <Animated.View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          transform: [{ scale: scaleAnim }],
+        }}
+      >
+        <View
+          style={{
+            marginBottom: spacing.xs / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <item.Icon
+            size={20}
+            color={active ? colors.text.primary : colors.text.tertiary}
+            strokeWidth={active ? 2.5 : 2}
+            style={{
+              opacity: active ? 1 : 0.6,
+            }}
+          />
+        </View>
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: active ? typography.weight.semibold : typography.weight.medium,
+            color: active ? colors.text.primary : colors.text.tertiary,
+            letterSpacing: -0.1,
+            marginTop: 1,
+            opacity: active ? 1 : 0.7,
+          }}
+          numberOfLines={1}
+        >
+          {item.label}
+        </Text>
+      </Animated.View>
+      
+      {/* Active indicator */}
+      {active && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            backgroundColor: colors.text.primary,
+            borderBottomLeftRadius: 2,
+            borderBottomRightRadius: 2,
+          }}
+        />
+      )}
     </TouchableOpacity>
   );
 };
 
 export const TabBar = ({ active, onChange }: Props) => {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
-  useI18n(); // keep i18n wired for future labels if needed
+  const { colors, spacing } = useTheme();
 
   return (
     <View
       style={{
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
         backgroundColor: colors.surface,
+        borderTopWidth: 0.5,
+        borderTopColor: colors.borderLight,
         flexDirection: 'row',
-        height: 48 + Math.max(insets.bottom, 0),
-        paddingBottom: Math.max(insets.bottom, 0),
+        paddingTop: spacing.xs / 2,
+        paddingBottom: Math.max(insets.bottom, spacing.xs),
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: -2,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 8,
       }}
     >
-      <Item
-        active={active === 'home'}
-        onPress={() => onChange?.('home')}
-        Icon={Home}
-      />
-      <Item
-        active={active === 'manage'}
-        onPress={() => onChange?.('manage')}
-        Icon={ClipboardList}
-      />
-      <Item
-        active={active === 'profile'}
-        onPress={() => onChange?.('profile')}
-        Icon={User}
-      />
+      {tabs.map((tab) => (
+        <TabItem
+          key={tab.id}
+          item={tab}
+          active={active === tab.id}
+          onPress={() => onChange?.(tab.id)}
+        />
+      ))}
     </View>
   );
 };

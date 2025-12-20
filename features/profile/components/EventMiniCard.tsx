@@ -29,8 +29,8 @@ export const EventMiniCard = ({ title, date, location, tagLeft, tagRight, imageU
         <Image 
           source={{ uri: imageUrl }} 
           style={{ 
-            height: 90, 
-            width: 90, 
+            height: 72, 
+            width: 72, 
             borderRadius: borderRadius.md,
             backgroundColor: colors.surface,
           }} 
@@ -73,10 +73,10 @@ export const EventMiniCard = ({ title, date, location, tagLeft, tagRight, imageU
         </View>
         <Text style={{ 
           color: colors.text.primary, 
-          fontWeight: typography.weight.bold, 
-          fontSize: typography.size.lg,
-          letterSpacing: -0.5,
-          marginBottom: 4,
+          fontWeight: typography.weight.semibold, 
+          fontSize: typography.size.base,
+          letterSpacing: -0.3,
+          marginBottom: 3,
         }}>
           {title}
         </Text>
