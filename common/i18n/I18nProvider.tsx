@@ -59,11 +59,15 @@ export const I18nProvider = ({ children, userLanguagePreference }: I18nProviderP
     (async () => {
       try {
         // Priority 1: User settings (if provided)
-        if (userLanguagePreference && (userLanguagePreference === 'en' || userLanguagePreference === 'fr')) {
-          setLangState(userLanguagePreference as Language);
-          await AsyncStorage.setItem(STORAGE_KEY, userLanguagePreference);
-          setIsInitialized(true);
-          return;
+        // Handle both uppercase (EN, FR) and lowercase (en, fr) for backward compatibility
+        if (userLanguagePreference) {
+          const normalized = userLanguagePreference.toLowerCase();
+          if (normalized === 'en' || normalized === 'fr') {
+            setLangState(normalized as Language);
+            await AsyncStorage.setItem(STORAGE_KEY, normalized);
+            setIsInitialized(true);
+            return;
+          }
         }
         
         // Priority 2: Local storage
@@ -90,9 +94,13 @@ export const I18nProvider = ({ children, userLanguagePreference }: I18nProviderP
 
   // Update language when user settings change (after initial load)
   useEffect(() => {
-    if (isInitialized && userLanguagePreference && (userLanguagePreference === 'en' || userLanguagePreference === 'fr')) {
-      setLangState(userLanguagePreference as Language);
-      AsyncStorage.setItem(STORAGE_KEY, userLanguagePreference).catch(() => {});
+    if (isInitialized && userLanguagePreference) {
+      // Handle both uppercase (EN, FR) and lowercase (en, fr) for backward compatibility
+      const normalized = userLanguagePreference.toLowerCase();
+      if (normalized === 'en' || normalized === 'fr') {
+        setLangState(normalized as Language);
+        AsyncStorage.setItem(STORAGE_KEY, normalized).catch(() => {});
+      }
     }
   }, [userLanguagePreference, isInitialized]);
 

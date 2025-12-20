@@ -90,18 +90,21 @@ export default function SettingsScreen({
   // Handle language change
   const handleLanguageChange = async (value: string) => {
     if (!user) return;
+    // Use lowercase value (en, fr) - conversion to uppercase happens in authService
+    const localValue = value.toLowerCase() as 'en' | 'fr';
+    
     // Immediately update the app language for instant feedback
-    setLang(value as 'en' | 'fr');
+    setLang(localValue);
     try {
       await authService.updateUserProfile(user.id, {
         name: user.name,
-        settings: { preferredLanguage: value },
+        settings: { preferredLanguage: localValue }, // Will be converted to uppercase in authService
       });
       // Refetch to sync with backend
       await refetch();
     } catch (error) {
       // Revert on error
-      const previousLang = settings?.preferredLanguage || 'en';
+      const previousLang = settings?.preferredLanguage?.toLowerCase() || 'en';
       setLang(previousLang as 'en' | 'fr');
     }
   };

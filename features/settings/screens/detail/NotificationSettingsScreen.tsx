@@ -32,6 +32,7 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
   const [collaborationRequests, setCollaborationRequests] = useState(settings?.collaborationRequestsEnabled ?? true);
   const [weeklyDigest, setWeeklyDigest] = useState(settings?.weeklyDigestEnabled ?? false);
   const [activityFeed, setActivityFeed] = useState(settings?.activityFeedNotificationsEnabled ?? true);
+  const [autoAcceptInvitations, setAutoAcceptInvitations] = useState(settings?.autoAcceptInvitations ?? false);
 
   useEffect(() => {
     if (settings) {
@@ -45,6 +46,7 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
       setCollaborationRequests(settings.collaborationRequestsEnabled ?? true);
       setWeeklyDigest(settings.weeklyDigestEnabled ?? false);
       setActivityFeed(settings.activityFeedNotificationsEnabled ?? true);
+      setAutoAcceptInvitations(settings.autoAcceptInvitations ?? false);
     }
   }, [settings]);
 
@@ -60,6 +62,7 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
       | 'collaborationRequestsEnabled'
       | 'weeklyDigestEnabled'
       | 'activityFeedNotificationsEnabled'
+      | 'autoAcceptInvitations'
     >,
     value: boolean,
     setter: (v: boolean) => void
@@ -232,6 +235,18 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
             <CustomSwitch
               value={weeklyDigest}
               onValueChange={(v) => handleToggle('weeklyDigestEnabled', v, setWeeklyDigest)}
+              disabled={isUpdating}
+            />
+          }
+        />
+        <SettingsRow
+          icon={CheckCircle}
+          title={t('AutoAcceptInvitations')}
+          subtitle={t('AutomaticallyAcceptEventInvitations')}
+          end={
+            <CustomSwitch
+              value={autoAcceptInvitations}
+              onValueChange={(v) => handleToggle('autoAcceptInvitations', v, setAutoAcceptInvitations)}
               disabled={isUpdating}
             />
           }

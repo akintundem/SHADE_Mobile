@@ -38,6 +38,7 @@ export type PublicUserResponse = {
 export enum VisibilityLevel {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
+  FRIENDS_ONLY = 'FRIENDS_ONLY',
 }
 
 export enum ThemePreference {
@@ -46,12 +47,33 @@ export enum ThemePreference {
   SYSTEM = 'SYSTEM',
 }
 
+export enum PreferredLanguage {
+  EN = 'EN',
+  FR = 'FR',
+}
+
+// Location Types
+export type LocationDto = {
+  locationId: string; // UUID
+};
+
+export type LocationSearchResponse = {
+  id: string; // UUID
+  city: string;
+  state: string | null;
+  country: string;
+  displayName: string;
+  latitude: number;
+  longitude: number;
+};
+
 // User Settings Types
+// Note: preferredLanguage is stored as uppercase (EN, FR) from API but we use lowercase (en, fr) in frontend
+// Conversion happens in authService
 export type UserSettings = {
   bio?: string | null;
-  location?: string | null;
-  timeZone?: string | null;
-  preferredLanguage?: string | null;
+  location?: LocationDto | null;
+  preferredLanguage?: PreferredLanguage | 'en' | 'fr' | null; // Allow both for flexibility
   profileVisibility?: VisibilityLevel;
   searchVisibility?: boolean;
   themePreference?: ThemePreference;
@@ -66,15 +88,14 @@ export type UserSettings = {
   weeklyDigestEnabled?: boolean;
   activityFeedNotificationsEnabled?: boolean;
   autoAcceptInvitations?: boolean;
-  showInEventDirectory?: boolean;
   exportEventDataEnabled?: boolean;
   mfaEnabled?: boolean;
 };
 
 export type UserSettingsUpdateRequest = {
   bio?: string;
-  location?: string;
-  preferredLanguage?: string;
+  location?: LocationDto | null; // null explicitly clears the location
+  preferredLanguage?: PreferredLanguage | 'en' | 'fr'; // Frontend uses lowercase, converted to uppercase in authService
   profileVisibility?: VisibilityLevel;
   searchVisibility?: boolean;
   themePreference?: ThemePreference;
@@ -90,6 +111,7 @@ export type UserSettingsUpdateRequest = {
   activityFeedNotificationsEnabled?: boolean;
   exportEventDataEnabled?: boolean;
   mfaEnabled?: boolean;
+  autoAcceptInvitations?: boolean;
 };
 
 export type PaginatedResponse<T> = {

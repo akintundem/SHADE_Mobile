@@ -206,6 +206,8 @@ export const fr = {
   GetNotifiedAboutActivityFeedUpdates: 'Être notifié des mises à jour du flux d\'activité',
   WeeklyDigest: 'Résumé hebdomadaire',
   ReceiveWeeklySummaryOfActivity: 'Recevoir un résumé hebdomadaire de l\'activité',
+  AutoAcceptInvitations: 'Accepter automatiquement les invitations',
+  AutomaticallyAcceptEventInvitations: 'Accepter automatiquement les invitations aux événements',
   // Privacy Settings
   ProfileVisibility: 'Visibilité du profil',
   ControlWhoCanSeeYourProfile: 'Contrôler qui peut voir votre profil',

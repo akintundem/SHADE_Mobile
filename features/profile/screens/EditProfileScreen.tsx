@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   View, 
@@ -10,10 +10,11 @@ import {
   Platform, 
   Alert,
   Image,
-  ActivityIndicator
+  ActivityIndicator,
+  FlatList
 } from 'react-native';
-import { ArrowLeft, Camera } from 'lucide-react-native';
-import { User } from '../../../core/auth/types/auth';
+import { ArrowLeft, Camera, X } from 'lucide-react-native';
+import { User, LocationSearchResponse, LocationDto } from '../../../core/auth/types/auth';
 import { useI18n } from '../../../common/i18n/I18nProvider';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useCurrentUser } from '../../../common/hooks/useCurrentUser';
@@ -35,25 +36,36 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
   const [name, setName] = useState(user.name || '');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
-  const [location, setLocation] = useState('');
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSearchResponse[]>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<LocationSearchResponse | null>(null);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   
+  const locationSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const locationSearchAbortRef = useRef<AbortController | null>(null);
+  
   const initialNameRef = useRef(user.name || '');
   const initialBioRef = useRef('');
-  const initialLocationRef = useRef('');
+  const initialLocationIdRef = useRef<string | null>(null);
   const initialImageRef = useRef<string | null>(null);
 
   // Load initial values from user settings
   useEffect(() => {
     if (settings) {
       const bioValue = settings.bio || '';
-      const locationValue = settings.location || '';
       setBio(bioValue);
-      setLocation(locationValue);
       initialBioRef.current = bioValue;
-      initialLocationRef.current = locationValue;
+      
+      // Store location ID if present
+      if (settings.location?.locationId) {
+        initialLocationIdRef.current = settings.location.locationId;
+        // We'll need to fetch location details to display, but for now just store the ID
+        // The location display name will be fetched when needed
+      }
     }
     if (currentUser) {
       const nameValue = currentUser.name || '';
@@ -68,12 +80,77 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
     }
   }, [settings, currentUser]);
 
+  // Location search effect
+  useEffect(() => {
+    if (!locationSearchQuery || locationSearchQuery.trim().length === 0) {
+      locationSearchDebounceRef.current && clearTimeout(locationSearchDebounceRef.current);
+      locationSearchAbortRef.current?.abort();
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+      setIsSearchingLocation(false);
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    setShowLocationSuggestions(true);
+
+    if (locationSearchDebounceRef.current) {
+      clearTimeout(locationSearchDebounceRef.current);
+    }
+
+    locationSearchDebounceRef.current = setTimeout(async () => {
+      try {
+        locationSearchAbortRef.current?.abort();
+        const controller = new AbortController();
+        locationSearchAbortRef.current = controller;
+
+        const response = await authService.searchLocations(locationSearchQuery.trim(), {
+          page: 0,
+          size: 10,
+        });
+
+        if (!controller.signal.aborted) {
+          setLocationSuggestions(response.content || []);
+          setIsSearchingLocation(false);
+        }
+      } catch (error: any) {
+        if (!error?.message?.includes('aborted')) {
+          console.error('Location search error:', error);
+          setLocationSuggestions([]);
+        }
+        setIsSearchingLocation(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (locationSearchDebounceRef.current) {
+        clearTimeout(locationSearchDebounceRef.current);
+      }
+      locationSearchAbortRef.current?.abort();
+    };
+  }, [locationSearchQuery]);
+
+  const handleLocationSelect = useCallback((location: LocationSearchResponse) => {
+    setSelectedLocation(location);
+    setLocationSearchQuery(location.displayName);
+    setShowLocationSuggestions(false);
+    setLocationSuggestions([]);
+  }, []);
+
+  const handleLocationClear = useCallback(() => {
+    setSelectedLocation(null);
+    setLocationSearchQuery('');
+    setShowLocationSuggestions(false);
+    setLocationSuggestions([]);
+  }, []);
+
   // Check if there are unsaved changes
   const hasUnsavedChanges = () => {
+    const currentLocationId = selectedLocation?.id || null;
     return (
       name.trim() !== initialNameRef.current.trim() ||
       bio.trim() !== initialBioRef.current.trim() ||
-      location.trim() !== initialLocationRef.current.trim() ||
+      currentLocationId !== initialLocationIdRef.current ||
       profileImage !== initialImageRef.current
     );
   };
@@ -185,13 +262,22 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
 
     setIsSaving(true);
     try {
+      // Prepare location update
+      // If selectedLocation exists, use it; if it's null and there was a previous location, send null to clear it
+      const hadLocation = initialLocationIdRef.current !== null;
+      const locationUpdate: LocationDto | null | undefined = selectedLocation
+        ? { locationId: selectedLocation.id }
+        : hadLocation
+        ? null // Explicitly clear if there was a previous location
+        : undefined; // Don't update if there was no previous location
+
       // Update profile with name and settings (bio, location)
       // Note: username is immutable and cannot be changed
       await authService.updateUserProfile(currentUser.id, {
         name: name.trim(),
         settings: {
           bio: bio.trim() || undefined,
-          location: location.trim() || undefined,
+          ...(locationUpdate !== undefined && { location: locationUpdate }),
         },
       });
 
@@ -201,13 +287,18 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
       // Update initial refs to reflect saved state
       initialNameRef.current = name.trim();
       initialBioRef.current = bio.trim();
-      initialLocationRef.current = location.trim();
+      initialLocationIdRef.current = selectedLocation?.id || null;
       if (currentUser?.profilePictureUrl) {
         initialImageRef.current = currentUser.profilePictureUrl;
       }
 
-      // Call onSave callback if provided
-      onSave?.({ name, username, bio, location });
+      // Call onSave callback if provided (using display name for backward compatibility)
+      onSave?.({ 
+        name, 
+        username, 
+        bio, 
+        location: selectedLocation?.displayName || undefined 
+      });
 
       Alert.alert(t('Success'), t('ProfileUpdatedSuccessfully'));
       onBack?.();
@@ -416,33 +507,109 @@ export default function EditProfileScreen({ user, onBack, onSave }: Props) {
 
             {/* Location */}
             <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
               paddingVertical: spacing.md,
               borderBottomWidth: 0.5,
               borderBottomColor: colors.divider,
             }}>
-              <Text style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.medium,
-                width: 80,
-                marginRight: spacing.md,
-              }}>
-                {t('Location')}
-              </Text>
-              <TextInput
-                value={location}
-                onChangeText={setLocation}
-                placeholder={t('CityCountry')}
-                placeholderTextColor={colors.text.disabled}
-                style={{
-                  flex: 1,
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
+                <Text style={{
+                  color: colors.text.secondary,
                   fontSize: typography.size.sm,
-                  color: colors.text.primary,
-                  padding: 0,
-                }}
-              />
+                  fontWeight: typography.weight.medium,
+                  width: 80,
+                  marginRight: spacing.md,
+                }}>
+                  {t('Location')}
+                </Text>
+                <View style={{ flex: 1, position: 'relative' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput
+                      value={locationSearchQuery}
+                      onChangeText={setLocationSearchQuery}
+                      placeholder={t('CityCountry')}
+                      placeholderTextColor={colors.text.disabled}
+                      style={{
+                        flex: 1,
+                        fontSize: typography.size.sm,
+                        color: colors.text.primary,
+                        padding: 0,
+                      }}
+                      onFocus={() => {
+                        if (locationSearchQuery && locationSuggestions.length > 0) {
+                          setShowLocationSuggestions(true);
+                        }
+                      }}
+                    />
+                    {locationSearchQuery.length > 0 && (
+                      <TouchableOpacity
+                        onPress={handleLocationClear}
+                        style={{ padding: spacing.xs, marginLeft: spacing.xs }}
+                      >
+                        <X size={16} color={colors.text.tertiary} strokeWidth={1.5} />
+                      </TouchableOpacity>
+                    )}
+                    {isSearchingLocation && (
+                      <ActivityIndicator size="small" color={colors.text.tertiary} style={{ marginLeft: spacing.xs }} />
+                    )}
+                  </View>
+                  
+                  {/* Location Suggestions Dropdown */}
+                  {showLocationSuggestions && locationSuggestions.length > 0 && (
+                    <View style={{
+                      position: 'absolute',
+                      top: 30,
+                      left: 0,
+                      right: 0,
+                      backgroundColor: colors.surface,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: colors.divider,
+                      maxHeight: 200,
+                      zIndex: 1000,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                      elevation: 5,
+                    }}>
+                      <FlatList
+                        data={locationSuggestions}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => (
+                          <TouchableOpacity
+                            onPress={() => handleLocationSelect(item)}
+                            style={{
+                              paddingHorizontal: spacing.md,
+                              paddingVertical: spacing.sm,
+                              borderBottomWidth: 1,
+                              borderBottomColor: colors.divider,
+                            }}
+                          >
+                            <Text style={{
+                              color: colors.text.primary,
+                              fontSize: typography.size.sm,
+                              fontWeight: typography.weight.medium,
+                            }}>
+                              {item.displayName}
+                            </Text>
+                            {(item.city || item.state || item.country) && (
+                              <Text style={{
+                                color: colors.text.secondary,
+                                fontSize: typography.size.xs,
+                                marginTop: 2,
+                              }}>
+                                {[item.city, item.state, item.country].filter(Boolean).join(', ')}
+                              </Text>
+                            )}
+                          </TouchableOpacity>
+                        )}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                      />
+                    </View>
+                  )}
+                </View>
+              </View>
             </View>
           </View>
         </ScrollView>

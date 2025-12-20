@@ -20,6 +20,7 @@ import {
   ProfileImageUploadResponse,
   ProfileImageCompleteRequest,
   ProfileImageCompleteResponse,
+  LocationSearchResponse,
 } from '../types/auth';
 
 // Lazy load authStorage to avoid circular dependencies
@@ -41,6 +42,29 @@ const updateUserCache = async (user: SecureUserResponse, onboardingRequired?: bo
     profilePictureUrl: user.profilePictureUrl ?? undefined,
     profileComplete: onboardingRequired === undefined ? true : !onboardingRequired,
   });
+};
+
+/**
+ * Normalizes preferredLanguage from API format (EN, FR) to frontend format (en, fr)
+ * @param user - User object with settings
+ */
+const normalizeLanguageFromApi = (user: SecureUserResponse): void => {
+  if (user.settings?.preferredLanguage) {
+    const lang = user.settings.preferredLanguage;
+    if (typeof lang === 'string') {
+      user.settings.preferredLanguage = lang.toLowerCase() as 'en' | 'fr';
+    }
+  }
+};
+
+/**
+ * Normalizes preferredLanguage from frontend format (en, fr) to API format (EN, FR)
+ * @param lang - Language string in lowercase
+ * @returns Language string in uppercase
+ */
+const normalizeLanguageToApi = (lang: string | undefined): 'EN' | 'FR' | undefined => {
+  if (!lang || typeof lang !== 'string') return undefined;
+  return lang.toUpperCase() as 'EN' | 'FR';
 };
 
 export const securityService = {
@@ -87,6 +111,9 @@ export const securityService = {
       throw new Error('Login failed: No response data');
     }
 
+    // Normalize language from API format to frontend format
+    normalizeLanguageFromApi(res.data.user);
+
     // Store access token
     await persistTokenFrom({ token: res.data.accessToken });
 
@@ -109,6 +136,10 @@ export const securityService = {
    */
   async getCurrentUser(): Promise<SecureUserResponse> {
     const res = await http.get<SecureUserResponse>('/api/v1/auth/me');
+    
+    // Normalize language from API format to frontend format
+    normalizeLanguageFromApi(res.data);
+    
     return res.data;
   },
 
@@ -142,6 +173,9 @@ export const securityService = {
       throw new Error('Token refresh failed: No response data');
     }
 
+    // Normalize language from API format to frontend format
+    normalizeLanguageFromApi(res.data.user);
+
     // Store new access token
     await persistTokenFrom({ token: res.data.accessToken });
 
@@ -172,6 +206,12 @@ export const securityService = {
       undefined,
       { params: { token } }
     );
+    
+    // Normalize language from API format to frontend format
+    if (res.data.user) {
+      normalizeLanguageFromApi(res.data.user);
+    }
+    
     return res.data;
   },
 
@@ -273,10 +313,18 @@ export const securityService = {
 
     // Include settings if provided (patch-style update)
     if (request.settings) {
-      payload.settings = request.settings;
+      const settingsPayload: any = { ...request.settings };
+      
+      // Normalize preferredLanguage from frontend format to API format
+      settingsPayload.preferredLanguage = normalizeLanguageToApi(settingsPayload.preferredLanguage);
+      
+      payload.settings = settingsPayload;
     }
 
     const res = await http.put<SecureUserResponse>(`/api/v1/auth/users/${userId}`, payload);
+
+    // Normalize language from API format to frontend format
+    normalizeLanguageFromApi(res.data);
 
     await updateUserCache(res.data);
 
@@ -358,6 +406,33 @@ export const securityService = {
    */
   async terminateAllSessions(): Promise<ApiMessageResponse> {
     const res = await http.delete<ApiMessageResponse>('/api/v1/auth/sessions/all');
+    return res.data;
+  },
+
+  /**
+   * Search for locations by query
+   * @param query - Search term (city, state, or country)
+   * @param params - Optional pagination parameters
+   * @returns Paginated list of location search results
+   */
+  async searchLocations(
+    query?: string,
+    params?: { page?: number; size?: number },
+  ): Promise<PaginatedResponse<LocationSearchResponse>> {
+    const queryParams = new URLSearchParams();
+    if (query) {
+      queryParams.append('query', query.trim());
+    }
+    if (params?.page !== undefined) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.size !== undefined) {
+      queryParams.append('size', params.size.toString());
+    }
+
+    const res = await http.get<PaginatedResponse<LocationSearchResponse>>(
+      `/api/v1/auth/locations/search?${queryParams.toString()}`,
+    );
     return res.data;
   },
 };
