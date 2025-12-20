@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Lock, Eye, EyeOff, Search } from 'lucide-react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
-import { useI18n } from '../../../common/i18n/I18nProvider';
-import { SettingsSection, SettingsRow } from '../components';
-import CustomSwitch from '../../../common/components/ui/CustomSwitch';
-import { useCurrentUser } from '../../../common/hooks/useCurrentUser';
-import { authService } from '../../../core/auth/services/authService';
-import { VisibilityLevel } from '../../../core/auth/types/auth';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
+import { SettingsSection, SettingsRow } from '../../components';
+import CustomSwitch from '../../../../common/components/ui/CustomSwitch';
+import { useCurrentUser } from '../../../../common/hooks/useCurrentUser';
+import { authService } from '../../../../core/auth/services/authService';
+import { VisibilityLevel } from '../../../../core/auth/types/auth';
 
 type Props = {
   onBack?: () => void;

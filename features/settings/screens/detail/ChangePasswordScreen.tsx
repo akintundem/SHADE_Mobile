@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, KeyboardAvoidingView, Platform, TextInput, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
-import { useI18n } from '../../../common/i18n/I18nProvider';
-import Button from '../../../common/components/ui/Button';
-import { authService } from '../../../core/auth/services/authService';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
+import Button from '../../../../common/components/ui/Button';
+import { authService } from '../../../../core/auth/services/authService';
 
 type Props = {
   onBack: () => void;

@@ -14,17 +14,17 @@ import {
   Trash2,
   X,
 } from 'lucide-react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
-import { useI18n } from '../../../common/i18n/I18nProvider';
-import { SettingsHeader, SettingsSection, SettingsRow } from '../components';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
+import { SettingsHeader, SettingsSection, SettingsRow } from '../../components';
 import ChangePasswordScreen from '../detail/ChangePasswordScreen';
 import PrivacySettingsScreen from '../detail/PrivacySettingsScreen';
 import NotificationSettingsScreen from '../detail/NotificationSettingsScreen';
 import SecuritySettingsScreen from '../detail/SecuritySettingsScreen';
 import DataSettingsScreen from '../detail/DataSettingsScreen';
-import { useCurrentUser } from '../../../common/hooks/useCurrentUser';
-import { authService } from '../../../core/auth/services/authService';
-import { ThemePreference } from '../../../core/auth/types/auth';
+import { useCurrentUser } from '../../../../common/hooks/useCurrentUser';
+import { authService } from '../../../../core/auth/services/authService';
+import { ThemePreference } from '../../../../core/auth/types/auth';
 
 type Props = {
   onClose?: () => void;
