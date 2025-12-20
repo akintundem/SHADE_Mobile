@@ -257,7 +257,7 @@ export const securityService = {
    * @returns Updated user information
    */
   async updateUserProfile(userId: string, request: UpdateUserProfileRequest): Promise<SecureUserResponse> {
-    const res = await http.put<SecureUserResponse>(`/api/v1/auth/users/${userId}`, {
+    const payload: any = {
       name: request.name.trim(),
       username: request.username?.trim() || undefined,
       phoneNumber: request.phoneNumber || null,
@@ -269,7 +269,14 @@ export const securityService = {
       preferences: request.preferences || undefined,
       marketingOptIn: request.marketingOptIn ?? false,
       deviceId: request.deviceId || undefined,
-    });
+    };
+
+    // Include settings if provided (patch-style update)
+    if (request.settings) {
+      payload.settings = request.settings;
+    }
+
+    const res = await http.put<SecureUserResponse>(`/api/v1/auth/users/${userId}`, payload);
 
     await updateUserCache(res.data);
 

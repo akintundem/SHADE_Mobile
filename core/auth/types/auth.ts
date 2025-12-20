@@ -22,6 +22,7 @@ export type SecureUserResponse = {
   marketingOptIn: boolean;
   profilePictureUrl: string | null;
   preferences: string | null;
+  settings?: UserSettings;
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
 };
@@ -31,6 +32,72 @@ export type PublicUserResponse = {
   name: string;
   username: string;
   profilePictureUrl: string | null;
+};
+
+// User Settings Enums
+export enum VisibilityLevel {
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVATE',
+}
+
+export enum ThemePreference {
+  LIGHT = 'LIGHT',
+  DARK = 'DARK',
+  SYSTEM = 'SYSTEM',
+}
+
+// User Settings Types
+export type UserSettings = {
+  bio?: string | null;
+  location?: string | null;
+  timeZone?: string | null;
+  preferredLanguage?: string | null;
+  profileVisibility?: VisibilityLevel;
+  searchVisibility?: boolean;
+  eventParticipationVisibility?: VisibilityLevel;
+  themePreference?: ThemePreference;
+  emailNotificationsEnabled?: boolean;
+  smsNotificationsEnabled?: boolean;
+  pushNotificationsEnabled?: boolean;
+  eventInvitationsEnabled?: boolean;
+  eventUpdatesEnabled?: boolean;
+  eventRemindersEnabled?: boolean;
+  reminderTimingMinutes?: number;
+  rsvpNotificationsEnabled?: boolean;
+  commentNotificationsEnabled?: boolean;
+  collaborationRequestsEnabled?: boolean;
+  weeklyDigestEnabled?: boolean;
+  activityFeedNotificationsEnabled?: boolean;
+  autoAcceptInvitations?: boolean;
+  showInEventDirectory?: boolean;
+  exportEventDataEnabled?: boolean;
+  mfaEnabled?: boolean;
+};
+
+export type UserSettingsUpdateRequest = {
+  bio?: string;
+  location?: string;
+  timeZone?: string;
+  preferredLanguage?: string;
+  profileVisibility?: VisibilityLevel;
+  searchVisibility?: boolean;
+  eventParticipationVisibility?: VisibilityLevel;
+  themePreference?: ThemePreference;
+  emailNotificationsEnabled?: boolean;
+  smsNotificationsEnabled?: boolean;
+  pushNotificationsEnabled?: boolean;
+  eventInvitationsEnabled?: boolean;
+  eventUpdatesEnabled?: boolean;
+  eventRemindersEnabled?: boolean;
+  reminderTimingMinutes?: number;
+  rsvpNotificationsEnabled?: boolean;
+  commentNotificationsEnabled?: boolean;
+  collaborationRequestsEnabled?: boolean;
+  weeklyDigestEnabled?: boolean;
+  activityFeedNotificationsEnabled?: boolean;
+  autoAcceptInvitations?: boolean;
+  showInEventDirectory?: boolean;
+  exportEventDataEnabled?: boolean;
 };
 
 export type PaginatedResponse<T> = {
@@ -156,7 +223,7 @@ export type ResendEmailVerificationRequest = {
 // Profile Management Types
 export type UpdateUserProfileRequest = {
   name: string; // Required, 2-100 characters, no HTML tags
-  username?: string; // Optional, 3-30 characters, letters, numbers, '.' or '_' (cannot start/end with '.' or '_')
+  username?: string; // Optional, 3-30 characters, letters, numbers, '.' or '_' (cannot start/end with '.' or '_'). Can only be set once.
   phoneNumber?: string; // Optional, valid phone format: +?[0-9 .-]{7,20}
   profilePictureUrl?: string; // Optional, max 500 characters
   dateOfBirth?: string; // Optional, ISO date format "YYYY-MM-DD", must be in past
@@ -166,6 +233,7 @@ export type UpdateUserProfileRequest = {
   preferences?: string; // Optional, max 2000 characters
   marketingOptIn?: boolean; // Optional, default: false
   deviceId?: string; // Optional, max 120 characters
+  settings?: UserSettingsUpdateRequest; // Optional, nested user settings (patch-style update)
 };
 
 // Profile Image Types

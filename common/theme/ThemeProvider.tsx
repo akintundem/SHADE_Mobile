@@ -2,14 +2,20 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { StatusBar, useColorScheme, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getThemedColors, Spacing, BorderRadius, Typography, Shadows, Colors, Components } from './designSystem';
+import { ThemePreference } from '../../core/auth/types/auth';
 
-type Props = { children: React.ReactNode };
+type Props = { 
+  children: React.ReactNode;
+  userThemePreference?: ThemePreference | null; // Optional user theme preference from settings
+};
 
 export type ThemeColors = ReturnType<typeof getThemedColors>;
 
 type ThemeContextType = { 
   isDark: boolean; 
   setDark: (v: boolean) => void; 
+  themePreference: ThemePreference | null;
+  setThemePreference: (pref: ThemePreference) => Promise<void>;
   colors: ThemeColors;
   spacing: typeof Spacing;
   borderRadius: typeof BorderRadius;
@@ -24,6 +30,8 @@ const defaultColors = getThemedColors(false);
 const ThemeContext = createContext<ThemeContextType>({ 
   isDark: false, 
   setDark: () => {}, 
+  themePreference: null,
+  setThemePreference: async () => {},
   colors: defaultColors,
   spacing: Spacing,
   borderRadius: BorderRadius,
@@ -37,22 +45,51 @@ export function useTheme() {
   return useContext(ThemeContext);
 }
 
-export default function ThemeProvider({ children }: Props) {
+export default function ThemeProvider({ children, userThemePreference }: Props) {
   const systemDark = useColorScheme() === 'dark';
   const [isDark, setIsDark] = useState(systemDark);
+  const [themePreference, setThemePreferenceState] = useState<ThemePreference | null>(userThemePreference || null);
+
+  // Update theme preference when user settings change
+  useEffect(() => {
+    if (userThemePreference !== undefined) {
+      setThemePreferenceState(userThemePreference);
+    }
+  }, [userThemePreference]);
 
   useEffect(() => {
     (async () => {
-      const saved = await AsyncStorage.getItem('pref:theme');
-      if (saved === 'dark') setIsDark(true);
-      else if (saved === 'light') setIsDark(false);
-      else setIsDark(systemDark);
+      // Priority: user settings > local storage > system
+      if (themePreference === ThemePreference.SYSTEM || themePreference === null) {
+        setIsDark(systemDark);
+      } else if (themePreference === ThemePreference.DARK) {
+        setIsDark(true);
+      } else if (themePreference === ThemePreference.LIGHT) {
+        setIsDark(false);
+      } else {
+        // Fallback to local storage for backward compatibility
+        const saved = await AsyncStorage.getItem('pref:theme');
+        if (saved === 'dark') setIsDark(true);
+        else if (saved === 'light') setIsDark(false);
+        else setIsDark(systemDark);
+      }
     })();
-  }, [systemDark]);
+  }, [systemDark, themePreference]);
 
   const setDark = async (v: boolean) => {
     setIsDark(v);
+    // Update local storage for backward compatibility
     await AsyncStorage.setItem('pref:theme', v ? 'dark' : 'light');
+  };
+
+  const setThemePreference = async (pref: ThemePreference) => {
+    setThemePreferenceState(pref);
+    // Update local storage for backward compatibility
+    if (pref === ThemePreference.SYSTEM) {
+      await AsyncStorage.removeItem('pref:theme');
+    } else {
+      await AsyncStorage.setItem('pref:theme', pref === ThemePreference.DARK ? 'dark' : 'light');
+    }
   };
 
   const colors = useMemo(() => getThemedColors(isDark), [isDark]);
@@ -60,6 +97,8 @@ export default function ThemeProvider({ children }: Props) {
   const value = useMemo<ThemeContextType>(() => ({ 
     isDark, 
     setDark, 
+    themePreference,
+    setThemePreference,
     colors,
     spacing: Spacing,
     borderRadius: BorderRadius,
@@ -67,7 +106,7 @@ export default function ThemeProvider({ children }: Props) {
     shadows: Shadows,
     brand: colors.brand,
     components: Components,
-  }), [isDark, colors]);
+  }), [isDark, themePreference, colors]);
 
   return (
     <ThemeContext.Provider value={value}>
