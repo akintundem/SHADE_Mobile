@@ -1,14 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  EventData,
-  EventResponseWithScope,
+  EventResponse,
   EventFeedResponse,
-  isFullEventResponse,
-  isFeedResponse,
+  EventCapacityResponse,
+  EventVisibilityResponse,
   EventFeedRequest,
-} from '../../features/events/types/events';
-import { eventService } from '../../features/events/services/eventService';
+} from '../../core/events/types/event';
+import { eventService } from '../../core/events/services/event';
 import { ErrorHandler } from '../utils/errorHandler';
+
+type EventData = EventResponse | EventFeedResponse | EventCapacityResponse | EventVisibilityResponse;
+
+function isFullEventResponse(data: EventData): data is EventResponse {
+  return 'name' in data && 'eventType' in data;
+}
+
+function isFeedResponse(data: EventData): data is EventFeedResponse {
+  return 'posts' in data && 'eventId' in data;
+}
 
 export interface UseEventReturn {
   eventData: EventData | null;
@@ -41,7 +50,9 @@ export const useEvent = (
     try {
       setLoading(true);
       setError(null);
-      const data = await eventService.getEvent(eventId, params);
+      // If params are provided, assume feed view, otherwise get full event
+      const view = params ? 'feed' : 'full';
+      const data = await eventService.getEvent(eventId, view, params);
       setEventData(data);
     } catch (err) {
       const errorObj =

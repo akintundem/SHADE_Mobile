@@ -3,11 +3,11 @@ import {
   EventFeedResponse,
   FeedPost,
   EventFeedRequest,
-  FeedPostType,
-} from '../../features/events/types/events';
-import { eventService } from '../../features/events/services/eventService';
+} from '../../core/events/types/event';
+import { eventService } from '../../core/events/services/event';
 import { ErrorHandler } from '../utils/errorHandler';
 
+type FeedPostType = 'VIDEO' | 'IMAGE' | 'TEXT';
 type FeedFilter = FeedPostType | 'ALL';
 
 type EventFeedMeta = Pick<

@@ -3,8 +3,7 @@
  * Use this when backend is not connected
  */
 
-import { Event, EventListResponse } from '../../features/events/types/events';
-import { EventType, EventStatus } from '../../features/events/types/enums';
+import { EventResponse, PaginatedEventResponse, EventType, EventStatus } from '../../core/events/types/event';
 
 // Helper to create dates relative to now
 const now = new Date();
@@ -35,7 +34,7 @@ lastMonth.setHours(15, 0, 0, 0);
 // Format date to ISO string
 const toISO = (date: Date) => date.toISOString();
 
-export const mockEvents: Event[] = [
+export const mockEvents: EventResponse[] = [
   // Live Events (future dates, active statuses)
   {
     id: 'mock-event-1',
@@ -309,7 +308,7 @@ export const mockEvents: Event[] = [
  */
 export const getMockEvents = (
   params?: { page?: number; size?: number; status?: string; type?: string; q?: string }
-): EventListResponse => {
+): PaginatedEventResponse => {
   let filteredEvents = [...mockEvents];
 
   // Filter by status
@@ -345,9 +344,10 @@ export const getMockEvents = (
   const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
 
   return {
-    events: paginatedEvents,
-    total: filteredEvents.length,
-    page,
+    content: paginatedEvents,
+    totalElements: filteredEvents.length,
+    totalPages: Math.ceil(filteredEvents.length / size),
+    number: page - 1, // PaginatedEventResponse uses 0-indexed pages
     size: paginatedEvents.length,
   };
 };
@@ -355,7 +355,7 @@ export const getMockEvents = (
 /**
  * Get a single mock event by ID
  */
-export const getMockEvent = (eventId: string): Event | undefined => {
+export const getMockEvent = (eventId: string): EventResponse | undefined => {
   return mockEvents.find(event => event.id === eventId);
 };
 
