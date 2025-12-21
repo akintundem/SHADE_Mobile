@@ -377,4 +377,40 @@ export enum EventType {
     eventStatus?: EventStatus | null;
   };
   
+  // Event Collaborator Types
+  export enum EventUserType {
+    ORGANIZER = 'ORGANIZER',
+    COORDINATOR = 'COORDINATOR',
+    STAFF = 'STAFF',
+    COLLABORATOR = 'COLLABORATOR',
+    VOLUNTEER = 'VOLUNTEER',
+    VENDOR = 'VENDOR',
+    SPEAKER = 'SPEAKER',
+    SPONSOR = 'SPONSOR',
+    MEDIA = 'MEDIA',
+    ATTENDEE = 'ATTENDEE',
+    ADMIN = 'ADMIN',
+  }
+  
+  export type EventCollaboratorResponse = {
+    collaboratorId: string; // UUID
+    eventId: string; // UUID
+    userId?: string | null; // UUID - User account ID if collaborator is linked to a user
+    email: string;
+    userName?: string | null;
+    role: EventUserType;
+    registrationStatus?: string | null; // PENDING, CONFIRMED, ACCEPTED, DECLINED, REJECTED
+    invitedAt?: string | null; // ISO datetime
+    respondedAt?: string | null; // ISO datetime
+    createdAt?: string | null; // ISO datetime
+    updatedAt?: string | null; // ISO datetime
+  };
+  
+  export type EventCollaboratorRequest = {
+    userId?: string | null; // UUID - User account ID if collaborator is linked to a user
+    email: string;
+    role: EventUserType;
+    sendInvitation?: boolean;
+  };
+  
   

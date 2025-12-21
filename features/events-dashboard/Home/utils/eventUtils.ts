@@ -1,10 +1,10 @@
-import { Event, EventStatus } from '../../../../core/events/types';
+import { EventResponse, EventStatus } from '../../../../core/events/types/event';
 import { EventItem } from '../components/EventCard';
 
 /**
  * Determines if an event is in the past based on date and status
  */
-export const isEventPast = (event: Event): boolean => {
+export const isEventPast = (event: EventResponse): boolean => {
   const now = new Date();
   const endDate = event.endDateTime ? new Date(event.endDateTime) : null;
   const isPastByDate = endDate ? endDate < now : false;
@@ -19,7 +19,7 @@ export const isEventPast = (event: Event): boolean => {
 /**
  * Converts an API Event to EventItem format for UI display
  */
-export const convertEventToItem = (event: Event): EventItem => {
+export const convertEventToItem = (event: EventResponse): EventItem => {
   const isPast = isEventPast(event);
 
   return {
@@ -42,7 +42,7 @@ export const convertEventToItem = (event: Event): EventItem => {
 /**
  * Converts multiple API Events to EventItem format
  */
-export const convertEventsToItems = (events: Event[]): EventItem[] => {
+export const convertEventsToItems = (events: EventResponse[]): EventItem[] => {
   return events.map(convertEventToItem);
 };
 
