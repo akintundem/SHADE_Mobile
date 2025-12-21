@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../../core/events/services';
+import { eventService } from '../../../../core/events/services/event';
 import { EventResponse } from '../../../../core/events/types';
 import LoadingState from '../../../../common/components/LoadingState';
 import { EventsList } from '../components/EventsList';
@@ -33,7 +33,7 @@ export default function HomeScreen({ user }: Props) {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const publicEvents = await eventService.getPublicEvents({ size: 20 });
+      const publicEvents = await eventService.listEvents({ size: 20 });
       setAllEvents(publicEvents.content);
     } catch (error) {
       console.error('Failed to load discovery data', error);

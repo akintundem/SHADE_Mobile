@@ -7,7 +7,7 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { LoadingOverlay, EmptyState } from '../../../../common/components/LoadingStates';
 import { Event, EventData, isFullEventResponse, isFeedResponse } from '../../../../core/events/types';
-import { eventService } from '../../../../core/events/services';
+import { eventService } from '../../../../core/events/services/event';
 import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
