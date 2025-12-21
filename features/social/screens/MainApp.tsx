@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
