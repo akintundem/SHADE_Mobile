@@ -18,8 +18,6 @@ export function isFeedResponse(data: EventData): data is import('./event').Event
 // These can be removed or properly implemented as needed
 export type TimelineDTO = any;
 export type TaskDTO = any;
-export type RiskDTO = any;
-export type EmergencyPlanDTO = any;
 export type BudgetDTO = any;
 export type ExpenseDTO = any;
 export type InvitationDTO = any;

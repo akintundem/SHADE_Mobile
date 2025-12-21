@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import Auth from './features/auth/screens/AuthScreen';
 import ThemeProvider from './common/theme/ThemeProvider';
 import LoadingState from './common/components/LoadingState';
-import MainApp from './features/social/screens/MainApp';
+import MainApp from './features/main/screens/MainApp';
 import OnboardingScreen from './features/auth/screens/OnboardingScreen';
 import { User, ThemePreference } from './core/auth/types/auth';
 import { getToken, getUser as getCachedUser } from './common/storage/authStorage';

@@ -4,8 +4,8 @@ import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
-const HomeScreen = React.lazy(() => import('../../events-dashboard/Home/screens/HomeScreen'));
-const ManageScreen = React.lazy(() => import('../../events-dashboard/Home/screens/ManageScreen'));
+const HomeScreen = React.lazy(() => import('../../events-dashboard/home/screens/HomeScreen'));
+const ManageScreen = React.lazy(() => import('../../events-dashboard/home/screens/ManageScreen'));
 const CreateEventScreen = React.lazy(() => import('../../create-event/screens/CreateEventScreen'));
 
 type Props = {

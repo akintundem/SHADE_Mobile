@@ -20,7 +20,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
-import { EventCard, EventItem } from '../../Home/components/EventCard';
+import { EventCard, EventItem } from '../../home/components/EventCard';
 import { EmptyState } from '../../../../common/components/LoadingStates';
 import { eventService } from '../../../core/events/services';
 import { EventResponse, EventType, EventStatus } from '../../../core/events/types';
