@@ -22,7 +22,7 @@ import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { EventCard, EventItem } from '../../home/components/EventCard';
 import { EmptyState } from '../../../../common/components/LoadingStates';
-import { eventService } from '../../../core/events/services';
+import { eventService } from '../../../core/events/services/event';
 import { EventResponse, EventType, EventStatus } from '../../../core/events/types';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 

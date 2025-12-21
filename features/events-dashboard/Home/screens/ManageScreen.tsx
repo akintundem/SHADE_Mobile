@@ -3,7 +3,6 @@ import { ScrollView, View, RefreshControl, TouchableOpacity } from 'react-native
 import { HomeHeader } from '../components/HomeHeader';
 import { EventSegmentedControl, SegmentType } from '../components/EventSegmentedControl';
 import { EventCard, EventItem } from '../components/EventCard';
-import { TabBar } from '../components/TabBar';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { User } from '../../../../core/auth/types/auth';
@@ -20,14 +19,12 @@ type Props = {
   onOpenMenu?: () => void;
   onOpenCamera?: () => void;
   onOpenGallery?: () => void;
-  onTabChange?: (tab: 'home' | 'manage' | 'profile') => void;
 };
 
 export default function ManageScreen({
   user,
   events = [],
   onCreateEvent,
-  onTabChange,
 }: Props) {
   const { colors, spacing } = useTheme();
   const [activeSegment, setActiveSegment] = useState<SegmentType>('live');
@@ -113,7 +110,6 @@ export default function ManageScreen({
         </ScrollView>
       </View>
 
-      <TabBar active="manage" onChange={onTabChange as any} />
     </SafeAreaWrapper>
   );
 }

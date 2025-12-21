@@ -3,18 +3,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, View, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { ProfileHeader } from '../components/ProfileHeader';
 import { EventMiniCard } from '../components/EventMiniCard';
-import { TabBar } from '../components/TabBar';
 import SettingsScreen from '../../settings/screens/main/SettingsScreen';
 import EditProfileScreen from './EditProfileScreen';
 import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
-import { eventService } from '../../../core/events/services';
+import { eventService } from '../../../core/events/services/event';
 import { EventResponse } from '../../../core/events/types';
 import { dateUtils } from '../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../common/utils/constants';
 import LoadingState from '../../../common/components/LoadingState';
 
-type Props = { user: User; onTabChange?: (tab: 'home' | 'manage' | 'profile') => void; onLogout?: () => void };
+type Props = { user: User; onLogout?: () => void };
 
 type Post = {
   id: string;
@@ -23,7 +22,7 @@ type Post = {
   createdAt: string;
 };
 
-export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
+export default function ProfileScreen({ user, onLogout }: Props) {
   const { colors, typography, spacing } = useTheme();
   const [view, setView] = useState<'profile' | 'settings' | 'edit'>('profile');
   const [section, setSection] = useState<'posts' | 'events'>('events');
@@ -34,7 +33,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
 
   const fetchUserEvents = useCallback(async () => {
     try {
-      const response = await eventService.getMyEvents({ page: 0, size: 20 });
+      const response = await eventService.listMyEvents({ page: 0, size: 20 });
       setEvents(response.content || []);
     } catch (error) {
       console.error('Failed to fetch user events:', error);
@@ -127,7 +126,6 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
         <ProfileHeader user={user} onEditProfile={() => setView('edit')} onOpenSettings={() => setView('settings')} />
         <LoadingState />
-        <TabBar active="profile" onChange={onTabChange} />
       </SafeAreaView>
     );
   }
@@ -189,7 +187,7 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
                       )}
                       <EventMiniCard
                         title={event.name}
-                        date={formatEventDate(event.startDateTime)}
+                        date={formatEventDate(event.startDateTime ?? null)}
                         location={formatEventLocation(event)}
                         tagLeft={getEventStatus(event)}
                         tagRight="Creator"
@@ -250,8 +248,6 @@ export default function ProfileScreen({ user, onTabChange, onLogout }: Props) {
           </View>
         </View>
       </ScrollView>
-
-      <TabBar active="profile" onChange={onTabChange} />
     </SafeAreaView>
   );
 }

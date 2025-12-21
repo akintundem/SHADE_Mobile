@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, RefreshControl } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Users, Plus } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../../core/events/services';
+import { eventService } from '../../../../core/events/services/event';
 import { authService } from '../../../../core/auth/services/authService';
 import { EventCollaboratorResponse, EventCollaboratorRequest } from '../../../../core/events/types';
 import { EventUserType } from '../../../../core/events/types';

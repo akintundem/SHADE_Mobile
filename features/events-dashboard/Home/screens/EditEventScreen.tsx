@@ -15,7 +15,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { X, Save } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { LoadingOverlay } from '../../../../common/components/LoadingStates';
-import { eventService } from '../../../../core/events/services';
+import { eventService } from '../../../../core/events/services/event';
 import { UpdateEventRequest, Event, EventType, EventData, isFullEventResponse } from '../../../../core/events/types';
 import { ErrorHandle } from '../../../../common/utils/errorHandler';
 

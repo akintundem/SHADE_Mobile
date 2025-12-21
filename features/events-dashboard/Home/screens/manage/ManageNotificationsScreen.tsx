@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Send, Mail, MessageSquare, Smartphone, RefreshCcw, Clock, Bell, CalendarClock, PlusCircle, Trash2, X, List } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../../../core/events/services';
+import { eventService } from '../../../../../core/events/services/event';
 import { EventNotificationRequest,
   EventNotificationChannel,
   EventReminderRequest,

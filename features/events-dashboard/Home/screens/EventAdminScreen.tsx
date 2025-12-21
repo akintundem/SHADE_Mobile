@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Bell, ChevronRight, ImageIcon, Layers, ShieldCheck, UserPlus, Users } from 'lucide-react-native';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../../core/events/services';
+import { eventService } from '../../../../core/events/services/event';
 import { Event } from '../../../../core/events/types';
 
 type RouteParams = { eventId: string };

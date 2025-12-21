@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ArrowLeft, Users, CalendarClock, CheckCircle, Plus, Minus, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '../../../../../common/theme/ThemeProvider';
-import { eventService } from '../../../../../core/events/services';
+import { eventService } from '../../../../../core/events/services/event';
 import { EventCapacityResponse } from '../../../../../common/types';
 import { DateTimePickerModal } from '../../../../../common/datetime';
 import { dateUtils } from '../../../../../common/utils/helpers';

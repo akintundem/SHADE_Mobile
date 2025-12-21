@@ -3,6 +3,7 @@ import { View, Modal } from 'react-native';
 import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
+import { TabBar } from '../../profile/components/TabBar';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
 const HomeScreen = React.lazy(() => import('../../events-dashboard/home/screens/HomeScreen'));
 const ManageScreen = React.lazy(() => import('../../events-dashboard/home/screens/ManageScreen'));
@@ -36,13 +37,12 @@ export default function MainApp({ user, onLogout }: Props) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {tab === 'home' ? (
         <React.Suspense fallback={null}>
-          <HomeScreen user={user} onTabChange={setTab} />
+          <HomeScreen user={user} />
         </React.Suspense>
       ) : tab === 'manage' ? (
         <React.Suspense fallback={null}>
           <ManageScreen 
             user={user} 
-            onTabChange={setTab}
             onCreateEvent={handleCreateEvent}
           />
         </React.Suspense>
@@ -50,7 +50,6 @@ export default function MainApp({ user, onLogout }: Props) {
         <React.Suspense fallback={null}>
           <ProfileScreen 
             user={user} 
-            onTabChange={setTab} 
             onLogout={async () => {
               if (loading) return;
               try {
@@ -68,6 +67,9 @@ export default function MainApp({ user, onLogout }: Props) {
           />
         </React.Suspense>
       )}
+
+      {/* Centralized TabBar for navigation */}
+      <TabBar active={tab} onChange={setTab} />
 
       {/* Create Event Modal */}
       <Modal

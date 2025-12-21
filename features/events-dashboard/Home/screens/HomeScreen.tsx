@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { TabBar } from '../components/TabBar';
 import { eventService } from '../../../../core/events/services';
 import { EventResponse } from '../../../../core/events/types';
 import LoadingState from '../../../../common/components/LoadingState';
@@ -19,14 +18,13 @@ const { width } = Dimensions.get('window');
 
 type Props = {
   user: any;
-  onTabChange?: (tab: 'home' | 'manage' | 'profile') => void;
   onCreateEvent?: () => void;
   onOpenMenu?: () => void;
   onOpenCamera?: () => void;
   onOpenGallery?: () => void;
 };
+export default function HomeScreen({ user }: Props) {
 
-export default function HomeScreen({ user, onTabChange }: Props) {
   const { colors, spacing, typography } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -100,7 +98,6 @@ export default function HomeScreen({ user, onTabChange }: Props) {
         </ScrollView>
       </View>
 
-      <TabBar active="home" onChange={onTabChange} />
     </SafeAreaWrapper>
   );
 }

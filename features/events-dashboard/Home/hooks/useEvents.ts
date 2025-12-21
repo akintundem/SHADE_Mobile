@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Event } from '../../../../core/events/types';
-import { eventService } from '../../../../core/events/services';
+import { eventService } from '../../../../core/events/services/event';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 
 export const useEvents = () => {
@@ -11,10 +11,9 @@ export const useEvents = () => {
   const fetchEvents = useCallback(async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      const response = await eventService.getEvents({
+      const response = await eventService.listMyEvents({
         page: 0,
         size: 20,
-        isPublic: true,
       });
       setEvents(response.content || []);
     } catch (error) {
