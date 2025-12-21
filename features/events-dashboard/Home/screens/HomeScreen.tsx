@@ -3,8 +3,7 @@ import {
   ScrollView,
   View,
   Text,
-  RefreshControl,
-  Dimensions
+  RefreshControl
 } from 'react-native';
 import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
@@ -14,15 +13,10 @@ import LoadingState from '../../../../common/components/LoadingState';
 import { EventsList } from '../components/EventsList';
 import { convertEventsToItems } from '../utils/eventUtils';
 
-const { width } = Dimensions.get('window');
-
 type Props = {
   user: any;
-  onCreateEvent?: () => void;
-  onOpenMenu?: () => void;
-  onOpenCamera?: () => void;
-  onOpenGallery?: () => void;
 };
+
 export default function HomeScreen({ user }: Props) {
 
   const { colors, spacing, typography } = useTheme();
