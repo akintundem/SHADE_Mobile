@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, SafeAreaView } from 'react-native';
 import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
+import { TabBar } from '../../profile/components/TabBar';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
 
 type Props = {
@@ -10,32 +11,56 @@ type Props = {
   onLogout: () => void;
 };
 
-// Placeholder screens for events-dashboard (removed to focus on create-events)
-const PlaceholderScreen = ({ title, onTabChange }: { title: string; onTabChange?: (tab: 'home' | 'manage' | 'profile') => void }) => {
+// Home and Manage screens
+const HomeScreen = () => {
   const { colors, spacing, typography } = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
-      <Text style={{ color: colors.text.primary, fontSize: typography.size.lg, fontWeight: typography.weight.semibold }}>
-        {title}
-      </Text>
-      <Text style={{ color: colors.text.tertiary, fontSize: typography.size.sm, marginTop: spacing.md, textAlign: 'center' }}>
-        Events dashboard has been removed. Focus on create-events feature.
-      </Text>
-    </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
+        <Text style={{ color: colors.text.primary, fontSize: typography.size.lg, fontWeight: typography.weight.semibold }}>
+          Home
+        </Text>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.size.sm, marginTop: spacing.md, textAlign: 'center' }}>
+          Home screen content will be displayed here
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const ManageScreen = () => {
+  const { colors, spacing, typography } = useTheme();
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
+        <Text style={{ color: colors.text.primary, fontSize: typography.size.lg, fontWeight: typography.weight.semibold }}>
+          Manage
+        </Text>
+        <Text style={{ color: colors.text.tertiary, fontSize: typography.size.sm, marginTop: spacing.md, textAlign: 'center' }}>
+          Manage screen content will be displayed here
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 };
 
 export default function MainApp({ user, onLogout }: Props) {
   const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'home' | 'manage' | 'profile'>('profile');
+  const [tab, setTab] = useState<'home' | 'manage' | 'profile'>('home');
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {tab === 'home' ? (
-        <PlaceholderScreen title="Home" onTabChange={setTab as any} />
+        <>
+          <HomeScreen />
+          <TabBar active="home" onChange={setTab} />
+        </>
       ) : tab === 'manage' ? (
-        <PlaceholderScreen title="Manage" onTabChange={setTab as any} />
+        <>
+          <ManageScreen />
+          <TabBar active="manage" onChange={setTab} />
+        </>
       ) : (
         <React.Suspense fallback={null}>
           <ProfileScreen 

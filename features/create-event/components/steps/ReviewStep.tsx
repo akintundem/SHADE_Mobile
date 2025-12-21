@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Sparkles, Upload, Calendar, MapPin, Users, DollarSign, Tag, Clock, Edit3 } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { EventType } from '../../../../common/types';
+import { EventType } from '../../../../core/events/types/event';
 import { formatDisplayDateTime } from '../../../../common/datetime';
 import devConfig from '../../../../dev-config.json';
 

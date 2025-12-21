@@ -1,17 +1,15 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { EventType } from '../../../../common/types';
+import { EventType } from '../../../../core/events/types/event';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { EVENT_CATEGORIES, AVAILABLE_TAGS } from '../../constants';
+import { EVENT_CATEGORIES } from '../../constants';
 
 type Props = {
   selectedEventType: EventType | null;
-  tags: string[];
   onEventTypeSelect: (type: EventType) => void;
-  onTagToggle: (tag: string) => void;
 };
 
-export function CategorizeStep({ selectedEventType, tags, onEventTypeSelect, onTagToggle }: Props) {
+export function CategorizeStep({ selectedEventType, onEventTypeSelect }: Props) {
   const { colors, typography, spacing, borderRadius, isDark } = useTheme();
 
   return (
@@ -81,49 +79,6 @@ export function CategorizeStep({ selectedEventType, tags, onEventTypeSelect, onT
                   }}
                 >
                   {category.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      <View>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.size.base,
-            fontWeight: typography.weight.semibold,
-            marginBottom: spacing.md,
-          }}
-        >
-          Tags (Optional)
-        </Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-          {AVAILABLE_TAGS.map((tag) => {
-            const isSelected = tags.includes(tag);
-            return (
-              <TouchableOpacity
-                key={tag}
-                onPress={() => onTagToggle(tag)}
-                activeOpacity={0.7}
-                style={{
-                  borderRadius: borderRadius.full,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  backgroundColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.surface,
-                  borderWidth: 1,
-                  borderColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
-                }}
-              >
-                <Text
-                  style={{
-                    color: isSelected ? (isDark ? '#000000' : '#FFFFFF') : colors.text.primary,
-                    fontWeight: isSelected ? typography.weight.semibold : typography.weight.regular,
-                    fontSize: typography.size.sm,
-                  }}
-                >
-                  {tag}
                 </Text>
               </TouchableOpacity>
             );
