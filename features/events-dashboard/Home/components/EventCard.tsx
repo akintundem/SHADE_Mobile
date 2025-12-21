@@ -2,7 +2,6 @@ import { View, Text, TouchableOpacity, ImageBackground, Dimensions } from 'react
 import { MapPin, Clock } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { useNavigation } from '@react-navigation/native';
 import { EventStatus } from '../../../../core/events/types';
 import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';
@@ -37,7 +36,6 @@ type Props = {
 
 export const EventCard = ({ item, width }: Props) => {
   const { typography, spacing, borderRadius, colors } = useTheme();
-  const navigation = useNavigation<any>();
   const { width: screenWidth } = Dimensions.get('window');
   const cardWidth = width ?? screenWidth - spacing.xl * 2;
   const cardHeight = cardWidth * 1.1; // Taller card for the overlay design
@@ -69,15 +67,6 @@ export const EventCard = ({ item, width }: Props) => {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={() =>
-        navigation.navigate('EventProfile', {
-          eventId: item.id,
-          title: item.title,
-          imageUrl: item.imageUrl,
-          description: item.description,
-          status: item.status,
-        })
-      }
       style={{
         width: cardWidth,
         height: cardHeight,

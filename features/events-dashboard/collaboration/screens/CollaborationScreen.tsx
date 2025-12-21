@@ -11,9 +11,9 @@ import { PublicUserResponse } from '../../../../core/auth/types/auth';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
 import { LoadingOverlay } from '../../../../common/components/LoadingStates';
 import { useDebounce } from '../../../../common/hooks/useDebounce';
-import { CollaboratorsList } from './collaboration/CollaboratorsList';
-import { AddCollaboratorModal } from './collaboration/AddCollaboratorModal';
-import { EditCollaboratorModal } from './collaboration/EditCollaboratorModal';
+import { CollaboratorsList } from '../components/CollaboratorsList';
+import { AddCollaboratorModal } from '../components/AddCollaboratorModal';
+import { EditCollaboratorModal } from '../components/EditCollaboratorModal';
 
 type Props = {
   eventId: string;

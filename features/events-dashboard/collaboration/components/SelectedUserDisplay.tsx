@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { X } from 'lucide-react-native';
-import { PublicUserResponse } from '../../../../../../core/auth/types/auth';
+import { PublicUserResponse } from '../../../../../core/auth/types/auth';
 
 type Props = {
   selectedUser: PublicUserResponse;
