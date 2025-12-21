@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { EventType } from '../../../../core/events/types/event';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { EVENT_CATEGORIES } from '../../constants';
+import { EVENT_CATEGORIES } from '../../../../core/events/constants';
 
 type Props = {
   selectedEventType: EventType | null;

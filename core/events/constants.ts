@@ -1,4 +1,4 @@
-import { EventType } from '../../core/events/types/event';
+import { EventType } from './types/event';
 
 // Event categories mapped to EventType enum
 export const EVENT_CATEGORIES = [

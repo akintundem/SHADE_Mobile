@@ -22,7 +22,7 @@ import {
 } from '../components/steps';
 import { StepHeader } from '../components/StepHeader';
 import { StepFooter } from '../components/StepFooter';
-import { STEPS } from '../constants';
+import { STEPS } from '../../../core/events/constants';
 
 // Local Venue type for form input (matches LocationStep)
 type Venue = {
