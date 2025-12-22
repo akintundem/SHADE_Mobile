@@ -6,13 +6,13 @@ import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
 import { TabBar } from '../../profile/components/TabBar';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
-const HomeScreen = React.lazy(() => import('../../event-dashboard/Home/screens/HomeScreen'));
+const HomeScreen = React.lazy(() => import('./HomeScreen'));
 const EventProfileRoute = React.lazy(() =>
   import('../../event-dashboard/Home/screens/EventProfileRoute').then(module => ({
     default: module.EventProfileRoute,
   })),
 );
-const ManageScreen = React.lazy(() => import('../../event-dashboard/Home/screens/ManageScreen'));
+const ManageScreen = React.lazy(() => import('./ManageScreen'));
 const CreateEventScreen = React.lazy(() => import('../../create-event/screens/CreateEventScreen'));
 
 const HomeStack = createNativeStackNavigator();

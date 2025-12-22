@@ -1,12 +1,12 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { HomeHeader } from '../components/HomeHeader';
-import { EventsList } from '../components/EventsList';
-import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { User } from '../../../../core/auth/types/auth';
-import { EventItem } from '../components/EventCard';
+import { HomeHeader } from '../../event-dashboard/Home/components/HomeHeader';
+import { EventsList } from '../../event-dashboard/Home/components/EventsList';
+import { SafeAreaWrapper } from '../../../common/components/SafeAreaWrapper';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { User } from '../../../core/auth/types/auth';
+import { EventItem } from '../../event-dashboard/Home/components/EventCard';
 
 type Props = {
   user: User;

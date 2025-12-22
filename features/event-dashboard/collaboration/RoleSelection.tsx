@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { EventUserType } from '../../../../../core/events/types/event';
+import { EventUserType } from '../../../core/events/types/event';
 
 const ROLE_LABELS: Record<EventUserType, string> = {
   ORGANIZER: 'Organizer',

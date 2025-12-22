@@ -7,10 +7,10 @@ import { EventCollaboratorResponse } from '../../../../core/events/types/event';
 import { EventUserType } from '../../../../core/events/types/event';
 import { LoadingOverlay } from '../../../../common/components/LoadingStates';
 import { useDebounce } from '../../../../common/hooks/useDebounce';
-import { CollaboratorsList } from './collaboration/CollaboratorsList';
-import { AddCollaboratorModal } from './collaboration/AddCollaboratorModal';
-import { EditCollaboratorModal } from './collaboration/EditCollaboratorModal';
-import { CollaborationUser } from './collaboration/types';
+import { CollaboratorsList } from '../../collaboration/CollaboratorsList';
+import { AddCollaboratorModal } from '../../collaboration/AddCollaboratorModal';
+import { EditCollaboratorModal } from '../../collaboration/EditCollaboratorModal';
+import { CollaborationUser } from '../../collaboration/types';
 
 type Props = {
   eventId: string;

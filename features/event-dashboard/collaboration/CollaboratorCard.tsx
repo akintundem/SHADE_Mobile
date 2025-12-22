@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Mail, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react-native';
-import { EventCollaboratorResponse } from '../../../../core/events/types/event';
-import { EventUserType } from '../../../../core/events/types/event';
+import { EventCollaboratorResponse } from '../../../core/events/types/event';
+import { EventUserType } from '../../../core/events/types/event';
 
 const ROLE_LABELS: Record<EventUserType, string> = {
   ORGANIZER: 'Organizer',

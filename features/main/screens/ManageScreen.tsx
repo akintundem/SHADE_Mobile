@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ScrollView, View, RefreshControl, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native';
-import { EventSegmentedControl, SegmentType } from '../components/EventSegmentedControl';
-import { EventCard, EventItem } from '../components/EventCard';
-import { SafeAreaWrapper } from '../../../../common/components/SafeAreaWrapper';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { User } from '../../../../core/auth/types/auth';
-import { eventService } from '../../../../core/events/services/event';
-import { Event } from '../../../../core/events/types/event';
-import { convertEventsToItems } from '../utils/eventUtils';
-import { EventListSkeleton, EmptyState } from '../../../../common/components/LoadingStates';
-import { ErrorHandler } from '../../../../common/utils/errorHandler';
+import { EventSegmentedControl, SegmentType } from '../../event-dashboard/Home/components/EventSegmentedControl';
+import { EventCard, EventItem } from '../../event-dashboard/Home/components/EventCard';
+import { SafeAreaWrapper } from '../../../common/components/SafeAreaWrapper';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { User } from '../../../core/auth/types/auth';
+import { eventService } from '../../../core/events/services/event';
+import { Event } from '../../../core/events/types/event';
+import { convertEventsToItems } from '../../event-dashboard/Home/utils/eventUtils';
+import { EventListSkeleton, EmptyState } from '../../../common/components/LoadingStates';
+import { ErrorHandler } from '../../../common/utils/errorHandler';
 import { Calendar, Plus } from 'lucide-react-native';
 
 const EMPTY_STATE_CONFIG: Record<SegmentType, { title: string; subtitle: string }> = {
