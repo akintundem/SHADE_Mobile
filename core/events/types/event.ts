@@ -367,6 +367,9 @@ export enum EventType {
     capacity?: number | null;
     currentAttendeeCount?: number | null;
     registrationDeadline?: string | null; // ISO datetime
+    availableSpots?: number | null;
+    utilizationPercentage?: number | null;
+    isRegistrationOpen?: boolean | null;
   };
 
   // Event Visibility Response Type
@@ -399,6 +402,9 @@ export enum EventType {
     email: string;
     userName?: string | null;
     role: EventUserType;
+    permissions?: string[] | null;
+    notes?: string | null;
+    invitationMessage?: string | null;
     registrationStatus?: string | null; // PENDING, CONFIRMED, ACCEPTED, DECLINED, REJECTED
     invitedAt?: string | null; // ISO datetime
     respondedAt?: string | null; // ISO datetime
@@ -411,6 +417,72 @@ export enum EventType {
     email: string;
     role: EventUserType;
     sendInvitation?: boolean;
+    permissions?: string[] | null;
+    notes?: string | null;
+    invitationMessage?: string | null;
   };
+
+  // Event Notification Types
+  export type EventNotificationChannel = 'EMAIL' | 'SMS' | 'PUSH' | 'IN_APP';
+
+  export type EventNotificationRequest = {
+    channel: EventNotificationChannel;
+    subject?: string | null;
+    content: string;
+    recipientEmails?: string[] | null;
+    scheduledAt?: string | null;
+  };
+
+  export type EventNotificationSettingsResponse = {
+    channels?: Partial<Record<EventNotificationChannel, boolean>>;
+  };
+
+  export type EventReminderRequest = {
+    title: string;
+    reminderTime: string; // ISO datetime
+    channel: EventNotificationChannel;
+    customMessage?: string | null;
+  };
+
+  export type EventReminderUpdateRequest = Partial<EventReminderRequest>;
+
+  export type EventReminderResponse = {
+    reminderId: string; // UUID
+    eventId?: string | null;
+    title: string;
+    reminderTime?: string | null;
+    channel: EventNotificationChannel;
+    customMessage?: string | null;
+    createdAt?: string | null; // ISO datetime
+    updatedAt?: string | null; // ISO datetime
+  };
+
+  // Type aliases for backward compatibility
+  export type Event = EventResponse;
+  export type EventData =
+    | EventResponse
+    | EventFeedResponse
+    | EventCapacityResponse
+    | EventVisibilityResponse;
+
+  // Helper type guards
+  export function isFullEventResponse(data: EventData): data is EventResponse {
+    return 'name' in data && 'eventType' in data;
+  }
+
+  export function isFeedResponse(data: EventData): data is EventFeedResponse {
+    return 'posts' in data && 'eventId' in data;
+  }
+
+  // Placeholder types for features that may not be fully implemented yet
+  export type TimelineDTO = any;
+  export type TaskDTO = any;
+  export type BudgetDTO = any;
+  export type ExpenseDTO = any;
+  export type InvitationDTO = any;
+  export type AttendeeDTO = any;
+  export type Vendor = any;
+  export type RiskDTO = any;
+  export type EmergencyPlanDTO = any;
   
   

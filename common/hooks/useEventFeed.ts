@@ -1,11 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  EventFeedResponse,
-  FeedPost,
-  EventFeedRequest,
-} from '../../core/events/types/event';
-import { eventService } from '../../core/events/services/event';
-import { ErrorHandler } from '../utils/errorHandler';
+import { FeedPost, EventFeedResponse } from '../../core/events/types/event';
 
 type FeedPostType = 'VIDEO' | 'IMAGE' | 'TEXT';
 type FeedFilter = FeedPostType | 'ALL';
@@ -39,9 +33,76 @@ export interface UseEventFeedReturn {
   activeFilter: FeedFilter;
 }
 
+const SAMPLE_POSTS: FeedPost[] = [
+  {
+    id: 'feed-1',
+    type: 'TEXT',
+    content: 'Welcome to the event feed. Share updates, photos, and moments.',
+    authorName: 'Capsule Team',
+    authorAvatarUrl: 'https://i.pravatar.cc/150?img=12',
+    postedAt: new Date().toISOString(),
+    likes: 24,
+    comments: 6,
+  },
+  {
+    id: 'feed-2',
+    type: 'IMAGE',
+    content: 'Soundcheck is ready. Doors open soon!',
+    mediaUrl:
+      'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1200&auto=format&fit=crop',
+    authorName: 'Alex Morgan',
+    authorAvatarUrl: 'https://i.pravatar.cc/150?img=32',
+    postedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    likes: 52,
+    comments: 10,
+  },
+  {
+    id: 'feed-3',
+    type: 'VIDEO',
+    content: 'Behind the scenes before the kickoff.',
+    mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    thumbnailUrl:
+      'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop',
+    authorName: 'Riley Chen',
+    authorAvatarUrl: 'https://i.pravatar.cc/150?img=47',
+    postedAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    likes: 77,
+    comments: 14,
+  },
+  {
+    id: 'feed-4',
+    type: 'IMAGE',
+    content: 'Backstage snapshots before the panel begins.',
+    mediaUrl:
+      'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=1200&auto=format&fit=crop',
+    authorName: 'Jordan Lee',
+    authorAvatarUrl: 'https://i.pravatar.cc/150?img=56',
+    postedAt: new Date(Date.now() - 1000 * 60 * 140).toISOString(),
+    likes: 33,
+    comments: 5,
+  },
+  {
+    id: 'feed-5',
+    type: 'TEXT',
+    content: 'Doors are open. See you inside!',
+    authorName: 'Event Ops',
+    authorAvatarUrl: 'https://i.pravatar.cc/150?img=15',
+    postedAt: new Date(Date.now() - 1000 * 60 * 200).toISOString(),
+    likes: 18,
+    comments: 2,
+  },
+];
+
+const filterPosts = (posts: FeedPost[], postType?: FeedFilter) => {
+  if (!postType || postType === 'ALL') {
+    return posts;
+  }
+  return posts.filter(post => post.type === postType);
+};
+
 /**
  * Hook for managing event feed with pagination
- * Supports infinite scroll and filtering by post type
+ * Uses local data to keep feed UI independent of API availability.
  */
 export const useEventFeed = (
   eventId: string,
@@ -52,15 +113,13 @@ export const useEventFeed = (
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [feedInfo, setFeedInfo] = useState<EventFeedMeta | null>(null);
   const [activeFilter, setActiveFilter] = useState<FeedFilter>('ALL');
   const hasInitialLoad = useRef(false);
-  const loadingRef = useRef(false);
   const lastPostType = useRef<FeedFilter>('ALL');
-  const requestIdRef = useRef(0);
 
   const loadFeed = useCallback(
     async (
@@ -72,84 +131,34 @@ export const useEventFeed = (
         return;
       }
 
-      if (loadingRef.current && append) {
-        return;
-      }
+      setLoading(true);
+      setError(null);
 
-      loadingRef.current = true;
+      const nextPostType = postType ?? lastPostType.current;
+      lastPostType.current = nextPostType;
+      setActiveFilter(nextPostType);
 
-      try {
-        setLoading(true);
-        setError(null);
+      const filtered = filterPosts(SAMPLE_POSTS, nextPostType);
+      const pageSize = 20;
+      const start = page * pageSize;
+      const pageItems = filtered.slice(start, start + pageSize);
 
-        const nextPostType = postType ?? lastPostType.current;
-        lastPostType.current = nextPostType;
-        setActiveFilter(nextPostType);
+      setPosts(prev => (append ? [...prev, ...pageItems] : pageItems));
+      setCurrentPage(page);
 
-        const requestId = requestIdRef.current + 1;
-        requestIdRef.current = requestId;
+      const total = filtered.length;
+      const pages = Math.max(1, Math.ceil(total / pageSize));
+      setTotalPosts(total);
+      setTotalPages(pages);
+      setHasNext(page + 1 < pages);
+      setHasPrevious(page > 0);
+      setFeedInfo(null);
 
-        const params: EventFeedRequest = {
-          page,
-          size: 20,
-        };
-
-        if (nextPostType && nextPostType !== 'ALL') {
-          params.postType = nextPostType;
-        }
-
-        const feedData: EventFeedResponse = await eventService.getEventFeed(
-          eventId,
-          params,
-        );
-
-        if (requestIdRef.current !== requestId) {
-          return;
-        }
-
-        if (page === 0 || !append) {
-          // First page or refresh - replace posts
-          setPosts(feedData.posts);
-        } else {
-          // Subsequent pages - append posts (avoid duplicates)
-          setPosts(prev => {
-            const existingIds = new Set(prev.map(p => p.id));
-            const newPosts = feedData.posts.filter(
-              p => !existingIds.has(p.id),
-            );
-            return newPosts.length > 0 ? [...prev, ...newPosts] : prev;
-          });
-        }
-
-        setCurrentPage(feedData.currentPage);
-        setHasNext(feedData.hasNext);
-        setHasPrevious(feedData.hasPrevious);
-        setTotalPosts(feedData.totalPosts);
-        setTotalPages(feedData.totalPages);
-        setFeedInfo({
-          eventId: feedData.eventId,
-          eventName: feedData.eventName,
-          description: feedData.description,
-          coverImageUrl: feedData.coverImageUrl,
-          startDateTime: feedData.startDateTime,
-          endDateTime: feedData.endDateTime,
-          hashtag: feedData.hashtag,
-          eventWebsiteUrl: feedData.eventWebsiteUrl,
-        });
-      } catch (err) {
-        const errorObj =
-          err instanceof Error ? err : new Error(String(err));
-        setError(errorObj);
-        ErrorHandler.handle(err, 'useEventFeed');
-      } finally {
-        setLoading(false);
-        loadingRef.current = false;
-      }
+      setLoading(false);
     },
     [eventId],
   );
 
-  // Initial load on mount
   useEffect(() => {
     if (!hasInitialLoad.current && eventId) {
       hasInitialLoad.current = true;
@@ -170,13 +179,16 @@ export const useEventFeed = (
     await loadFeed(initialPage, lastPostType.current);
   }, [initialPage, loadFeed]);
 
-  const filterByType = useCallback(async (postType: FeedFilter) => {
-    hasInitialLoad.current = false;
-    setPosts([]);
-    setCurrentPage(0);
-    lastPostType.current = postType;
-    await loadFeed(0, postType);
-  }, [loadFeed]);
+  const filterByType = useCallback(
+    async (postType: FeedFilter) => {
+      hasInitialLoad.current = false;
+      setPosts([]);
+      setCurrentPage(0);
+      lastPostType.current = postType;
+      await loadFeed(0, postType);
+    },
+    [loadFeed],
+  );
 
   return {
     posts,
@@ -195,6 +207,3 @@ export const useEventFeed = (
     activeFilter,
   };
 };
-
-
-

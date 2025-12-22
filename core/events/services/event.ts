@@ -146,7 +146,19 @@ export const eventService = {
      */
     async getEventCapacity(eventId: string): Promise<EventCapacityResponse> {
         const res = await http.get<EventCapacityResponse>(`/api/v1/events/${eventId}?view=capacity`);
-        return res.data as EventCapacityResponse;
+        const data = res.data as EventCapacityResponse;
+        const capacity = typeof data.capacity === 'number' ? data.capacity : null;
+        const current = typeof data.currentAttendeeCount === 'number' ? data.currentAttendeeCount : 0;
+
+        return {
+            ...data,
+            availableSpots:
+                data.availableSpots ??
+                (capacity !== null ? Math.max(capacity - current, 0) : null),
+            utilizationPercentage:
+                data.utilizationPercentage ??
+                (capacity && capacity > 0 ? (current / capacity) * 100 : 0),
+        };
     },
 
     /**

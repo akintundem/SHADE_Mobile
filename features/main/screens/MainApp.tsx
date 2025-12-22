@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { View, Modal } from 'react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { User } from '../../../core/auth/types/auth';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 import { authService } from '../../../core/auth/services/authService';
 import { TabBar } from '../../profile/components/TabBar';
 const ProfileScreen = React.lazy(() => import('../../profile/screens/ProfileScreen'));
-const HomeScreen = React.lazy(() => import('../../events-dashboard/home/screens/HomeScreen'));
-const ManageScreen = React.lazy(() => import('../../events-dashboard/home/screens/ManageScreen'));
+const HomeScreen = React.lazy(() => import('../../event-dashboard/Home/screens/HomeScreen'));
+const EventProfileRoute = React.lazy(() =>
+  import('../../event-dashboard/Home/screens/EventProfileRoute').then(module => ({
+    default: module.EventProfileRoute,
+  })),
+);
+const ManageScreen = React.lazy(() => import('../../event-dashboard/Home/screens/ManageScreen'));
 const CreateEventScreen = React.lazy(() => import('../../create-event/screens/CreateEventScreen'));
+
+const HomeStack = createNativeStackNavigator();
 
 type Props = {
   user: User;
@@ -19,6 +27,25 @@ export default function MainApp({ user, onLogout }: Props) {
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<'home' | 'manage' | 'profile'>('home');
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+
+  const HomeStackScreen = () => (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="Home">
+        {() => (
+          <React.Suspense fallback={null}>
+            <HomeScreen user={user} onCreateEvent={handleCreateEvent} />
+          </React.Suspense>
+        )}
+      </HomeStack.Screen>
+      <HomeStack.Screen name="EventProfile">
+        {() => (
+          <React.Suspense fallback={null}>
+            <EventProfileRoute />
+          </React.Suspense>
+        )}
+      </HomeStack.Screen>
+    </HomeStack.Navigator>
+  );
 
   const handleCreateEvent = () => {
     setShowCreateEvent(true);
@@ -36,9 +63,7 @@ export default function MainApp({ user, onLogout }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {tab === 'home' ? (
-        <React.Suspense fallback={null}>
-          <HomeScreen user={user} />
-        </React.Suspense>
+        <HomeStackScreen />
       ) : tab === 'manage' ? (
         <React.Suspense fallback={null}>
           <ManageScreen 

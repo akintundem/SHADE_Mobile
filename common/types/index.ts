@@ -6,4 +6,3 @@
 
 // Authentication
 export * from '../../core/auth/types/auth';
-
