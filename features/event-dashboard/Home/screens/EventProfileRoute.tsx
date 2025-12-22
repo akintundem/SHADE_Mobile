@@ -11,13 +11,12 @@ import { eventService } from '../../../../core/events/services/event';
 import { dateUtils } from '../../../../common/utils/helpers';
 import { DATE_FORMATS } from '../../../../common/utils/constants';
 import { ErrorHandler } from '../../../../common/utils/errorHandler';
-import BudgetScreen from '../components/BudgetScreen';
-import GuestListScreen from '../components/GuestListScreen';
-import VendorsScreen from '../components/VendorsScreen';
-import RSVPScreen from '../components/RSVPScreen';
-import { EventFeedsScreen } from './EventFeedsScreen';
+import BudgetTrackingScreen from '../../budget/screens/BudgetTrackingScreen';
+import AttendeeManagementScreen from '../../attendees/screens/AttendeeManagementScreen';
+import VendorsScreen from '../../vendors/screens/VendorsScreen';
+import { EventFeedsScreen } from '../../feeds/screens/EventFeedsScreen';
 import { shareEvent } from '../../../../common/utils/shareUtils';
-import CollaborationScreen from '../components/CollaborationScreen';
+import CollaborationScreen from '../../collaboration/screens/CollaborationScreen';
 import EventLocationHeader from '../components/EventLocationHeader';
 
 type Params = { eventId?: string; title?: string; imageUrl?: string };
@@ -37,7 +36,7 @@ export const EventProfileRoute = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeScreen, setActiveScreen] = useState<'budget' | 'vendors' | 'guests' | 'rsvp' | 'feeds' | 'collaboration' | null>(null);
+  const [activeScreen, setActiveScreen] = useState<'budget' | 'vendors' | 'guests' | 'feeds' | 'collaboration' | null>(null);
   const [isFeedScope, setIsFeedScope] = useState(false);
   const [feedEventName, setFeedEventName] = useState<string>('');
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -250,16 +249,13 @@ export const EventProfileRoute = () => {
 
   // Render active screen if one is selected
   if (activeScreen === 'budget' && eventId) {
-    return <BudgetScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+    return <BudgetTrackingScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
   }
   if (activeScreen === 'vendors' && eventId) {
     return <VendorsScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
   }
   if (activeScreen === 'guests' && eventId) {
-    return <GuestListScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
-  }
-  if (activeScreen === 'rsvp' && eventId) {
-    return <RSVPScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
+    return <AttendeeManagementScreen eventId={eventId} onBack={() => setActiveScreen(null)} />;
   }
   if (activeScreen === 'feeds' && eventId) {
     return (
@@ -820,48 +816,6 @@ export const EventProfileRoute = () => {
                         marginTop: 1
                       }}>
                         Manage collaborators and team
-                      </Text>
-                    </View>
-                    <ChevronRight size={18} color={colors.text.tertiary} />
-                  </TouchableOpacity>
-
-                  {/* RSVP */}
-                  <TouchableOpacity
-                    onPress={() => setActiveScreen('rsvp')}
-                    activeOpacity={0.7}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: colors.cardElevated,
-                      borderRadius: borderRadius.lg,
-                      padding: spacing.md,
-                      gap: spacing.md,
-                    }}
-                  >
-                    <View style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      backgroundColor: colors.surface,
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <CalendarCheck size={20} color={colors.text.primary} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{
-                        color: colors.text.primary,
-                        fontSize: typography.size.base,
-                        fontWeight: typography.weight.semibold
-                      }}>
-                        {t('RSVP')}
-                      </Text>
-                      <Text style={{
-                        color: colors.text.tertiary,
-                        fontSize: typography.size.sm,
-                        marginTop: 1
-                      }}>
-                        Track responses and attendance
                       </Text>
                     </View>
                     <ChevronRight size={18} color={colors.text.tertiary} />

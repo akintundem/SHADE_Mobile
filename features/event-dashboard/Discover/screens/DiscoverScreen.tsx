@@ -5,7 +5,6 @@ import { Calendar } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ManageEventCard } from '../components/ManageEventCard';
 import { TopBar } from '../components/TopBar';
-import { TabBar } from '../../Home/components/TabBar';
 import { User } from '../../../../core/auth/types/auth';
 import { EventResponse, EventStatus } from '../../../../core/events/types/event';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
@@ -446,7 +445,6 @@ export default function DiscoverScreen({ user, onTabChange, onCreateEvent }: Pro
         </View>
       </ScrollView>
 
-      <TabBar active="discover" onChange={onTabChange} />
       <LoadingOverlay visible={loading && !refreshing} message="Loading your events..." transparent />
     </SafeAreaView>
   );
