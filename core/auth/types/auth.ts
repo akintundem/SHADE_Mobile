@@ -4,14 +4,34 @@
 
 // Base types
 export type User = {
-  id: string;
+  id: string; // IdP user ID (sub claim)
   email: string;
   name?: string;
+  username?: string;
+  phoneNumber?: string | null;
+  emailVerified?: boolean;
   provider?: 'password' | 'spotify';
 };
 
+// Auth0 / OIDC Access Token JWT payload (standard claims; used for API authorization)
+export interface Auth0JwtPayload {
+  sub: string;
+  exp: number;
+  iat: number;
+  iss?: string;
+  aud?: string | string[];
+  scope?: string;
+  email?: string;
+  email_verified?: boolean;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  preferred_username?: string;
+  [key: string]: any;
+}
+
 export type SecureUserResponse = {
-  id: string;
+  id: string; // IdP user ID (sub claim)
   email: string;
   name: string;
   username: string;
@@ -90,6 +110,10 @@ export type UserSettings = {
   autoAcceptInvitations?: boolean;
   exportEventDataEnabled?: boolean;
   mfaEnabled?: boolean;
+  eventParticipationVisibility?: VisibilityLevel;
+  reminderTimingMinutes?: number | null;
+  showInEventDirectory?: boolean;
+  smsNotificationsEnabled?: boolean;
 };
 
 export type UserSettingsUpdateRequest = {
@@ -112,6 +136,38 @@ export type UserSettingsUpdateRequest = {
   exportEventDataEnabled?: boolean;
   mfaEnabled?: boolean;
   autoAcceptInvitations?: boolean;
+  eventParticipationVisibility?: VisibilityLevel;
+  reminderTimingMinutes?: number | null;
+  showInEventDirectory?: boolean;
+  smsNotificationsEnabled?: boolean;
+};
+
+export type NotificationSettingsUpdateRequest = {
+  emailNotificationsEnabled?: boolean;
+  pushNotificationsEnabled?: boolean;
+  smsNotificationsEnabled?: boolean;
+  eventInvitationsEnabled?: boolean;
+  eventUpdatesEnabled?: boolean;
+  eventRemindersEnabled?: boolean;
+  rsvpNotificationsEnabled?: boolean;
+  commentNotificationsEnabled?: boolean;
+  collaborationRequestsEnabled?: boolean;
+  weeklyDigestEnabled?: boolean;
+  activityFeedNotificationsEnabled?: boolean;
+  reminderTimingMinutes?: number | null;
+};
+
+export type PrivacySettingsUpdateRequest = {
+  profileVisibility?: VisibilityLevel;
+  eventParticipationVisibility?: VisibilityLevel;
+  searchVisibility?: boolean;
+  showInEventDirectory?: boolean;
+};
+
+export type SecuritySettingsUpdateRequest = {
+  mfaEnabled?: boolean;
+  autoAcceptInvitations?: boolean;
+  exportEventDataEnabled?: boolean;
 };
 
 export type PaginatedResponse<T> = {
@@ -154,28 +210,41 @@ export type AuthTokens = {
 export type LoginRequest = {
   email: string;
   password: string;
-  rememberMe?: boolean;
+  rememberMe?: boolean; // Kept for UI compatibility
 };
 
 export type RegisterRequest = {
   email: string;
   password: string;
-  confirmPassword: string;
+};
+
+// JIT onboarding request for backend signup after IdP auth
+export type JitSignupRequest = {
+  email: string;
+  username: string;
+  name?: string;
+  phoneNumber?: string;
+  marketingOptIn?: boolean;
+  acceptTerms: boolean;
+  acceptPrivacy: boolean;
 };
 
 export type SecureAuthResponse = {
   message: string;
-  user: SecureUserResponse;
+  user: SecureUserResponse | User;
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   tokenType: 'Bearer';
-  deviceId: string; // Server-issued device identifier for session validation
-  onboardingRequired: boolean; // Indicates if user needs to complete profile onboarding
+  onboardingRequired: boolean;
+};
+
+export type AuthSessionResponse = {
+  user: SecureUserResponse;
+  onboardingRequired: boolean;
 };
 
 export type RefreshTokenRequest = {
   refreshToken: string;
-  deviceId?: string;
 };
 
 export type ValidateTokenRequest = {
@@ -185,25 +254,7 @@ export type ValidateTokenRequest = {
 export type TokenValidationResponse = {
   valid: boolean;
   error: string | null;
-  user: SecureUserResponse | null;
-};
-
-// Password Management Types
-export type ForgotPasswordRequest = {
-  email: string;
-};
-
-export type ResetPasswordRequest = {
-  token: string;
-  newPassword: string;
-  confirmPassword: string;
-};
-
-export type ChangePasswordRequest = {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-  deviceId?: string;
+  user: SecureUserResponse | User | null;
 };
 
 export type PasswordResponse = {
@@ -246,7 +297,6 @@ export type UpdateUserProfileRequest = {
   userType?: string; // Optional
   preferences?: string; // Optional, max 2000 characters
   marketingOptIn?: boolean; // Optional, default: false
-  deviceId?: string; // Optional, max 120 characters
   settings?: UserSettingsUpdateRequest; // Optional, nested user settings (patch-style update)
 };
 
@@ -309,4 +359,3 @@ export type UserSessionResponse = {
   expiresAt: string; // ISO datetime
   active: boolean;
 };
-

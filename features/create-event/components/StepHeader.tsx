@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Step = {
@@ -17,65 +18,43 @@ type Props = {
 };
 
 export function StepHeader({ currentStep, steps, onBack, onClose }: Props) {
-  const { colors, typography, spacing, isDark } = useTheme();
+  const { t } = useI18n();
+  const { colors } = useTheme();
+  const iconColor = colors.text.primary;
 
   return (
-    <View
-      style={{
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
-        paddingBottom: spacing.md,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: spacing.md,
-        }}
-      >
-        <TouchableOpacity onPress={currentStep === 0 ? onClose : onBack} style={{ padding: spacing.xs }}>
-          <ChevronLeft size={24} color={colors.text.primary} />
+    <View className="px-lg pt-xl pb-md">
+      <View className="flex-row items-center justify-between mb-md">
+        <TouchableOpacity
+          onPress={currentStep === 0 ? onClose : onBack}
+          className="p-xs"
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={24} color={iconColor} />
         </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontWeight: typography.weight.bold,
-              fontSize: typography.size.xl,
-            }}
-          >
-            Create Event
+        <View className="flex-1 items-center">
+          <Text className="text-xl font-bold text-txt-primary dark:text-txt-dark-primary">
+            {t('CreateEvent')}
           </Text>
-          <Text
-            style={{
-              color: colors.text.secondary,
-              fontSize: typography.size.sm,
-              marginTop: spacing.xs / 2,
-            }}
-          >
-            Step {currentStep + 1} of {steps.length}
+          <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary mt-[2px]">
+            {t('StepProgress', { current: currentStep + 1, total: steps.length })}
           </Text>
         </View>
-        <View style={{ width: 40 }} />
+        <View className="w-10" />
       </View>
 
-      {/* Progress indicator */}
-      <View style={{ flexDirection: 'row', gap: spacing.xs }}>
+      <View className="flex-row gap-xs">
         {steps.map((step, index) => (
           <View
             key={step.id}
-            style={{
-              flex: 1,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: index <= currentStep ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
-            }}
+            className={`flex-1 h-1 rounded-full ${
+              index <= currentStep
+                ? 'bg-neutral-black dark:bg-neutral-white'
+                : 'bg-light-border dark:bg-dark-border'
+            }`}
           />
         ))}
       </View>
     </View>
   );
 }
-

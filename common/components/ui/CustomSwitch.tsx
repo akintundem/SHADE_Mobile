@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { View, TouchableOpacity, Animated } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
+import { Colors } from '../../theme/designSystem';
 
 type Props = {
   value: boolean;
@@ -9,7 +9,6 @@ type Props = {
 };
 
 export default function CustomSwitch({ value, onValueChange, disabled = false }: Props) {
-  const { colors } = useTheme();
   const translateX = useRef(new Animated.Value(value ? 1 : 0)).current;
 
   useEffect(() => {
@@ -22,7 +21,6 @@ export default function CustomSwitch({ value, onValueChange, disabled = false }:
   }, [value, translateX]);
 
   const TRACK_WIDTH = 40;
-  const TRACK_HEIGHT = 22;
   const THUMB_SIZE = 18;
   const THUMB_MARGIN = 2;
 
@@ -38,23 +36,13 @@ export default function CustomSwitch({ value, onValueChange, disabled = false }:
       disabled={disabled}
     >
       <View
-        style={{
-          width: TRACK_WIDTH,
-          height: TRACK_HEIGHT,
-          borderRadius: TRACK_HEIGHT / 2,
-          backgroundColor: value ? colors.text.primary : colors.border,
-          justifyContent: 'center',
-          opacity: disabled ? 0.5 : 1,
-        }}
+        className={`w-[40px] h-[22px] rounded-[11px] justify-center ${value ? 'bg-txt-primary dark:bg-txt-dark-primary' : 'bg-light-border dark:bg-dark-border'} ${disabled ? 'opacity-50' : 'opacity-100'}`}
       >
         <Animated.View
+          className="w-[18px] h-[18px] rounded-[9px] bg-light-background dark:bg-dark-background"
           style={{
-            width: THUMB_SIZE,
-            height: THUMB_SIZE,
-            borderRadius: THUMB_SIZE / 2,
-            backgroundColor: colors.background,
             transform: [{ translateX: thumbTranslateX }],
-            shadowColor: '#000',
+            shadowColor: Colors.dark.text.inverse,
             shadowOffset: {
               width: 0,
               height: 1,
@@ -68,4 +56,3 @@ export default function CustomSwitch({ value, onValueChange, disabled = false }:
     </TouchableOpacity>
   );
 }
-

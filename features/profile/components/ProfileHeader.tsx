@@ -1,136 +1,129 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { Settings, Edit3 } from 'lucide-react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
+import { Settings, Pencil } from 'lucide-react-native';
 import { useI18n } from '../../../common/i18n/I18nProvider';
+import type { ProfileStats, ProfileUser } from '../types';
+import { DEFAULT_AVATAR, getDisplayNameFromUser, getHandleFromUser } from '../utils/profile';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { getImageUrl } from '../../../config/appConfig';
 
 type Props = {
-  user: any;
+  user: ProfileUser | null;
+  stats?: ProfileStats;
+  statsLoading?: boolean;
   onEditProfile?: () => void;
   onOpenSettings?: () => void;
+  onFollowersPress?: () => void;
+  onFollowingPress?: () => void;
 };
 
-export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) => {
-  const { colors, typography, spacing, borderRadius } = useTheme();
+export const ProfileHeader = React.memo(function ProfileHeader({
+  user,
+  stats,
+  statsLoading,
+  onEditProfile,
+  onOpenSettings,
+  onFollowersPress,
+  onFollowingPress,
+}: Props) {
   const { t } = useI18n();
-  
-  const handle = (user.name || user.email).toLowerCase().split('@')[0].replace(/\s+/g, '-');
+  const { colors } = useTheme();
+  const [avatarError, setAvatarError] = useState(false);
+
+  const handle = useMemo(() => getHandleFromUser(user), [user]);
+  const displayName = useMemo(() => getDisplayNameFromUser(user, t('Member')), [user, t]);
+
+  const resolvedUri = getImageUrl(user?.profilePictureUrl);
+  const avatarUri = !avatarError && resolvedUri ? resolvedUri : DEFAULT_AVATAR;
+
+  const formatStat = (value?: number) => {
+    if (statsLoading) return '—';
+    if (typeof value !== 'number') return '0';
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
+    return value.toString();
+  };
 
   return (
-    <View style={{ backgroundColor: colors.background }}>
-      <View style={{ 
-        height: 56,
-        paddingHorizontal: spacing.xl,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-      }}>
-        <TouchableOpacity 
-          onPress={onOpenSettings}
-          activeOpacity={0.7}
-          style={{
-            padding: spacing.sm,
-          }}
-        >
+    <View className="bg-light-background dark:bg-dark-background">
+      {/* Nav row */}
+      <View className="h-14 px-xl flex-row items-center justify-end">
+        <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} className="p-sm">
           <Settings size={20} color={colors.text.primary} strokeWidth={1.5} />
         </TouchableOpacity>
       </View>
 
-      <View style={{ 
-        paddingHorizontal: spacing.xl,
-        paddingBottom: spacing.lg,
-      }}>
-        <View style={{ marginBottom: spacing.lg }}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop' }}
-            style={{ 
-              height: 80,
-              width: 80,
-              borderRadius: 40,
-              backgroundColor: colors.surface,
-            }}
-          />
-        </View>
-        
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-          <Text style={{ 
-            fontSize: typography.size['2xl'],
-            fontWeight: typography.weight.bold,
-            color: colors.text.primary,
-            letterSpacing: -0.5,
-          }}>
-            {user.name || t('Member')}
-          </Text>
-          <TouchableOpacity 
+      {/* Hero section */}
+      <View className="px-xl pb-xl">
+        {/* Avatar + edit button */}
+        <View className="flex-row items-end justify-between mb-lg">
+          <View className="relative">
+            <Image
+              source={{ uri: avatarUri }}
+              className="h-[100px] w-[100px] rounded-full bg-light-surface dark:bg-dark-surface"
+              resizeMode="cover"
+              onError={() => setAvatarError(true)}
+            />
+          </View>
+          <TouchableOpacity
             onPress={onEditProfile}
             activeOpacity={0.7}
-            style={{
-              padding: spacing.xs / 2,
-            }}
+            className="flex-row items-center gap-xs border border-light-border dark:border-dark-border rounded-full px-lg py-sm mb-1"
           >
-            <Edit3 size={16} color={colors.text.secondary} strokeWidth={1.5} />
+            <Pencil size={13} color={colors.text.primary} strokeWidth={2} />
+            <Text className="text-xs font-semibold text-txt-primary dark:text-txt-dark-primary tracking-wide">
+              {t('EditProfile')}
+            </Text>
           </TouchableOpacity>
         </View>
-        
-        <Text style={{ 
-          marginTop: spacing.xs / 2,
-          color: colors.text.secondary,
-          fontSize: typography.size.base,
-          fontWeight: typography.weight.medium,
-        }}>
+
+        {/* Name */}
+        <Text
+          className="text-3xl font-bold text-txt-primary dark:text-txt-dark-primary tracking-[-0.8px] leading-tight"
+          numberOfLines={1}
+        >
+          {displayName}
+        </Text>
+
+        {/* Handle */}
+        <Text className="mt-[3px] text-sm font-medium text-txt-tertiary dark:text-txt-dark-tertiary">
           @{handle}
         </Text>
 
-        <View style={{ 
-          flexDirection: 'row',
-          gap: spacing['2xl'],
-          marginTop: spacing.xl,
-        }}>
-          <View>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontWeight: typography.weight.bold,
-              fontSize: typography.size.lg,
-            }}>
-              0
+        {/* Bio placeholder space — room to grow */}
+
+        {/* Stats */}
+        <View className="flex-row mt-xl gap-2xl">
+          <TouchableOpacity
+            onPress={onFollowersPress}
+            activeOpacity={0.7}
+            disabled={!onFollowersPress}
+          >
+            <Text className="text-xl font-bold text-txt-primary dark:text-txt-dark-primary tracking-[-0.5px]">
+              {formatStat(stats?.followers)}
             </Text>
-            <Text style={{ 
-              color: colors.text.tertiary,
-              fontSize: typography.size.xs,
-              marginTop: 2,
-            }}>
+            <Text className="mt-[2px] text-xs font-medium text-txt-tertiary dark:text-txt-dark-tertiary uppercase tracking-wider">
               {t('Followers')}
             </Text>
-          </View>
-          <View>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontWeight: typography.weight.bold,
-              fontSize: typography.size.lg,
-            }}>
-              0
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onFollowingPress}
+            activeOpacity={0.7}
+            disabled={!onFollowingPress}
+          >
+            <Text className="text-xl font-bold text-txt-primary dark:text-txt-dark-primary tracking-[-0.5px]">
+              {formatStat(stats?.following)}
             </Text>
-            <Text style={{ 
-              color: colors.text.tertiary,
-              fontSize: typography.size.xs,
-              marginTop: 2,
-            }}>
+            <Text className="mt-[2px] text-xs font-medium text-txt-tertiary dark:text-txt-dark-tertiary uppercase tracking-wider">
               {t('Following')}
             </Text>
-          </View>
+          </TouchableOpacity>
+
           <View>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontWeight: typography.weight.bold,
-              fontSize: typography.size.lg,
-            }}>
-              0
+            <Text className="text-xl font-bold text-txt-primary dark:text-txt-dark-primary tracking-[-0.5px]">
+              {formatStat(stats?.events)}
             </Text>
-            <Text style={{ 
-              color: colors.text.tertiary,
-              fontSize: typography.size.xs,
-              marginTop: 2,
-            }}>
+            <Text className="mt-[2px] text-xs font-medium text-txt-tertiary dark:text-txt-dark-tertiary uppercase tracking-wider">
               {t('Events')}
             </Text>
           </View>
@@ -138,4 +131,4 @@ export const ProfileHeader = ({ user, onEditProfile, onOpenSettings }: Props) =>
       </View>
     </View>
   );
-};
+});

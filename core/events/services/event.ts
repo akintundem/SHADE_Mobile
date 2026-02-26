@@ -2,8 +2,8 @@ import { http } from '../../../common/services/httpClient';
 import {
     EventResponse,
     EventListRequest,
-    CreateEventWithCoverUploadRequest,
-    CreateEventWithCoverUploadResponse,
+    CreateEventRequest,
+    CloneEventRequest,
     UpdateEventWithCoverUploadRequest,
     UpdateEventWithCoverUploadResponse,
     EventFeedRequest,
@@ -17,6 +17,9 @@ import {
     EventMediaResponse,
     EventCoverImageResponse,
     EventCoverImageCompleteRequest,
+    EventMediaRequest,
+    EventReminderRequest,
+    EventReminderResponse,
 } from '../types/event';
 
 /**
@@ -200,26 +203,28 @@ export const eventService = {
     },
 
     /**
-     * Create a new event with cover image upload
-     * @param request - Create event request with cover upload metadata
+     * Create a new event
+     * @param request - Create event request
      * @param idempotencyKey - Optional idempotency key to prevent duplicate creation
-     * @returns Created event with presigned cover upload URL
+     * @returns Created event
      */
     async createEvent(
-        request: CreateEventWithCoverUploadRequest,
+        request: CreateEventRequest,
         idempotencyKey?: string
-    ): Promise<CreateEventWithCoverUploadResponse> {
+    ): Promise<EventResponse> {
         const headers: Record<string, string> = {};
         if (idempotencyKey) {
             headers['Idempotency-Key'] = idempotencyKey;
         }
 
-        const res = await http.post<CreateEventWithCoverUploadResponse>(
+        // Backend expects the event data wrapped in an 'event' field
+        // Backend returns CreateEventWithCoverUploadResponse { event: EventResponse, coverUpload?: ... }
+        const res = await http.post<{ event: EventResponse; coverUpload?: EventPresignedUploadResponse }>(
             '/api/v1/events',
-            request,
+            { event: request },
             { headers }
         );
-        return res.data;
+        return res.data.event;
     },
 
     /**
@@ -285,6 +290,20 @@ export const eventService = {
      */
     async restoreEvent(eventId: string): Promise<EventResponse> {
         const res = await http.post<EventResponse>(`/api/v1/events/${eventId}/restore`);
+        return res.data;
+    },
+
+    /**
+     * Clone an existing event
+     * @param eventId - Event ID to clone
+     * @param request - Optional clone request with customization options
+     * @returns Cloned event response
+     */
+    async cloneEvent(eventId: string, request?: CloneEventRequest): Promise<EventResponse> {
+        const res = await http.post<EventResponse>(
+            `/api/v1/events/${eventId}/clone`,
+            request || {}
+        );
         return res.data;
     },
 
@@ -374,7 +393,7 @@ export const eventService = {
     async updateMedia(
         eventId: string,
         mediaId: string,
-        request: any // EventMediaRequest type - would need to be added to types
+        request: EventMediaRequest
     ): Promise<EventMediaResponse> {
         const res = await http.put<EventMediaResponse>(
             `/api/v1/events/${eventId}/media/${mediaId}`,
@@ -521,4 +540,127 @@ export const eventService = {
         const res = await http.delete<EventCoverImageResponse>(`/api/v1/events/${eventId}/cover-image`);
         return res.data;
     },
+
+    // ==================== EVENT REMINDERS ====================
+
+    /**
+     * Get event reminders
+     * Get all reminders for an event with pagination.
+     * @param eventId - Event ID
+     * @param page - Page number (0-indexed), default: 0
+     * @param size - Page size, default: 20
+     * @returns List of event reminder responses
+     */
+    async getReminders(
+        eventId: string,
+        page?: number,
+        size?: number
+    ): Promise<EventReminderResponse[]> {
+        const queryParams = new URLSearchParams();
+        if (page !== undefined) {
+            queryParams.append('page', page.toString());
+        }
+        if (size !== undefined) {
+            queryParams.append('size', size.toString());
+        }
+
+        const queryString = queryParams.toString();
+        const url = queryString
+            ? `/api/v1/events/${eventId}/reminders?${queryString}`
+            : `/api/v1/events/${eventId}/reminders`;
+
+        const res = await http.get<EventReminderResponse[]>(url);
+        return res.data;
+    },
+
+    /**
+     * Create event reminder
+     * Create a new reminder for an event.
+     * @param eventId - Event ID
+     * @param request - Reminder request
+     * @returns Created event reminder response
+     */
+    async createReminder(
+        eventId: string,
+        request: EventReminderRequest
+    ): Promise<EventReminderResponse> {
+        const res = await http.post<EventReminderResponse>(
+            `/api/v1/events/${eventId}/reminders`,
+            request
+        );
+        return res.data;
+    },
+
+    /**
+     * Update event reminder
+     * Update an existing reminder.
+     * @param eventId - Event ID
+     * @param reminderId - Reminder ID
+     * @param request - Reminder update request
+     * @returns Updated event reminder response
+     */
+    async updateReminder(
+        eventId: string,
+        reminderId: string,
+        request: EventReminderRequest
+    ): Promise<EventReminderResponse> {
+        const res = await http.put<EventReminderResponse>(
+            `/api/v1/events/${eventId}/reminders/${reminderId}`,
+            request
+        );
+        return res.data;
+    },
+
+    /**
+     * Delete event reminder
+     * Delete a reminder.
+     * @param eventId - Event ID
+     * @param reminderId - Reminder ID
+     */
+    async deleteReminder(eventId: string, reminderId: string): Promise<void> {
+        await http.delete(`/api/v1/events/${eventId}/reminders/${reminderId}`);
+    },
+
+    /**
+     * Get specific reminder
+     * Get details of a specific reminder.
+     * @param eventId - Event ID
+     * @param reminderId - Reminder ID
+     * @returns Event reminder response
+     */
+    async getReminder(eventId: string, reminderId: string): Promise<EventReminderResponse> {
+        const res = await http.get<EventReminderResponse>(
+            `/api/v1/events/${eventId}/reminders/${reminderId}`
+        );
+        return res.data;
+    },
+
+    /**
+     * Get For You feed - personalized event recommendations
+     * @param request - Optional list request with pagination
+     * @returns Paginated list of recommended events
+     */
+    async getForYouFeed(request?: EventListRequest): Promise<PaginatedEventResponse> {
+        const queryParams = buildEventListQueryParams(request);
+        const queryString = queryParams.toString();
+        const url = queryString ? `/api/v1/events/for-you?${queryString}` : '/api/v1/events/for-you';
+
+        const res = await http.get<PaginatedEventResponse>(url);
+        return res.data;
+    },
+
+    /**
+     * Get Following feed - events from users you follow
+     * @param request - Optional list request with pagination
+     * @returns Paginated list of events from followed users
+     */
+    async getFollowingFeed(request?: EventListRequest): Promise<PaginatedEventResponse> {
+        const queryParams = buildEventListQueryParams(request);
+        const queryString = queryParams.toString();
+        const url = queryString ? `/api/v1/events/following?${queryString}` : '/api/v1/events/following';
+
+        const res = await http.get<PaginatedEventResponse>(url);
+        return res.data;
+    },
+
 };

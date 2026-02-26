@@ -1,132 +1,77 @@
 import React from 'react';
 import { View, Text, ScrollView, TextInput } from 'react-native';
+import { useCreateEvent } from '../../context';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 
-type Props = {
-  title: string;
-  description: string;
-  onTitleChange: (text: string) => void;
-  onDescriptionChange: (text: string) => void;
-  onTitleBlur: () => void;
-  onDescriptionBlur: () => void;
-  titleError?: string;
-  descriptionError?: string;
-};
+export function EventBasicsStep() {
+  const { form, actions, validation } = useCreateEvent();
+  const { colors } = useTheme();
+  const placeholderColor = colors.text.tertiary;
 
-export function EventBasicsStep({
-  title,
-  description,
-  onTitleChange,
-  onDescriptionChange,
-  onTitleBlur,
-  onDescriptionBlur,
-  titleError,
-  descriptionError,
-}: Props) {
-  const { colors, typography, spacing, borderRadius } = useTheme();
+  const titleError = validation.getFieldError('title');
+  const descriptionError = validation.getFieldError('description');
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        paddingBottom: 120,
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
-      }}
-    >
-      <View style={{ marginBottom: spacing.xl }}>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size['2xl'],
-            marginBottom: spacing.xs,
-          }}
-        >
-          Event Basics
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-          }}
-        >
-          Let's start with the essentials
-        </Text>
-      </View>
-
-      <View style={{ gap: spacing.lg }}>
-        <View>
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium,
-              marginBottom: spacing.sm,
-            }}
-          >
-            Event Name
+    <ScrollView keyboardShouldPersistTaps="handled">
+      <View className="px-lg pt-xl pb-[120px]">
+        <View className="mb-xl">
+          <Text className="text-2xl font-bold text-txt-primary dark:text-txt-dark-primary mb-xs">
+            Event Basics
           </Text>
-          <TextInput
-            placeholder="Give your event a name..."
-            placeholderTextColor={colors.text.tertiary}
-            value={title}
-            onChangeText={onTitleChange}
-            onBlur={onTitleBlur}
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: borderRadius.lg,
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.md,
-              fontSize: typography.size.base,
-              color: colors.text.primary,
-              minHeight: 48,
-            }}
-          />
-          {titleError && (
-            <Text style={{ color: colors.semantic.error, fontSize: typography.size.xs, marginTop: spacing.xs }}>
-              {titleError}
-            </Text>
-          )}
+          <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary">
+            Let's start with the essentials
+          </Text>
         </View>
 
-        <View>
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.medium,
-              marginBottom: spacing.sm,
-            }}
-          >
-            Description
-          </Text>
-          <TextInput
-            placeholder="Describe your event..."
-            placeholderTextColor={colors.text.tertiary}
-            multiline
-            numberOfLines={6}
-            value={description}
-            onChangeText={onDescriptionChange}
-            onBlur={onDescriptionBlur}
-            style={{
-              backgroundColor: colors.surface,
-              borderRadius: borderRadius.lg,
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.md,
-              fontSize: typography.size.base,
-              color: colors.text.primary,
-              minHeight: 120,
-              textAlignVertical: 'top',
-            }}
-          />
-          {descriptionError && (
-            <Text style={{ color: colors.semantic.error, fontSize: typography.size.xs, marginTop: spacing.xs }}>
-              {descriptionError}
+        <View className="gap-lg">
+          <View>
+            <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary mb-sm">
+              Event Name
             </Text>
-          )}
+            <TextInput
+              placeholder="Give your event a name..."
+              placeholderTextColor={placeholderColor}
+              value={form.title}
+              onChangeText={(text) => {
+                actions.setTitle(text);
+                validation.validateField('title', text);
+              }}
+              onBlur={() => validation.setFieldTouched('title')}
+              className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-md py-md text-base text-txt-primary dark:text-txt-dark-primary min-h-[48px]"
+            />
+            {titleError ? (
+              <Text className="text-semantic-error text-xs mt-xs">
+                {titleError}
+              </Text>
+            ) : null}
+          </View>
+
+          <View>
+            <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary mb-sm">
+              Description
+            </Text>
+            <TextInput
+              placeholder="Describe your event..."
+              placeholderTextColor={placeholderColor}
+              multiline
+              numberOfLines={6}
+              value={form.description}
+              onChangeText={(text) => {
+                actions.setDescription(text);
+                validation.validateField('description', text);
+              }}
+              onBlur={() => validation.setFieldTouched('description')}
+              className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-md py-md text-base text-txt-primary dark:text-txt-dark-primary min-h-[120px]"
+              textAlignVertical="top"
+            />
+            {descriptionError ? (
+              <Text className="text-semantic-error text-xs mt-xs">
+                {descriptionError}
+              </Text>
+            ) : null}
+          </View>
         </View>
       </View>
     </ScrollView>
   );
 }
-

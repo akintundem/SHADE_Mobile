@@ -1,5 +1,5 @@
 import React, { useState, forwardRef } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, TextInputProps, Platform } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, TextInputProps, Platform, ViewStyle } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -9,7 +9,7 @@ type Props = TextInputProps & {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   onRightIconPress?: () => void;
-  containerStyle?: any;
+  containerStyle?: ViewStyle & { inputContainer?: ViewStyle };
   inputType?: 'email' | 'password' | 'name' | 'location' | 'event' | 'description' | 'phone' | 'url' | 'date' | 'capacity' | 'category';
   enableNativeAutocomplete?: boolean;
 };
@@ -26,7 +26,7 @@ const Input = forwardRef<TextInput, Props>(({
   style,
   ...textInputProps
 }, ref) => {
-  const { colors, typography, spacing, borderRadius, shadows, isDark } = useTheme();
+  const { colors, isDark } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPasswordState, setShowPasswordState] = useState(false);
 
@@ -123,49 +123,42 @@ const Input = forwardRef<TextInput, Props>(({
 
   const nativeConfig = getNativeConfig();
 
+  const isMultiline = textInputProps.multiline || inputType === 'description';
+  const alignClass = isMultiline ? 'items-start' : 'items-center';
+
+  // Input container classes
+  const getInputContainerClasses = () => {
+    const baseClasses = `flex-row ${alignClass} min-h-[52px] rounded-2xl px-xl`;
+    const paddingClass = isMultiline ? 'py-md' : 'py-0';
+    const borderClass = isFocused ? 'border-2' : 'border';
+    
+    let borderColorClass = '';
+    if (error) {
+      borderColorClass = 'border-semantic-error';
+    } else if (isFocused) {
+      borderColorClass = 'border-brand-primary';
+    } else {
+      borderColorClass = 'border-light-border dark:border-dark-border';
+    }
+    
+    const bgClass = isFocused 
+      ? 'bg-light-background dark:bg-dark-background' 
+      : 'bg-light-surface dark:bg-dark-surface';
+    
+    return `${baseClasses} ${paddingClass} ${borderClass} ${borderColorClass} ${bgClass}`;
+  };
+
   return (
     <View style={containerStyle}>
       {label && (
-        <Text
-          style={{
-            fontSize: typography.size.xs,
-            fontWeight: typography.weight.semibold,
-            color: colors.text.primary,
-            marginBottom: spacing.sm,
-            letterSpacing: 0.1,
-          }}
-        >
+        <Text className="text-xs font-semibold text-txt-primary dark:text-txt-dark-primary mb-sm tracking-[0.1px]">
           {label}
         </Text>
       )}
       
-      <View
-        style={[
-          {
-            flexDirection: 'row',
-            alignItems: (textInputProps.multiline || inputType === 'description') ? 'flex-start' : 'center',
-            minHeight: (textInputProps.multiline || inputType === 'description') ? 52 : 52,
-            borderRadius: borderRadius.xl,
-            borderWidth: isFocused ? 2 : 1,
-            borderColor: error 
-              ? colors.semantic.error 
-              : isFocused 
-                ? colors.brand.primary 
-                : colors.border,
-            backgroundColor: isFocused ? colors.background : colors.surface,
-            paddingHorizontal: spacing.xl,
-            paddingVertical: (textInputProps.multiline || inputType === 'description') ? spacing.md : 0,
-            transition: 'all 0.2s ease',
-          },
-          containerStyle?.inputContainer,
-        ]}
-      >
+      <View className={getInputContainerClasses()} style={containerStyle?.inputContainer}>
         {leftIcon && (
-          <View style={{ 
-            marginRight: spacing.md, 
-            marginTop: (textInputProps.multiline || inputType === 'description') ? spacing.sm : 0,
-            opacity: isFocused ? 1 : 0.6,
-          }}>
+          <View className={`mr-md ${isMultiline ? 'mt-sm' : ''} ${isFocused ? 'opacity-100' : 'opacity-60'}`}>
             {leftIcon}
           </View>
         )}
@@ -175,15 +168,10 @@ const Input = forwardRef<TextInput, Props>(({
           {...nativeConfig}
           {...textInputProps}
           secureTextEntry={inputType === 'password' ? !showPasswordState : false}
+          className={`flex-1 text-sm text-txt-primary dark:text-txt-dark-primary py-sm font-normal ${isMultiline ? 'min-h-[48px]' : 'min-h-[52px]'}`}
           style={[
             {
-              flex: 1,
-              fontSize: typography.size.sm,
-              color: colors.text.primary,
-              paddingVertical: spacing.sm,
-              minHeight: (textInputProps.multiline || inputType === 'description') ? 48 : 52,
-              textAlignVertical: (textInputProps.multiline || inputType === 'description') ? 'top' : 'center',
-              fontWeight: typography.weight.regular,
+              textAlignVertical: isMultiline ? 'top' : 'center',
             },
             style,
           ]}
@@ -202,26 +190,21 @@ const Input = forwardRef<TextInput, Props>(({
         {inputType === 'password' && !rightIcon ? (
           <TouchableOpacity
             onPress={() => setShowPasswordState(!showPasswordState)}
-            style={{ 
-              marginLeft: spacing.md,
-              padding: spacing.xs,
-            }}
+            className="ml-md p-md"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.6}
           >
             {showPasswordState ? (
-              <EyeOff size={18} color={colors.text.tertiary} />
+              <EyeOff size={20} color={colors.text.tertiary} />
             ) : (
-              <Eye size={18} color={colors.text.tertiary} />
+              <Eye size={20} color={colors.text.tertiary} />
             )}
           </TouchableOpacity>
         ) : rightIcon ? (
           <TouchableOpacity
             onPress={onRightIconPress}
             disabled={!onRightIconPress}
-            style={{ 
-              marginLeft: spacing.md,
-              padding: spacing.xs,
-            }}
+            className="ml-md p-xs"
             activeOpacity={0.6}
           >
             {rightIcon}
@@ -230,14 +213,7 @@ const Input = forwardRef<TextInput, Props>(({
       </View>
       
       {error && (
-        <Text
-          style={{
-            fontSize: typography.size.xs,
-            color: colors.semantic.error,
-            marginTop: spacing.sm,
-            fontWeight: typography.weight.medium,
-          }}
-        >
+        <Text className="text-xs text-semantic-error mt-sm font-medium">
           {error}
         </Text>
       )}

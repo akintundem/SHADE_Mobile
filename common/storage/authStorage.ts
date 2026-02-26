@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'auth:token';
+const ID_TOKEN_KEY = 'auth:idToken';
 const REFRESH_TOKEN_KEY = 'auth:refreshToken';
 const USER_KEY = 'auth:user';
-const DEVICE_ID_KEY = 'auth:deviceId';
 
 let memoryToken: string | null = null;
+let memoryIdToken: string | null = null;
 let memoryRefreshToken: string | null = null;
 
 export async function setToken(token: string) {
@@ -28,15 +29,35 @@ export async function clearToken() {
   await AsyncStorage.removeItem(TOKEN_KEY);
 }
 
+export async function setIdToken(token: string) {
+  memoryIdToken = token;
+  await AsyncStorage.setItem(ID_TOKEN_KEY, token);
+}
+
+export async function getIdToken(): Promise<string | null> {
+  if (memoryIdToken) {
+    return memoryIdToken;
+  }
+  const token = await AsyncStorage.getItem(ID_TOKEN_KEY);
+  memoryIdToken = token;
+  return token;
+}
+
+export async function clearIdToken() {
+  memoryIdToken = null;
+  await AsyncStorage.removeItem(ID_TOKEN_KEY);
+}
+
 // Clear all auth data
 export async function clearAllAuth() {
   memoryToken = null;
+  memoryIdToken = null;
   memoryRefreshToken = null;
   await Promise.all([
     AsyncStorage.removeItem(TOKEN_KEY),
+    AsyncStorage.removeItem(ID_TOKEN_KEY),
     AsyncStorage.removeItem(REFRESH_TOKEN_KEY),
     AsyncStorage.removeItem(USER_KEY),
-    AsyncStorage.removeItem(DEVICE_ID_KEY),
   ]);
 }
 
@@ -53,20 +74,9 @@ export async function clearUser() {
   await AsyncStorage.removeItem(USER_KEY);
 }
 
-export async function setDeviceId(deviceId: string) {
-  await AsyncStorage.setItem(DEVICE_ID_KEY, deviceId);
-}
-
-export async function getDeviceId(): Promise<string | null> {
-  return await AsyncStorage.getItem(DEVICE_ID_KEY);
-}
-
-export async function clearDeviceId() {
-  await AsyncStorage.removeItem(DEVICE_ID_KEY);
-}
-
 export async function setRefreshToken(refreshToken: string) {
   memoryRefreshToken = refreshToken;
+  // Persist for Auth0 token refresh
   await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
@@ -74,13 +84,12 @@ export async function getRefreshToken(): Promise<string | null> {
   if (memoryRefreshToken) {
     return memoryRefreshToken;
   }
-  const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
-  memoryRefreshToken = refreshToken;
-  return refreshToken;
+  const token = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+  memoryRefreshToken = token;
+  return token;
 }
 
 export async function clearRefreshToken() {
   memoryRefreshToken = null;
   await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
 }
-

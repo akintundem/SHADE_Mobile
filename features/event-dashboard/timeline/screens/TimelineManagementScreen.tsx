@@ -1,494 +1,416 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
-import { ArrowLeft, Plus, Calendar, Clock, CheckCircle, Circle, AlertCircle } from 'lucide-react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeft, Plus, CheckCircle, Trash2, List } from 'lucide-react-native';
+import { useI18n } from '../../../../common/i18n/I18nProvider';
+import { LoadingOverlay } from '../../../../common/components/LoadingStates';
+import { ErrorHandler } from '../../../../common/utils/errorHandler';
+import { timelineService } from '../../../../core/timeline/services/timeline';
+import {
+  TaskAutoSaveRequest,
+  TaskDetailResponse,
+  TimelineStatus,
+} from '../../../../core/timeline/types/timeline';
+import { TaskList } from '../components/TaskList';
+import { GanttChart } from '../components/GanttChart';
+import { TaskEditorModal, TaskFormValues } from '../components/TaskEditorModal';
+import { TaskDetailsModal } from '../components/TaskDetailsModal';
+import { ActionSheet } from '../../../../common/components/ui/ActionSheet';
+import { ConfirmModal } from '../../../../common/components/ui/ConfirmModal';
+import { ScreenHeader } from '../../../../common/components/ScreenHeader';
+import { useEventDashboardFlow, useEventDashboardRoute } from '../../hooks';
+import { useEventPermissions } from '../../hooks/useEventPermissions';
+import { useTimelineTasks } from '../hooks';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { TimelineDTO, TaskDTO } from '../../../../core/events/types/event';
-import { useErrorHandler } from '../../../../common/hooks/useErrorHandler';
-import ErrorModal from '../../../../common/components/common/ErrorModal';
+import type { UserEventContext } from '../../../../core/events/types/event';
 
-type Props = { 
-  eventId: string;
-  onBack: () => void; 
-  onAddTask?: () => void;
-};
+type Params = { eventId?: string; userContext?: UserEventContext | null };
 
-export default function TimelineManagementScreen({ eventId, onBack, onAddTask }: Props) {
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
-  const [sortBy] = useState<'due_date' | 'priority' | 'status'>('due_date');
-  
-  const { colors, typography, spacing, borderRadius, brand } = useTheme();
-  const { error, handleError, hideError } = useErrorHandler();
+export function TimelineManagementScreen() {
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  const { eventId, params } = useEventDashboardRoute<Params>();
+  const { goBack } = useEventDashboardFlow(eventId);
+  const { colors } = useTheme();
+  const permissions = useEventPermissions(params.userContext);
+  const refreshTint = colors.text.primary;
 
-  // Sample timeline data
-  const timeline: TimelineDTO = {
-    id: '1',
-    eventId,
-    name: 'Event Planning Timeline',
-    description: 'Complete timeline for event planning',
-    startDate: '2024-01-01T00:00:00Z',
-    endDate: '2024-02-15T00:00:00Z',
-    tasks: [
-      {
-        id: '1',
-        timelineId: '1',
-        title: 'Book Venue',
-        description: 'Reserve the main event venue',
-        dueDate: '2024-01-15T00:00:00Z',
-        priority: 'HIGH',
-        status: 'COMPLETED',
-        assignedTo: 'John Doe',
-        estimatedHours: 4,
-        actualHours: 3,
-        dependencies: [],
-        tags: ['venue', 'booking'],
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-10T00:00:00Z'
-      },
-      {
-        id: '2',
-        timelineId: '1',
-        title: 'Send Invitations',
-        description: 'Send out event invitations to all attendees',
-        dueDate: '2024-01-20T00:00:00Z',
-        priority: 'HIGH',
-        status: 'IN_PROGRESS',
-        assignedTo: 'Jane Smith',
-        estimatedHours: 6,
-        actualHours: 2,
-        dependencies: ['1'],
-        tags: ['invitations', 'communication'],
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-15T00:00:00Z'
-      },
-      {
-        id: '3',
-        timelineId: '1',
-        title: 'Order Catering',
-        description: 'Finalize catering menu and place order',
-        dueDate: '2024-01-25T00:00:00Z',
-        priority: 'MEDIUM',
-        status: 'PENDING',
-        assignedTo: 'Mike Johnson',
-        estimatedHours: 3,
-        actualHours: 0,
-        dependencies: ['1'],
-        tags: ['catering', 'food'],
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z'
-      }
-    ],
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z'
-  };
+  const { tasks, loading, refresh, setTasks } = useTimelineTasks(eventId);
 
-  const filteredTasks = useMemo(() => {
-    try {
-      let filtered = timeline.tasks;
-      
-      if (filterStatus !== 'all') {
-        filtered = filtered.filter((task: TaskDTO) => task.status === filterStatus.toUpperCase());
+  const [refreshing, setRefreshing] = useState(false);
+  const [showListView, setShowListView] = useState(false);
+  const [showTaskEditor, setShowTaskEditor] = useState(false);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskDetailResponse | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskDetailResponse | null>(null);
+  const [showTaskActionSheet, setShowTaskActionSheet] = useState(false);
+  const [actionTask, setActionTask] = useState<TaskDetailResponse | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    if (!eventId) return;
+    setRefreshing(true);
+    await refresh(true);
+    setRefreshing(false);
+  }, [eventId, refresh]);
+
+  const handleTaskPress = useCallback((task: TaskDetailResponse) => {
+    setSelectedTask(task);
+    setShowTaskDetails(true);
+  }, []);
+
+  const handleTaskLongPress = useCallback((task: TaskDetailResponse) => {
+    if (!permissions.canEditTimeline) return;
+    setShowTaskDetails(false);
+    setSelectedTask(null);
+    setEditingTask(task);
+    setShowTaskEditor(true);
+  }, [permissions.canEditTimeline]);
+
+  const handleAddTask = useCallback(() => {
+    setShowTaskDetails(false);
+    setSelectedTask(null);
+    setEditingTask(null);
+    setShowTaskEditor(true);
+  }, []);
+
+  const handleSaveTask = useCallback(
+    async (values: TaskFormValues) => {
+      if (!eventId) {
+        ErrorHandler.handle(new Error('Event ID is missing'), 'saveTask');
+        return;
       }
 
-      return filtered.sort((a: TaskDTO, b: TaskDTO) => {
-        switch (sortBy) {
-          case 'priority':
-            const priorityOrder: Record<string, number> = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
-            return priorityOrder[b.priority] - priorityOrder[a.priority];
-          case 'status':
-            return a.status.localeCompare(b.status);
-          default:
-            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      try {
+        const normalizeProgress = (
+          nextStatus: TimelineStatus | null | undefined,
+          currentProgress?: number | null
+        ) => {
+          if (nextStatus === TimelineStatus.COMPLETED || nextStatus === TimelineStatus.DONE) {
+            return 100;
+          }
+          if (nextStatus === TimelineStatus.TO_DO || nextStatus === TimelineStatus.PENDING) {
+            return 0;
+          }
+          return typeof currentProgress === 'number' ? currentProgress : 0;
+        };
+
+        const request: TaskAutoSaveRequest = {
+          id: editingTask?.id || null,
+          title: values.title || null,
+          description: values.description || null,
+          startDate: values.startDate || null,
+          dueDate: values.dueDate || null,
+          priority: values.priority || null,
+          status: values.status || null,
+          taskOrder: editingTask?.taskOrder || null,
+        };
+
+        if (editingTask) {
+          const updatedTask = await timelineService.autoSaveTask(eventId, request);
+          setTasks(
+            tasks.map(task =>
+              task.id === editingTask.id
+                ? {
+                    ...updatedTask,
+                    progressPercentage: normalizeProgress(
+                      updatedTask.status,
+                      updatedTask.progressPercentage
+                    ),
+                  }
+                : task
+            )
+          );
+        } else {
+          const newTask = await timelineService.autoSaveTask(eventId, request);
+          setTasks([
+            ...tasks,
+            {
+              ...newTask,
+              progressPercentage: normalizeProgress(newTask.status, newTask.progressPercentage),
+            },
+          ]);
         }
-      });
-    } catch (err) {
-      handleError(err, 'Filtering tasks');
-      return [];
-    }
-  }, [filterStatus, sortBy, timeline.tasks, handleError]);
 
-  const taskStats = useMemo(() => {
+        setShowTaskEditor(false);
+        setEditingTask(null);
+      } catch (err) {
+        ErrorHandler.handle(err, 'saveTask');
+      }
+    },
+    [editingTask, eventId, setTasks, tasks]
+  );
+
+  const handleCloseDetails = useCallback(() => {
+    setShowTaskDetails(false);
+    setSelectedTask(null);
+  }, []);
+
+  const handleTaskAction = useCallback((task: TaskDetailResponse, _action: 'finalize' | 'delete') => {
+    if (!permissions.canEditTimeline) return;
+    setActionTask(task);
+    setShowTaskActionSheet(true);
+  }, [permissions.canEditTimeline]);
+
+  const handleFinalizeTask = useCallback(async () => {
+    if (!actionTask || !eventId) return;
+    setIsProcessing(true);
+    setShowFinalizeConfirm(false);
     try {
-      const total = timeline.tasks.length;
-      const completed = timeline.tasks.filter((t: TaskDTO) => t.status === 'COMPLETED').length;
-      const inProgress = timeline.tasks.filter((t: TaskDTO) => t.status === 'IN_PROGRESS').length;
-      const pending = timeline.tasks.filter((t: TaskDTO) => t.status === 'PENDING').length;
-      
-      return { total, completed, inProgress, pending };
+      const request: TaskAutoSaveRequest = {
+        id: actionTask.id,
+        title: actionTask.title || null,
+        description: actionTask.description || null,
+        startDate: actionTask.startDate || null,
+        dueDate: actionTask.dueDate || null,
+        priority: actionTask.priority || null,
+        status: actionTask.status || null,
+        taskOrder: actionTask.taskOrder || null,
+      };
+      const finalized = await timelineService.finalizeTask(eventId, actionTask.id, request);
+      if (finalized) {
+        setTasks(tasks.map(t => (t.id === actionTask.id ? finalized : t)));
+      } else {
+        // Task was deleted (empty task)
+        setTasks(tasks.filter(t => t.id !== actionTask.id));
+      }
+      await refresh(true);
     } catch (err) {
-      handleError(err, 'Calculating task statistics');
-      return { total: 0, completed: 0, inProgress: 0, pending: 0 };
+      ErrorHandler.handle(err, 'finalizeTask');
+    } finally {
+      setIsProcessing(false);
+      setActionTask(null);
     }
-  }, [timeline.tasks, handleError]);
+  }, [actionTask, eventId, tasks, setTasks, refresh]);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'HIGH':
-        return colors.semantic.error;
-      case 'MEDIUM':
-        return colors.semantic.warning;
-      case 'LOW':
-        return colors.semantic.success;
-      default:
-        return colors.text.secondary;
+  const handleDeleteTask = useCallback(async () => {
+    if (!actionTask || !eventId) return;
+    setIsProcessing(true);
+    setShowDeleteConfirm(false);
+    try {
+      await timelineService.deleteTask(eventId, actionTask.id);
+      setTasks(tasks.filter(t => t.id !== actionTask.id));
+      await refresh(true);
+    } catch (err) {
+      ErrorHandler.handle(err, 'deleteTask');
+    } finally {
+      setIsProcessing(false);
+      setActionTask(null);
     }
-  };
+  }, [actionTask, eventId, tasks, setTasks, refresh]);
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'COMPLETED':
-        return <CheckCircle size={16} color={colors.semantic.success} />;
-      case 'IN_PROGRESS':
-        return <Clock size={16} color={colors.semantic.warning} />;
-      case 'PENDING':
-        return <Circle size={16} color={colors.text.secondary} />;
-      default:
-        return <Circle size={16} color={colors.text.secondary} />;
+  const handleUpdateTaskOrder = useCallback(async (taskIds: string[]) => {
+    if (!eventId) return;
+    try {
+      await timelineService.updateTaskOrder(eventId, taskIds);
+      // Update local state to reflect new order
+      const orderedTasks = taskIds
+        .map(id => tasks.find(t => t.id === id))
+        .filter((t): t is TaskDetailResponse => t !== undefined);
+      const remainingTasks = tasks.filter(t => !taskIds.includes(t.id));
+      setTasks([...orderedTasks, ...remainingTasks]);
+    } catch (err) {
+      ErrorHandler.handle(err, 'updateTaskOrder');
     }
-  };
+  }, [eventId, tasks, setTasks]);
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ErrorModal
-        visible={!!error}
-        error={error}
-        onClose={hideError}
-      />
-      
-      {/* Header */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
-        paddingHorizontal: spacing.lg, 
-        paddingVertical: spacing.md,
-        borderBottomWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.surface
-      }}>
-        <TouchableOpacity onPress={onBack} style={{ padding: spacing.sm }}>
-          <ArrowLeft size={20} color={colors.text.primary} />
-        </TouchableOpacity>
-        <Text style={{ 
-          color: colors.text.primary, 
-          fontWeight: '700',
-          fontSize: typography.size.lg
-        }}>
-          Event Timeline
-        </Text>
-        <TouchableOpacity 
-          onPress={onAddTask}
-          style={{ 
-            padding: spacing.sm,
-            backgroundColor: brand.primary,
-            borderRadius: borderRadius.md
-          }}
-        >
-          <Plus size={20} color={colors.text.inverse} />
-        </TouchableOpacity>
-      </View>
+  const taskActionOptions = useMemo(() => {
+    if (!actionTask) return [];
+    const options = [];
+    if (actionTask.isDraft) {
+      options.push({ id: 'finalize', label: t('FinalizeTask'), icon: CheckCircle });
+    }
+    options.push({ id: 'delete', label: t('DeleteTask'), icon: Trash2, destructive: true });
+    return options;
+  }, [actionTask, t]);
 
-      {/* Timeline Overview - Compact */}
-      <View style={{ 
-        paddingHorizontal: spacing.xl,
-        paddingVertical: spacing.lg,
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderColor: colors.border
-      }}>
-        <Text style={{ 
-          color: colors.text.primary,
-          fontSize: typography.size.lg,
-          fontWeight: typography.weight.bold,
-          marginBottom: spacing.xs
-        }}>
-          {timeline.name}
-        </Text>
-        {timeline.description && (
-          <Text style={{ 
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-            marginBottom: spacing.md
-          }}>
-            {timeline.description}
+  const bottomGutter = useMemo(
+    () => Math.max(16, Math.min(insets.bottom, 20)),
+    [insets.bottom]
+  );
+
+  if (!eventId) {
+    return (
+      <View className="flex-1 bg-light-background dark:bg-dark-background">
+        <View className="flex-1" style={{ paddingBottom: bottomGutter }}>
+          <Text className="text-txt-primary dark:text-txt-dark-primary">
+            {t('EventNotFound')}
           </Text>
-        )}
-        
-        <View style={{ 
-          flexDirection: 'row', 
-          gap: spacing.md,
-          marginTop: spacing.sm
-        }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.xs,
-              marginBottom: spacing.xs
-            }}>
-              Total
-            </Text>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontSize: typography.size.xl,
-              fontWeight: typography.weight.bold
-            }}>
-              {taskStats.total}
-            </Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.xs,
-              marginBottom: spacing.xs
-            }}>
-              Completed
-            </Text>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontSize: typography.size.xl,
-              fontWeight: typography.weight.bold
-            }}>
-              {taskStats.completed}
-            </Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.xs,
-              marginBottom: spacing.xs
-            }}>
-              In Progress
-            </Text>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontSize: typography.size.xl,
-              fontWeight: typography.weight.bold
-            }}>
-              {taskStats.inProgress}
-            </Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.xs,
-              marginBottom: spacing.xs
-            }}>
-              Pending
-            </Text>
-            <Text style={{ 
-              color: colors.text.primary,
-              fontSize: typography.size.xl,
-              fontWeight: typography.weight.bold
-            }}>
-              {taskStats.pending}
-            </Text>
-          </View>
         </View>
       </View>
+    );
+  }
 
-      {/* Filters - Compact */}
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ 
-          paddingHorizontal: spacing.xl, 
-          paddingVertical: spacing.md,
-          gap: spacing.sm 
-        }}
+  if (loading && !refreshing) {
+    return <LoadingOverlay visible={true} message={t('Loading')} />;
+  }
+
+  return (
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
+      <View
+        className="flex-row items-center justify-between px-xl pt-md pb-md border-b border-light-border-light dark:border-dark-border-light bg-light-background dark:bg-dark-background"
       >
-        {[
-          { key: 'all', label: 'All' },
-          { key: 'pending', label: 'Pending' },
-          { key: 'in_progress', label: 'In Progress' },
-          { key: 'completed', label: 'Completed' },
-        ].map(option => (
+        {/* Left: back button */}
+        <TouchableOpacity
+          onPress={goBack}
+          activeOpacity={0.7}
+          className="items-center justify-center rounded-full"
+          style={{ width: 32, height: 32 }}
+        >
+          <ChevronLeft size={16} color={colors.text.primary} strokeWidth={2.5} />
+        </TouchableOpacity>
+
+        {/* Title */}
+        <Text
+          className="text-sm font-semibold text-center text-txt-primary dark:text-txt-dark-primary"
+          numberOfLines={1}
+        >
+          {t('Timeline')}
+        </Text>
+
+        {/* Right: List icon + Plus button (Plus only shown when user can edit) */}
+        <View className="flex-row items-center gap-xs">
           <TouchableOpacity
-            key={option.key}
-            onPress={() => setFilterStatus(option.key as any)}
+            onPress={() => setShowListView(v => !v)}
+            activeOpacity={0.7}
+            className="items-center justify-center rounded-full"
             style={{
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.sm,
-              backgroundColor: filterStatus === option.key ? brand.primary : colors.surface,
-              borderRadius: borderRadius.lg,
-              borderWidth: 1,
-              borderColor: filterStatus === option.key ? brand.primary : colors.border
+              width: 32,
+              height: 32,
+              backgroundColor: showListView ? colors.text.primary : 'transparent',
             }}
           >
-            <Text style={{
-              color: filterStatus === option.key ? colors.text.inverse : colors.text.primary,
-              fontWeight: typography.weight.semibold,
-              fontSize: typography.size.sm
-            }}>
-              {option.label}
-            </Text>
+            <List
+              size={16}
+              color={showListView ? colors.text.inverse : colors.text.primary}
+              strokeWidth={2.5}
+            />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Tasks List */}
-      <ScrollView 
-        contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredTasks.map(task => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function TaskCard({ task }: { task: TaskDTO }) {
-  const { colors, typography, spacing, borderRadius, brand } = useTheme();
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'COMPLETED':
-        return <CheckCircle size={16} color={brand.primary} />;
-      case 'IN_PROGRESS':
-        return <Clock size={16} color={brand.primary} />;
-      case 'PENDING':
-        return <Circle size={16} color={colors.text.tertiary} />;
-      default:
-        return <Circle size={16} color={colors.text.tertiary} />;
-    }
-  };
-
-  const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'COMPLETED';
-
-  return (
-    <View style={{
-      backgroundColor: colors.surface,
-      borderRadius: borderRadius.xl,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: spacing.lg,
-    }}>
-      {/* Header */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm }}>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
-            {getStatusIcon(task.status)}
-            <Text style={{ 
-              color: colors.text.primary,
-              fontSize: typography.size.base,
-              fontWeight: typography.weight.semibold
-            }}>
-              {task.title}
-            </Text>
-          </View>
-          {task.description && (
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.sm,
-              lineHeight: 20
-            }}>
-              {task.description}
-            </Text>
+          {permissions.canEditTimeline && (
+            <TouchableOpacity
+              onPress={handleAddTask}
+              activeOpacity={0.7}
+              className="items-center justify-center rounded-full bg-txt-primary dark:bg-txt-dark-primary"
+              style={{ width: 32, height: 32 }}
+            >
+              <Plus size={16} color={colors.text.inverse} strokeWidth={2.5} />
+            </TouchableOpacity>
           )}
         </View>
-        <View style={{
-          paddingHorizontal: spacing.sm,
-          paddingVertical: spacing.xs,
-          backgroundColor: colors.background,
-          borderRadius: borderRadius.sm,
-          borderWidth: 1,
-          borderColor: colors.border,
-        }}>
-          <Text style={{ 
-            color: colors.text.secondary,
-            fontWeight: typography.weight.medium,
-            fontSize: typography.size.xs
-          }}>
-            {task.priority}
-          </Text>
-        </View>
       </View>
 
-      {/* Compact Details Row */}
-      <View style={{ 
-        flexDirection: 'row', 
-        flexWrap: 'wrap',
-        gap: spacing.md,
-        marginBottom: spacing.sm
-      }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          <Calendar size={14} color={colors.text.tertiary} />
-          <Text style={{ 
-            color: colors.text.secondary,
-            fontSize: typography.size.xs
-          }}>
-            {new Date(task.dueDate).toLocaleDateString()}
-          </Text>
-        </View>
-        
-        {task.estimatedHours > 0 && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Clock size={14} color={colors.text.tertiary} />
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.xs
-            }}>
-              {task.actualHours || 0}h / {task.estimatedHours}h
-            </Text>
-          </View>
-        )}
-        
-        {task.assignedTo && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: typography.size.xs
-            }}>
-              {task.assignedTo}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Time Tracking - Clean Design */}
-      {task.estimatedHours > 0 && (
-        <View style={{ 
-          flexDirection: 'row', 
-          alignItems: 'center', 
-          gap: spacing.xs,
-          marginBottom: spacing.xs
-        }}>
-          <Text style={{
-            color: colors.text.tertiary,
-            fontSize: typography.size.xs,
-            fontWeight: typography.weight.regular
-          }}>
-            {task.actualHours || 0}h / {task.estimatedHours}h
-          </Text>
-        </View>
-      )}
-
-      {/* Tags - Compact */}
-      {task.tags && task.tags.length > 0 && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
-          {task.tags.map((tag: string) => (
-            <View
-              key={tag}
-              style={{
-                paddingHorizontal: spacing.sm,
-                paddingVertical: spacing.xs,
-                backgroundColor: colors.background,
-                borderRadius: borderRadius.sm,
-                borderWidth: 1,
-                borderColor: colors.border,
+      {showListView ? (
+        <ScrollView
+          className="flex-1"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={refreshTint}
+              colors={[refreshTint]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="px-xl pt-md" style={{ paddingBottom: bottomGutter }}>
+            <TaskList
+              tasks={tasks}
+              onTaskPress={handleTaskPress}
+              onTaskLongPress={permissions.canEditTimeline ? handleTaskLongPress : undefined}
+              onTaskAction={permissions.canEditTimeline ? handleTaskAction : undefined}
+              onMoveTask={(taskId, direction) => {
+                const currentIndex = tasks.findIndex(t => t.id === taskId);
+                if (currentIndex === -1) return;
+                const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+                if (newIndex < 0 || newIndex >= tasks.length) return;
+                const newTasks = [...tasks];
+                [newTasks[currentIndex], newTasks[newIndex]] = [newTasks[newIndex], newTasks[currentIndex]];
+                const taskIds = newTasks.map(t => t.id);
+                handleUpdateTaskOrder(taskIds);
               }}
-            >
-              <Text style={{ 
-                color: colors.text.secondary,
-                fontSize: typography.size.xs,
-                fontWeight: typography.weight.medium
-              }}>
-                {tag}
-              </Text>
-            </View>
-          ))}
+            />
+          </View>
+        </ScrollView>
+      ) : (
+        <View className="flex-1">
+          <GanttChart
+            tasks={tasks}
+            onTaskPress={handleTaskPress}
+            onTaskLongPress={handleTaskLongPress}
+          />
         </View>
       )}
+
+      <TaskDetailsModal
+        visible={showTaskDetails}
+        task={selectedTask}
+        onClose={handleCloseDetails}
+        onTaskUpdated={() => refresh(true)}
+      />
+
+      <TaskEditorModal
+        visible={showTaskEditor}
+        task={editingTask}
+        onClose={() => {
+          setShowTaskEditor(false);
+          setEditingTask(null);
+        }}
+        onSave={handleSaveTask}
+      />
+
+      {actionTask && (
+        <ActionSheet
+          visible={showTaskActionSheet}
+          title={actionTask.title}
+          options={taskActionOptions}
+          onSelect={(actionId) => {
+            setShowTaskActionSheet(false);
+            if (actionId === 'finalize') {
+              setShowFinalizeConfirm(true);
+            } else if (actionId === 'delete') {
+              setShowDeleteConfirm(true);
+            }
+          }}
+          onCancel={() => {
+            setShowTaskActionSheet(false);
+            setActionTask(null);
+          }}
+        />
+      )}
+
+      <ConfirmModal
+        visible={showFinalizeConfirm}
+        title={t('FinalizeTask')}
+        message={t('FinalizeTaskConfirm', { title: actionTask?.title })}
+        confirmLabel={t('Finalize')}
+        cancelLabel={t('Cancel')}
+        variant="success"
+        isLoading={isProcessing}
+        onConfirm={handleFinalizeTask}
+        onCancel={() => {
+          setShowFinalizeConfirm(false);
+          setActionTask(null);
+        }}
+      />
+
+      <ConfirmModal
+        visible={showDeleteConfirm}
+        title={t('DeleteTask')}
+        message={t('DeleteTaskConfirm', { title: actionTask?.title })}
+        confirmLabel={t('Delete')}
+        cancelLabel={t('Cancel')}
+        variant="danger"
+        isLoading={isProcessing}
+        onConfirm={handleDeleteTask}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setActionTask(null);
+        }}
+      />
+
+      <LoadingOverlay visible={loading && !refreshing} message={t('Loading')} transparent />
     </View>
   );
 }

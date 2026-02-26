@@ -1,91 +1,56 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { EventType } from '../../../../core/events/types/event';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { EVENT_CATEGORIES } from '../../../../core/events/constants';
+import { useCreateEvent } from '../../context';
 
-type Props = {
-  selectedEventType: EventType | null;
-  onEventTypeSelect: (type: EventType) => void;
-};
-
-export function CategorizeStep({ selectedEventType, onEventTypeSelect }: Props) {
-  const { colors, typography, spacing, borderRadius, isDark } = useTheme();
+export function CategorizeStep() {
+  const { form, actions } = useCreateEvent();
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        paddingBottom: 120,
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
-      }}
-    >
-      <View style={{ marginBottom: spacing.xl }}>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size['2xl'],
-            marginBottom: spacing.xs,
-          }}
-        >
-          Categorize
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-          }}
-        >
-          Help people find your event
-        </Text>
-      </View>
+    <ScrollView>
+      <View className="px-lg pt-xl pb-[120px]">
+        <View className="mb-xl">
+          <Text className="text-2xl font-bold text-txt-primary dark:text-txt-dark-primary mb-xs">
+            Categorize
+          </Text>
+          <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary">
+            Help people find your event
+          </Text>
+        </View>
 
-      <View style={{ marginBottom: spacing.xl }}>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: typography.size.base,
-            fontWeight: typography.weight.semibold,
-            marginBottom: spacing.md,
-          }}
-        >
-          Event Category
-        </Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
-          {EVENT_CATEGORIES.map((category) => {
-            const isSelected = selectedEventType === category.value;
-            return (
-              <TouchableOpacity
-                key={category.value}
-                onPress={() => onEventTypeSelect(category.value)}
-                activeOpacity={0.7}
-                style={{
-                  width: '47%',
-                  height: 56,
-                  borderRadius: borderRadius.lg,
-                  borderWidth: 1,
-                  borderColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
-                  backgroundColor: isSelected ? (isDark ? '#FFFFFF' : '#000000') : colors.surface,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text
-                  style={{
-                    color: isSelected ? (isDark ? '#000000' : '#FFFFFF') : colors.text.primary,
-                    fontWeight: typography.weight.medium,
-                    fontSize: typography.size.base,
-                  }}
+        <View className="mb-xl">
+          <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary mb-md">
+            Event Category
+          </Text>
+          <View className="flex-row flex-wrap gap-md">
+            {EVENT_CATEGORIES.map((category) => {
+              const isSelected = form.selectedEventType === category.value;
+              return (
+                <TouchableOpacity
+                  key={category.value}
+                  onPress={() => actions.setSelectedEventType(category.value)}
+                  activeOpacity={0.7}
+                  className={`w-[47%] h-14 rounded-lg border items-center justify-center ${
+                    isSelected
+                      ? 'bg-neutral-black dark:bg-neutral-white border-neutral-black dark:border-neutral-white'
+                      : 'bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border'
+                  }`}
                 >
-                  {category.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+                  <Text
+                    className={`text-base font-medium ${
+                      isSelected
+                        ? 'text-neutral-white dark:text-neutral-black'
+                        : 'text-txt-primary dark:text-txt-dark-primary'
+                    }`}
+                  >
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </View>
     </ScrollView>
   );
 }
-

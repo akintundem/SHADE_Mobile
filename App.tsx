@@ -1,165 +1,120 @@
+import './global.css';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { I18nProvider } from './common/i18n/I18nProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import Auth from './features/auth/screens/AuthScreen';
 import ThemeProvider from './common/theme/ThemeProvider';
-import LoadingState from './common/components/LoadingState';
-import MainApp from './features/main/screens/MainApp';
+import MainApp from './main/MainApp';
 import OnboardingScreen from './features/auth/screens/OnboardingScreen';
-import { User, ThemePreference } from './core/auth/types/auth';
-import { getToken, getUser as getCachedUser } from './common/storage/authStorage';
+import { ThemePreference } from './core/auth/types/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NotificationService from './core/push/services/NotificationService';
+import { LoadingOverlay } from './common/components/LoadingStates';
+import GlobalNotificationHost from './common/components/common/GlobalNotificationHost';
+import { AuthProvider, useAuth } from './features/auth/context';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RootErrorBoundary, ErrorBoundary } from './common/components/ErrorBoundary';
+import { linking } from './navigation/linking';
+import { queryClient } from './common/queryClient';
 
-function App() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-  const [onboardingRequired, setOnboardingRequired] = useState(false);
-  const [userThemePreference, setUserThemePreference] = useState<ThemePreference | null>(null);
-  const [userLanguagePreference, setUserLanguagePreference] = useState<string | null>(null);
+function AppContent() {
+  const {
+    user,
+    isLoading,
+    onboardingRequired,
+    userThemePreference,
+    userLanguagePreference,
+    login,
+    logout,
+    completeOnboarding,
+  } = useAuth();
 
+  const [initialThemePreference, setInitialThemePreference] = useState<ThemePreference | null>(null);
+  const [themeInitialized, setThemeInitialized] = useState(false);
+
+  // Initialize theme preference from AsyncStorage immediately to prevent flash
   useEffect(() => {
     (async () => {
       try {
-        // Attempt to restore session from storage
-        const token = await getToken();
-        if (token) {
-          const cached = await getCachedUser<{ userId?: string; email?: string; username?: string; profilePictureUrl?: string; profileComplete?: boolean }>();
-          if (cached) {
-            // Validate token on app startup
-            try {
-              const { authService } = await import('./core/auth/services/authService');
-              const validationResult = await authService.validateToken({ token });
-
-              if (validationResult.valid && validationResult.user) {
-                // Token is valid, set user from validation response
-                const validatedUser = validationResult.user;
-                setUser({
-                  id: validatedUser.id || cached.userId || 'me',
-                  email: validatedUser.email || cached.email || '',
-                  name: validatedUser.name || cached.username,
-                  provider: 'password'
-                });
-                // Check if profile is complete from cache
-                setOnboardingRequired(cached.profileComplete === false);
-                
-                // Fetch user settings to get theme and language preferences
-                try {
-                  const currentUser = await authService.getCurrentUser();
-                  if (currentUser.settings?.themePreference) {
-                    setUserThemePreference(currentUser.settings.themePreference);
-                  }
-                  if (currentUser.settings?.preferredLanguage) {
-                    setUserLanguagePreference(currentUser.settings.preferredLanguage);
-                  }
-                } catch (err) {
-                  // If fetching user fails, continue without preferences
-                  console.warn('Failed to fetch user settings:', err);
-                }
-              } else {
-                // Token validation returned invalid
-                const { clearAllAuth } = await import('./common/storage/authStorage');
-                await clearAllAuth();
-              }
-            } catch (error: unknown) {
-              const err = error as { status?: number; message?: string } | Error;
-              const status = 'status' in err && typeof err.status === 'number' ? err.status : undefined;
-              const hasResponse = error && typeof error === 'object' && 'response' in error;
-              if ((status === 401 && hasResponse) || (status === 403 && hasResponse)) {
-                const { clearAllAuth } = await import('./common/storage/authStorage');
-                await clearAllAuth();
-              }
-            }
-          } else {
-            const { clearToken } = await import('./common/storage/authStorage');
-            await clearToken();
-          }
+        const saved = await AsyncStorage.getItem('pref:theme');
+        if (saved === 'dark') {
+          setInitialThemePreference(ThemePreference.DARK);
+        } else if (saved === 'light') {
+          setInitialThemePreference(ThemePreference.LIGHT);
+        } else if (saved === 'system') {
+          setInitialThemePreference(ThemePreference.SYSTEM);
         }
-      } catch (error: unknown) {
-        const { clearAllAuth } = await import('./common/storage/authStorage');
-        await clearAllAuth();
+        // null → leave initialThemePreference as null so backend preference can seed
+      } catch {
+        // leave as null — ThemeProvider will fall back to backend or system
       } finally {
-        setIsLoading(false);
+        setThemeInitialized(true);
       }
     })();
   }, []);
 
-  const handleLogin = async (u: User, requiresOnboarding: boolean) => {
-    setUser(u);
-    setOnboardingRequired(requiresOnboarding);
-    
-    // Fetch user settings to get theme and language preferences
-    if (!requiresOnboarding) {
-      try {
-        const { authService } = await import('./core/auth/services/authService');
-        const currentUser = await authService.getCurrentUser();
-        if (currentUser.settings?.themePreference) {
-          setUserThemePreference(currentUser.settings.themePreference);
-        }
-        if (currentUser.settings?.preferredLanguage) {
-          setUserLanguagePreference(currentUser.settings.preferredLanguage);
-        }
-      } catch (err) {
-        // If fetching user fails, continue without preferences
-        console.warn('Failed to fetch user settings:', err);
-      }
-    }
-  };
-
-  const handleOnboardingComplete = async (u: User) => {
-    setUser(u);
-    setOnboardingRequired(false);
-    
-    // Fetch user settings to get theme and language preferences after onboarding
-    try {
-      const { authService } = await import('./core/auth/services/authService');
-      const currentUser = await authService.getCurrentUser();
-      if (currentUser.settings?.themePreference) {
-        setUserThemePreference(currentUser.settings.themePreference);
-      }
-      if (currentUser.settings?.preferredLanguage) {
-        setUserLanguagePreference(currentUser.settings.preferredLanguage);
-      }
-    } catch (err) {
-      // If fetching user fails, continue without preferences
-      console.warn('Failed to fetch user settings:', err);
-    }
-  };
-  const handleLogout = async () => {
-    try {
-      // Call logout service to invalidate session on server and clear local data
-      const { authService } = await import('./core/auth/services/authService');
-      await authService.logout();
-    } catch (error) {
-      // If logout service fails, still clear local auth data
-      const { clearAllAuth } = await import('./common/storage/authStorage');
-      await clearAllAuth();
-    }
-    // Always clear user state to return to auth screen
-    setUser(null);
-    setUserThemePreference(null);
-    setUserLanguagePreference(null);
-  };
+  if (!themeInitialized) {
+    return <LoadingOverlay visible />;
+  }
 
   return (
-    <SafeAreaProvider>
-      <I18nProvider userLanguagePreference={userLanguagePreference}>
-        <ThemeProvider userThemePreference={userThemePreference}>
-          <NavigationContainer>
-              {isLoading ? (
-                <LoadingState />
-              ) : !user ? (
-                <Auth
-                  onLogin={handleLogin}
-                />
-              ) : onboardingRequired ? (
-                <OnboardingScreen user={user} onComplete={handleOnboardingComplete} />
-              ) : (
-                <MainApp user={user} onLogout={handleLogout} />
-              )}
-            </NavigationContainer>
-          </ThemeProvider>
-      </I18nProvider>
-    </SafeAreaProvider>
+    <I18nProvider userLanguagePreference={userLanguagePreference}>
+      <ThemeProvider
+        userThemePreference={userThemePreference}
+        initialThemePreference={initialThemePreference}
+      >
+        <GlobalNotificationHost />
+        {isLoading ? (
+          <LoadingOverlay visible />
+        ) : (
+          <NavigationContainer linking={linking}>
+            {!user ? (
+              <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+                <ErrorBoundary>
+                  <Auth onLogin={login} />
+                </ErrorBoundary>
+              </SafeAreaView>
+            ) : onboardingRequired ? (
+              <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+                <ErrorBoundary>
+                  <OnboardingScreen user={user} onComplete={completeOnboarding} />
+                </ErrorBoundary>
+              </SafeAreaView>
+            ) : (
+              <ErrorBoundary>
+                <MainApp user={user} onLogout={logout} />
+              </ErrorBoundary>
+            )}
+          </NavigationContainer>
+        )}
+      </ThemeProvider>
+    </I18nProvider>
   );
 }
+
+function App() {
+  useEffect(() => {
+    NotificationService.setupNotifeeChannel();
+    // Starts the foreground message listener; the service manages its own unsubscribe
+    // internally via NotificationService.foregroundUnsubscribe.
+    NotificationService.onMessageListener();
+  }, []);
+
+  return (
+    <RootErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </RootErrorBoundary>
+  );
+}
+
 export default App;

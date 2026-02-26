@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+import { publishNotification } from './notificationBus';
+import { NotificationInfo } from '../components/common/NotificationModal';
 
 export interface ApiError {
   message: string;
@@ -51,8 +52,15 @@ export class ErrorHandler {
   static showErrorAlert(error: ApiError, context?: string): void {
     const title = context ? `Error in ${context}` : 'Error';
     const message = this.getUserFriendlyMessage(error);
-    
-    Alert.alert(title, message, [{ text: 'OK' }]);
+    const notification: NotificationInfo = {
+      type: 'error',
+      title,
+      message,
+      code: error.code,
+      retryable: false,
+    };
+
+    publishNotification(notification);
   }
 
   static getUserFriendlyMessage(error: ApiError): string {
@@ -104,6 +112,14 @@ export class ErrorHandler {
     return error.message;
   }
 
+  static getHttpStatus(error: unknown): number | undefined {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const resp = (error as { response?: { status?: number } }).response;
+      return resp?.status;
+    }
+    return undefined;
+  }
+
   static isNetworkError(error: any): boolean {
     return !error?.response && error?.request;
   }
@@ -130,7 +146,7 @@ export class ErrorHandler {
   static async retry<T>(
     operation: () => Promise<T>,
     maxAttempts: number = 3,
-    context?: string
+    _context?: string
   ): Promise<T> {
     let lastError: any;
     
@@ -163,15 +179,4 @@ export class ErrorHandler {
 // Convenience function for common error handling
 export const handleApiError = (error: any, context?: string) => {
   ErrorHandler.handle(error, context);
-};
-
-// Hook for handling errors in React components
-export const useErrorHandler = () => {
-  return {
-    handleError: (error: any, context?: string) => ErrorHandler.handle(error, context),
-    parseError: (error: any) => ErrorHandler.parseError(error),
-    isNetworkError: (error: any) => ErrorHandler.isNetworkError(error),
-    isServerError: (error: any) => ErrorHandler.isServerError(error),
-    isClientError: (error: any) => ErrorHandler.isClientError(error),
-  };
 };

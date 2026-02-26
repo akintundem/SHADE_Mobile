@@ -15,7 +15,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   borderRadius = 4,
   style,
 }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const shimmerAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   const shimmerStyle = {
     opacity: shimmerAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [0.3, 0.7],
+      outputRange: isDark ? [0.4, 0.6] : [0.3, 0.7],
     }),
   };
 
@@ -50,7 +50,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         {
           width,
           height,
-          backgroundColor: colors.border,
+          backgroundColor: isDark ? colors.surfaceElevated : colors.border,
           borderRadius,
         },
         shimmerStyle,
@@ -60,24 +60,128 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   );
 };
 
-export const EventCardSkeleton: React.FC = () => {
-  const { colors, spacing, borderRadius } = useTheme();
+interface ImageSkeletonProps {
+  aspectRatio?: number;
+  borderRadius?: number;
+}
+
+export const ImageSkeleton: React.FC<ImageSkeletonProps> = ({
+  aspectRatio = 1,
+  borderRadius = 0,
+}) => {
+  const { colors, isDark } = useTheme();
+  const shimmerAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const shimmer = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnimation, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnimation, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    shimmer.start();
+    return () => shimmer.stop();
+  }, [shimmerAnimation]);
+
+  const shimmerStyle = {
+    opacity: shimmerAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: isDark ? [0.4, 0.6] : [0.3, 0.7],
+    }),
+  };
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.lg,
-        padding: spacing.md,
-        marginBottom: spacing.md,
-      }}
-    >
-      <Skeleton width="80%" height={20} style={{ marginBottom: spacing.sm }} />
-      <Skeleton width="60%" height={16} style={{ marginBottom: spacing.md }} />
-      <Skeleton width="100%" height={120} borderRadius={borderRadius.md} style={{ marginBottom: spacing.sm }} />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Skeleton width="40%" height={16} />
-        <Skeleton width="20%" height={16} />
+    <Animated.View
+      style={[
+        {
+          width: '100%',
+          aspectRatio,
+          backgroundColor: isDark ? colors.surfaceElevated : colors.border,
+          borderRadius,
+        },
+        shimmerStyle,
+      ]}
+    />
+  );
+};
+
+export const EventCardSkeleton: React.FC = () => {
+  const { spacing, borderRadius } = useTheme();
+
+  return (
+    <View className="bg-light-background dark:bg-dark-background">
+      {/* Square image placeholder - matches EventCard aspectRatio: 1 */}
+      <ImageSkeleton aspectRatio={1} />
+      
+      {/* Content below image - matches EventCard layout */}
+      <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.lg }}>
+        {/* Tags and status row */}
+        <View className="flex-row items-center" style={{ gap: spacing.md, marginBottom: spacing.md }}>
+          <Skeleton width={60} height={14} borderRadius={borderRadius.xs} />
+          <Skeleton width={70} height={14} borderRadius={borderRadius.xs} />
+        </View>
+        
+        {/* Title */}
+        <Skeleton width="90%" height={24} borderRadius={borderRadius.xs} style={{ marginBottom: spacing.sm }} />
+        
+        {/* Description */}
+        <Skeleton width="100%" height={14} borderRadius={borderRadius.xs} style={{ marginBottom: spacing.xs }} />
+        <Skeleton width="75%" height={14} borderRadius={borderRadius.xs} style={{ marginBottom: spacing.md }} />
+        
+        {/* Location and time */}
+        <View className="flex-row" style={{ gap: spacing.lg, marginBottom: spacing.lg }}>
+          <View className="flex-row items-center" style={{ gap: spacing.xs }}>
+            <Skeleton width={16} height={16} borderRadius={borderRadius.full} />
+            <Skeleton width={100} height={14} borderRadius={borderRadius.xs} />
+          </View>
+          <View className="flex-row items-center" style={{ gap: spacing.xs }}>
+            <Skeleton width={16} height={16} borderRadius={borderRadius.full} />
+            <Skeleton width={60} height={14} borderRadius={borderRadius.xs} />
+          </View>
+        </View>
+        
+        {/* Stats and participants row */}
+        <View className="flex-row items-center justify-between border-t border-light-border dark:border-dark-border pt-lg">
+          {/* Stats */}
+          <View className="flex-row items-center" style={{ gap: spacing.xl }}>
+            <View className="flex-row items-center" style={{ gap: spacing.xs }}>
+              <Skeleton width={18} height={18} borderRadius={borderRadius.full} />
+              <Skeleton width={20} height={14} borderRadius={borderRadius.xs} />
+            </View>
+          </View>
+          
+          {/* Participants */}
+          <View className="flex-row items-center" style={{ gap: spacing.sm }}>
+            <View className="flex-row">
+              <Skeleton width={32} height={32} borderRadius={16} />
+              <Skeleton width={32} height={32} borderRadius={16} style={{ marginLeft: -spacing.sm }} />
+            </View>
+            <Skeleton width={60} height={12} borderRadius={borderRadius.xs} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export const EventMiniCardSkeleton: React.FC = () => {
+  const { spacing, borderRadius } = useTheme();
+
+  return (
+    <View className="flex-row items-center" style={{ gap: spacing.lg, paddingVertical: spacing.sm }}>
+      <Skeleton width={72} height={72} borderRadius={borderRadius.md} />
+      <View className="flex-1" style={{ gap: spacing.xs }}>
+        <Skeleton width="30%" height={12} />
+        <Skeleton width="80%" height={16} />
+        <Skeleton width="55%" height={12} />
       </View>
     </View>
   );
@@ -106,54 +210,89 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
 }) => {
   const { colors, spacing, typography } = useTheme();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const scaleAnimation = useRef(new Animated.Value(0.95)).current;
+  const hasAnimatedOut = useRef(false);
 
   useEffect(() => {
-    Animated.timing(fadeAnimation, {
-      toValue: visible ? 1 : 0,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  }, [visible, fadeAnimation]);
+    if (visible) {
+      hasAnimatedOut.current = false;
+      Animated.parallel([
+        Animated.timing(fadeAnimation, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnimation, {
+          toValue: 1,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(fadeAnimation, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnimation, {
+          toValue: 0.95,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Set flag after animation completes
+        hasAnimatedOut.current = true;
+      });
+    }
+  }, [visible, fadeAnimation, scaleAnimation]);
 
-  if (!visible) return null;
+  if (!visible && hasAnimatedOut.current) return null;
 
   return (
     <Animated.View
+      className={`absolute inset-0 items-center justify-center ${transparent ? '' : 'bg-light-background dark:bg-dark-background'}`}
       style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: transparent ? 'transparent' : colors.background + 'CC',
-        justifyContent: 'center',
-        alignItems: 'center',
         zIndex: 1000,
         opacity: fadeAnimation,
       }}
+      pointerEvents={visible ? 'auto' : 'none'}
     >
-      <View
+      <Animated.View
+        className="items-center justify-center"
         style={{
-          backgroundColor: colors.surface,
-          padding: spacing.xl,
-          borderRadius: 12,
-          alignItems: 'center',
-          minWidth: 120,
+          transform: [{ scale: scaleAnimation }],
         }}
       >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontSize: 16,
-            fontWeight: typography.weight.medium,
-            marginTop: spacing.md,
-            textAlign: 'center',
-          }}
+        {/* Minimalist Spinner - Wealthsimple style */}
+        <View
+          className="w-10 h-10 items-center justify-center"
+          style={{ marginBottom: spacing.md }}
         >
-          {message}
-        </Text>
-      </View>
+          <ActivityIndicator 
+            size="large" 
+            color={colors.text.primary}
+            style={{
+              transform: [{ scale: 1.1 }],
+            }}
+          />
+        </View>
+
+        {/* Message Text */}
+        {message && (
+          <Text
+            className="text-center tracking-[0.2px] text-txt-secondary dark:text-txt-dark-secondary"
+            style={{
+              fontSize: typography.size.sm,
+              fontFamily: typography.family.regular,
+              fontWeight: typography.weight.regular,
+            }}
+          >
+            {message}
+          </Text>
+        )}
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -166,31 +305,24 @@ interface PullToRefreshProps {
 
 export const PullToRefreshWrapper: React.FC<PullToRefreshProps> = ({
   refreshing,
-  onRefresh,
+  onRefresh: _onRefresh,
   children,
 }) => {
   const { colors } = useTheme();
 
   return (
-    <View style={{ flex: 1 }}>
-      {children}
-      {refreshing && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 60,
-            backgroundColor: colors.background,
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 100,
-          }}
-        >
-          <ActivityIndicator size="small" color={colors.primary} />
-        </View>
-      )}
+      <View className="flex-1">
+        {children}
+        {refreshing && (
+          <View
+            className="absolute top-0 left-0 right-0 h-[60px] items-center justify-center bg-light-background dark:bg-dark-background"
+            style={{
+              zIndex: 100,
+            }}
+          >
+            <ActivityIndicator size="small" color={colors.text.primary} />
+          </View>
+        )}
     </View>
   );
 };
@@ -211,14 +343,12 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   subtitle,
   action,
 }) => {
-  const { colors, spacing, typography, borderRadius, brand } = useTheme();
+  const { spacing, typography, borderRadius, brand } = useTheme();
 
   return (
     <View
+      className="flex-1 items-center justify-center"
       style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
         padding: spacing.xl,
       }}
     >
@@ -228,11 +358,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         </View>
       )}
       <Text
+        className="text-center text-txt-primary dark:text-txt-dark-primary"
         style={{
-          color: colors.text.primary,
-          fontSize: 20,
+          fontSize: typography.size.base,
           fontWeight: typography.weight.semibold,
-          textAlign: 'center',
           marginBottom: spacing.sm,
         }}
       >
@@ -240,11 +369,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       </Text>
       {subtitle && (
         <Text
+          className="text-center text-txt-secondary dark:text-txt-dark-secondary"
           style={{
-            color: colors.text.secondary,
-            fontSize: 16,
-            textAlign: 'center',
-            lineHeight: 24,
+            fontSize: typography.size.sm,
+            lineHeight: typography.size.sm * 1.5,
             marginBottom: spacing.lg,
           }}
         >
@@ -262,9 +390,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           onPress={action.onPress}
         >
           <Text
+            className="text-txt-inverse"
             style={{
-              color: colors.background,
-              fontSize: 16,
+              fontSize: typography.size.sm,
               fontWeight: typography.weight.semibold,
             }}
           >

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, ViewStyle, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
 
 export interface BaseCardProps {
   children: React.ReactNode;
@@ -23,76 +22,65 @@ export const BaseCard: React.FC<BaseCardProps> = ({
   style,
   testID,
 }) => {
-  const { colors, spacing, borderRadius: borderRadiusValues, shadows } = useTheme();
-
-  const getCardStyle = (): ViewStyle => {
-    const baseStyle: ViewStyle = {
-      backgroundColor: colors.surface,
-    };
-
-    // Padding styles
-    const paddingStyles: Record<string, ViewStyle> = {
-      none: {},
-      small: { padding: spacing.sm },
-      medium: { padding: spacing.md },
-      large: { padding: spacing.lg },
-    };
-
-    // Margin styles
-    const marginStyles: Record<string, ViewStyle> = {
-      none: {},
-      small: { margin: spacing.sm },
-      medium: { margin: spacing.md },
-      large: { margin: spacing.lg },
-    };
-
-    // Border radius styles
-    const borderRadiusStyles: Record<string, ViewStyle> = {
-      none: {},
-      small: { borderRadius: borderRadiusValues.sm },
-      medium: { borderRadius: borderRadiusValues.md },
-      large: { borderRadius: borderRadiusValues.lg },
-    };
-
-    // Variant styles
-    const variantStyles: Record<string, ViewStyle> = {
-      default: {
-        backgroundColor: colors.surface,
-        borderWidth: 0,
-      },
-      elevated: {
-        backgroundColor: colors.surface,
-        ...shadows.md,
-        borderWidth: 0,
-      },
-      outlined: {
-        backgroundColor: colors.surface,
-        borderWidth: 1,
-        borderColor: colors.border,
-      },
-      filled: {
-        backgroundColor: colors.background,
-        borderWidth: 0,
-      },
-    };
-
-    return {
-      ...baseStyle,
-      ...paddingStyles[padding],
-      ...marginStyles[margin],
-      ...borderRadiusStyles[borderRadius],
-      ...variantStyles[variant],
-      ...style,
-    };
+  // Padding classes
+  const paddingClasses = {
+    none: '',
+    small: 'p-sm',
+    medium: 'p-md',
+    large: 'p-lg',
   };
+
+  // Margin classes
+  const marginClasses = {
+    none: '',
+    small: 'm-sm',
+    medium: 'm-md',
+    large: 'm-lg',
+  };
+
+  // Border radius classes
+  const borderRadiusClasses = {
+    none: '',
+    small: 'rounded-sm',
+    medium: 'rounded-md',
+    large: 'rounded-lg',
+  };
+
+  // Variant classes
+  const getVariantClasses = () => {
+    switch (variant) {
+      case 'default':
+        return 'bg-light-surface dark:bg-dark-surface';
+      case 'elevated':
+        return 'bg-light-surface dark:bg-dark-surface';
+      case 'outlined':
+        return 'bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border';
+      case 'filled':
+        return 'bg-light-background dark:bg-dark-background';
+      default:
+        return 'bg-light-surface dark:bg-dark-surface';
+    }
+  };
+
+  const getCardClasses = () => {
+    const baseClasses = getVariantClasses();
+    const paddingClass = paddingClasses[padding];
+    const marginClass = marginClasses[margin];
+    const borderRadiusClass = borderRadiusClasses[borderRadius];
+    
+    return `${baseClasses} ${paddingClass} ${marginClass} ${borderRadiusClass}`.trim();
+  };
+
+  const cardClasses = getCardClasses();
 
   if (onPress) {
     return (
       <TouchableOpacity
-        style={getCardStyle()}
+        className={cardClasses}
         onPress={onPress}
         activeOpacity={0.7}
         testID={testID}
+        style={style}
       >
         {children}
       </TouchableOpacity>
@@ -100,7 +88,7 @@ export const BaseCard: React.FC<BaseCardProps> = ({
   }
 
   return (
-    <View style={getCardStyle()} testID={testID}>
+    <View className={cardClasses} testID={testID} style={style}>
       {children}
     </View>
   );

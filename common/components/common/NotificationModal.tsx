@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
 import { X, AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react-native';
 import { useTheme } from '../../theme/ThemeProvider';
+import { Colors } from '../../theme/designSystem';
 
 export type NotificationType = 'error' | 'success' | 'info' | 'warning';
 
@@ -22,7 +23,7 @@ interface NotificationModalProps {
   onRetry?: () => void;
 }
 
-const getNotificationConfig = (type: NotificationType, colors: any, brand: any) => {
+const getNotificationConfig = (type: NotificationType, colors: any, _brand: any) => {
   switch (type) {
     case 'error':
       return {
@@ -63,6 +64,10 @@ export default function NotificationModal({
   onRetry,
 }: NotificationModalProps) {
   const { colors, typography, spacing, borderRadius, brand } = useTheme();
+  const overlayTransparent = colors.overlay.replace(
+    /rgba\((\s*\d+\s*,\s*\d+\s*,\s*\d+)\s*,\s*[\d.]+\)/,
+    'rgba($1, 0)'
+  );
 
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -133,7 +138,7 @@ export default function NotificationModal({
         }),
       ]).start();
     }
-  }, [visible, notification]);
+  }, [visible, notification, backdropAnim, fadeAnim, iconScale, scaleAnim]);
 
   if (!notification) return null;
 
@@ -157,34 +162,27 @@ export default function NotificationModal({
       onRequestClose={onClose}
     >
       <Animated.View
+        className="flex-1 items-center justify-center"
         style={{
-          flex: 1,
           backgroundColor: backdropAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: ['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.5)'],
+            outputRange: [overlayTransparent, colors.overlay],
           }),
-          justifyContent: 'center',
-          alignItems: 'center',
           padding: spacing.lg,
         }}
       >
         <TouchableOpacity
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          className="absolute inset-0"
           activeOpacity={1}
           onPress={onClose}
         />
         <Animated.View
+          className="w-full max-w-[400px] rounded-xl p-lg border-2 bg-light-surface dark:bg-dark-surface"
           style={{
             opacity: fadeAnim,
             transform: [{ scale: scaleAnim }],
-            backgroundColor: colors.surface,
-            borderRadius: borderRadius.xl,
-            padding: spacing.lg,
-            width: '100%',
-            maxWidth: 400,
-            borderWidth: 2,
             borderColor: config.borderColor,
-            shadowColor: '#000',
+            shadowColor: Colors.dark.text.inverse,
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.25,
             shadowRadius: 16,
@@ -192,35 +190,19 @@ export default function NotificationModal({
           }}
         >
           {/* Header */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: spacing.md,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
+          <View className="flex-row items-center justify-between mb-md">
+            <View className="flex-row items-center flex-1 gap-sm">
               <Animated.View
+                className="w-10 h-10 rounded-full items-center justify-center"
                 style={{
                   transform: [{ scale: iconScale }],
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
                   backgroundColor: config.bgColor,
-                  justifyContent: 'center',
-                  alignItems: 'center',
                 }}
               >
                 <IconComponent size={24} color={config.iconColor} />
               </Animated.View>
               <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.lg,
-                  fontWeight: typography.weight.bold,
-                  flex: 1,
-                }}
+                className="flex-1 text-lg font-bold text-txt-primary dark:text-txt-dark-primary"
                 numberOfLines={1}
               >
                 {notification.title}
@@ -228,45 +210,21 @@ export default function NotificationModal({
             </View>
             <TouchableOpacity
               onPress={onClose}
-              style={{
-                padding: spacing.xs,
-                borderRadius: borderRadius.sm,
-                backgroundColor: colors.background,
-              }}
+              className="p-xs rounded-sm bg-light-background dark:bg-dark-background"
             >
               <X size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
           {/* Message */}
-          <Text
-            style={{
-              color: colors.text.secondary,
-              fontSize: typography.size.base,
-              lineHeight: 24,
-              marginBottom: spacing.md,
-            }}
-          >
+          <Text className="leading-6 text-base text-txt-secondary dark:text-txt-dark-secondary mb-md">
             {notification.message}
           </Text>
 
           {/* Error Code */}
           {notification.code && (
-            <View
-              style={{
-                backgroundColor: colors.background,
-                padding: spacing.sm,
-                borderRadius: borderRadius.md,
-                marginBottom: spacing.md,
-              }}
-            >
-              <Text
-                style={{
-                  color: colors.text.tertiary,
-                  fontSize: typography.size.sm,
-                  fontFamily: 'monospace',
-                }}
-              >
+            <View className="bg-light-background dark:bg-dark-background p-sm rounded-md mb-md">
+              <Text className="text-sm text-txt-tertiary dark:text-txt-dark-tertiary font-mono">
                 Error Code: {notification.code}
               </Text>
             </View>
@@ -274,52 +232,20 @@ export default function NotificationModal({
 
           {/* Details */}
           {notification.details && (
-            <View
-              style={{
-                backgroundColor: colors.background,
-                padding: spacing.sm,
-                borderRadius: borderRadius.md,
-                marginBottom: spacing.md,
-              }}
-            >
-              <Text
-                style={{
-                  color: colors.text.tertiary,
-                  fontSize: typography.size.sm,
-                  lineHeight: 20,
-                }}
-              >
+            <View className="bg-light-background dark:bg-dark-background p-sm rounded-md mb-md">
+              <Text className="leading-5 text-sm text-txt-tertiary dark:text-txt-dark-tertiary">
                 {notification.details}
               </Text>
             </View>
           )}
 
           {/* Actions */}
-          <View
-            style={{
-              flexDirection: 'row',
-              gap: spacing.sm,
-              justifyContent: 'flex-end',
-              marginTop: spacing.sm,
-            }}
-          >
+          <View className="flex-row justify-end gap-sm mt-sm">
             <TouchableOpacity
               onPress={onClose}
-              style={{
-                paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
-                backgroundColor: colors.surface,
-                borderRadius: borderRadius.md,
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}
+              className="flex-row items-center px-lg py-sm rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
             >
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontWeight: typography.weight.semibold,
-                }}
-              >
+              <Text className="font-semibold text-txt-primary dark:text-txt-dark-primary">
                 Close
               </Text>
             </TouchableOpacity>
@@ -327,9 +253,8 @@ export default function NotificationModal({
             {notification.retryable && (
               <TouchableOpacity
                 onPress={handleRetry}
+                className="flex-row items-center"
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
                   gap: spacing.xs,
                   paddingHorizontal: spacing.lg,
                   paddingVertical: spacing.sm,
@@ -353,4 +278,3 @@ export default function NotificationModal({
     </Modal>
   );
 }
-

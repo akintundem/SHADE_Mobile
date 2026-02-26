@@ -90,7 +90,7 @@ export const I18nProvider = ({ children, userLanguagePreference }: I18nProviderP
         setIsInitialized(true);
       }
     })();
-  }, []);
+  }, [userLanguagePreference]);
 
   // Update language when user settings change (after initial load)
   useEffect(() => {

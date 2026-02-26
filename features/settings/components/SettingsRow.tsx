@@ -12,7 +12,7 @@ type Props = {
   danger?: boolean;
 };
 
-export function SettingsRow({
+export const SettingsRow = React.memo(function SettingsRow({
   icon: Icon,
   title,
   subtitle,
@@ -20,81 +20,37 @@ export function SettingsRow({
   onPress,
   danger,
 }: Props) {
-  const { colors, spacing, typography } = useTheme();
+  const { colors } = useTheme();
+  const iconColor = danger ? colors.semantic.error : colors.text.primary;
+  const titleClass = danger
+    ? 'text-sm font-semibold text-semantic-error'
+    : 'text-sm font-semibold text-txt-primary dark:text-txt-dark-primary';
 
   return (
     <View>
       <TouchableOpacity
         onPress={onPress}
         disabled={!onPress}
-        style={{
-          paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.md,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: colors.background,
-        }}
+        className="px-xl py-md flex-row items-center justify-between bg-light-background dark:bg-dark-background"
         activeOpacity={onPress ? 0.7 : 1}
       >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.md,
-            flex: 1,
-          }}
-        >
-          <View style={{
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            backgroundColor: colors.surface,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Icon
-              size={16}
-              color={danger ? colors.semantic.error : colors.text.primary}
-              strokeWidth={1.5}
-            />
+        <View className="flex-row items-center gap-md flex-1">
+          <View className="w-7 h-7 rounded-md bg-light-surface dark:bg-dark-surface items-center justify-center">
+            <Icon size={16} color={iconColor} strokeWidth={1.5} />
           </View>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: danger ? colors.semantic.error : colors.text.primary,
-                fontWeight: typography.weight.semibold,
-                fontSize: typography.size.sm,
-                letterSpacing: -0.1,
-              }}
-            >
+          <View className="flex-1">
+            <Text className={`${titleClass} tracking-[-0.1px]`}>
               {title}
             </Text>
             {subtitle ? (
-              <Text
-                style={{
-                  color: colors.text.tertiary,
-                  marginTop: 2,
-                  fontSize: typography.size.xs,
-                }}
-                numberOfLines={1}
-              >
+              <Text className="mt-[2px] text-xs text-txt-tertiary dark:text-txt-dark-tertiary" numberOfLines={1}>
                 {subtitle}
               </Text>
             ) : null}
           </View>
         </View>
-        {end ?? <ChevronRight size={16} color={colors.text.tertiary} strokeWidth={1.5} />}
+        {end ?? <ChevronRight size={16} color={colors.text.primary} strokeWidth={1.5} />}
       </TouchableOpacity>
-      <View
-        style={{
-          marginLeft: spacing.xl + 28 + spacing.md,
-          marginRight: spacing.xl,
-          height: 0.5,
-          backgroundColor: colors.divider,
-        }}
-      />
     </View>
   );
-}
-
+});

@@ -3,111 +3,12 @@
  * A comprehensive design system for premium private event sharing
  */
 
-export const Colors = {
-  // Brand Colors - Pure black and white
-  brand: {
-    primary: '#000000',      // Pure black
-    primaryDark: '#000000',  // Pure black
-    primaryLight: '#808080', // Medium gray
-    secondary: '#F59E0B',    // Amber accent - luxury and warmth
-    secondaryDark: '#D97706',
-    secondaryLight: '#FCD34D',
-  },
+import tokens from './tokens.json';
 
-  // Neutral Palette - Improved accessibility and contrast
-  light: {
-    background: '#FFFFFF',        // Pure white for better contrast
-    surface: '#F8F9FA',          // Soft gray surface
-    surfaceElevated: '#FFFFFF',   // Pure white for elevated elements
-    card: '#F1F3F4',             // Warm card background
-    cardElevated: '#FFFFFF',      // Pure white for elevated cards
-    border: '#D1D5DB',           // Better contrast border
-    borderLight: '#E5E7EB',      // Light borders with better visibility
-    divider: '#E5E7EB',          // More visible dividers
-    
-    text: {
-      primary: '#111827',        // High contrast black
-      secondary: '#374151',      // Better contrast gray
-      tertiary: '#6B7280',       // Accessible medium gray
-      disabled: '#9CA3AF',       // Accessible disabled state
-      inverse: '#FFFFFF',
-    },
-    
-    overlay: 'rgba(0, 0, 0, 0.5)',
-    overlayLight: 'rgba(0, 0, 0, 0.2)',
-  },
-
-  dark: {
-    background: '#000000',        // Pure black for better contrast
-    surface: '#111827',          // Dark gray surface
-    surfaceElevated: '#1F2937',   // Elevated elements with better contrast
-    card: '#1F2937',             // Card background
-    cardElevated: '#374151',      // Elevated cards
-    border: '#374151',           // More visible borders
-    borderLight: '#4B5563',       // Light borders with better visibility
-    divider: '#374151',          // More visible dividers
-    
-    text: {
-      primary: '#F9FAFB',        // High contrast white
-      secondary: '#D1D5DB',      // Better contrast gray
-      tertiary: '#9CA3AF',       // Accessible medium gray
-      disabled: '#6B7280',       // Accessible disabled state
-      inverse: '#000000',
-    },
-    
-    overlay: 'rgba(0, 0, 0, 0.7)',
-    overlayLight: 'rgba(0, 0, 0, 0.4)',
-  },
-
-  // Semantic Colors - Modern and accessible
-  semantic: {
-    success: '#059669',      // Emerald green
-    successLight: '#D1FAE5',
-    successDark: '#047857',
-    error: '#DC2626',        // Red
-    errorLight: '#FEE2E2',
-    errorDark: '#B91C1C',
-    warning: '#D97706',      // Orange
-    warningLight: '#FEF3C7',
-    warningDark: '#B45309',
-    info: '#000000',         // Pure black
-    infoLight: '#E5E5E5',    // Light gray
-    infoDark: '#000000',     // Pure black
-  },
-
-  // Social Platform Colors
-  social: {
-    spotify: '#1DB954',
-    apple: '#000000',
-    google: '#000000',      // Changed from blue to black
-    facebook: '#000000',    // Changed from blue to black
-  },
-};
-
-export const Spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 32,
-  '4xl': 40,
-  '5xl': 48,
-  '6xl': 64,
-  '7xl': 80,
-};
-
-export const BorderRadius = {
-  xs: 4,
-  sm: 6,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  '2xl': 20,
-  '3xl': 24,
-  full: 9999,
-};
+export const Colors = tokens.colors;
+export const Spacing = tokens.spacing;
+export const BorderRadius = tokens.borderRadius;
+const fontSizeTokens = tokens.fontSize;
 
 export const Typography = {
   // Font Families (React Native defaults)
@@ -120,16 +21,16 @@ export const Typography = {
 
   // Font Sizes
   size: {
-    xs: 11,
-    sm: 13,
-    base: 15,
-    lg: 17,
-    xl: 19,
-    '2xl': 22,
-    '3xl': 26,
-    '4xl': 30,
-    '5xl': 36,
-    '6xl': 44,
+    xs: fontSizeTokens.xs.size,
+    sm: fontSizeTokens.sm.size,
+    base: fontSizeTokens.base.size,
+    lg: fontSizeTokens.lg.size,
+    xl: fontSizeTokens.xl.size,
+    '2xl': fontSizeTokens['2xl'].size,
+    '3xl': fontSizeTokens['3xl'].size,
+    '4xl': fontSizeTokens['4xl'].size,
+    '5xl': fontSizeTokens['5xl'].size,
+    '6xl': fontSizeTokens['6xl'].size,
   },
 
   // Line Heights
@@ -234,12 +135,12 @@ export const getThemedColors = (isDark: boolean) => {
   
   // Dynamic brand colors that adapt to theme
   const themeBrand = {
-    primary: isDark ? '#FFFFFF' : '#000000',        // White in dark mode, black in light mode
-    primaryDark: isDark ? '#F9FAFB' : '#000000',    // Light gray in dark mode, black in light mode
-    primaryLight: isDark ? '#D1D5DB' : '#808080',   // Medium gray in both modes
-    secondary: isDark ? '#FFFFFF' : '#000000',      // White in dark mode, black in light mode
-    secondaryDark: isDark ? '#F9FAFB' : '#000000',  // Light gray in dark mode, black in light mode
-    secondaryLight: isDark ? '#D1D5DB' : '#808080', // Medium gray in both modes
+    primary: isDark ? '#FFFFFF' : '#000000',
+    primaryDark: isDark ? '#FFFFFF' : '#000000',
+    primaryLight: isDark ? '#FFFFFF' : '#000000',
+    secondary: isDark ? '#FFFFFF' : '#000000',
+    secondaryDark: isDark ? '#FFFFFF' : '#000000',
+    secondaryLight: isDark ? '#FFFFFF' : '#000000',
   };
   
   return {
@@ -253,4 +154,3 @@ export const getThemedColors = (isDark: boolean) => {
     primaryLight: themeBrand.primaryLight,
   };
 };
-

@@ -1,11 +1,7 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 import { getToken, setToken } from '../storage/authStorage';
-import devConfig from '../../dev-config.json';
-
-type DevConfig = {
-  apiBaseUrl?: string;
-};
+import { appConfig } from '../../config/appConfig';
 
 const sanitizeBaseUrl = (value?: string) => {
   if (typeof value !== 'string') return undefined;
@@ -20,50 +16,71 @@ const FALLBACK_BASE_URL =
     default: 'http://localhost:8080',
   }) ?? 'http://localhost:8080';
 
-const BASE_URL = sanitizeBaseUrl(devConfig?.apiBaseUrl) || FALLBACK_BASE_URL;
+const BASE_URL = sanitizeBaseUrl(appConfig.apiBaseUrl) || FALLBACK_BASE_URL;
 
-// Base HTTP client for unauthenticated requests (registration, login, health checks)
 export const httpUnauthenticated = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
-  headers: { 
+  headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Authenticated HTTP client
 export const http = axios.create({
   baseURL: BASE_URL,
   timeout: 15000,
-  headers: { 
+  headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Attach Authorization header if token exists
-http.interceptors.request.use(async config => {
-  const token = await getToken();
-  if (token) {
-    if (!config.headers) {
-      config.headers = {} as any;
-    }
-    config.headers.Authorization = `Bearer ${token}`;
-    
-    // Add X-Device-Id header if available (recommended for authenticated requests)
-    try {
-      const { getDeviceId } = await import('../storage/authStorage');
-      const deviceId = await getDeviceId();
-      if (deviceId) {
-        config.headers['X-Device-Id'] = deviceId;
-      }
-    } catch (error) {
-      // Silently handle device ID retrieval failure
-    }
+const TOKEN_CACHE_TTL_MS = 60 * 1000;
+let cachedToken: { value: string | null; fetchedAt: number } = { value: null, fetchedAt: 0 };
+let tokenFetchPromise: Promise<string | null> | null = null;
+
+/** Invalidate the in-memory token cache. Call this on login / logout / user switch. */
+export function clearTokenCache() {
+  cachedToken = { value: null, fetchedAt: 0 };
+  tokenFetchPromise = null;
+}
+
+async function getTokenCached(): Promise<string | null> {
+  const now = Date.now();
+  const isStale = now - cachedToken.fetchedAt > TOKEN_CACHE_TTL_MS;
+
+  if (cachedToken.value && !isStale) {
+    return cachedToken.value;
   }
+
+  // Deduplicate concurrent token fetches with a shared in-flight promise
+  if (!tokenFetchPromise) {
+    tokenFetchPromise = getToken().then(token => {
+      cachedToken = { value: token, fetchedAt: Date.now() };
+      tokenFetchPromise = null;
+      return token;
+    }).catch(err => {
+      tokenFetchPromise = null;
+      throw err;
+    });
+  }
+
+  return tokenFetchPromise;
+}
+
+http.interceptors.request.use(async config => {
+  if (!config.headers) {
+    config.headers = {} as any;
+  }
+
+  const token = await getTokenCached();
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   return config;
 });
 
-// Token refresh state to prevent infinite loops
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: any) => void;
@@ -81,85 +98,81 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Unified response/error handling for both clients
+const MAX_RETRIES = 4;
+const RETRY_DELAYS_MS = [3000, 6000, 12000, 20000];
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const shouldRetry = (error: any, retryCount: number): boolean => {
+  const status = error?.response?.status;
+  return (
+    retryCount < MAX_RETRIES &&
+    (status === 429 || (status >= 500 && status < 600))
+  );
+};
+
 const responseErrorHandler = async (error: any) => {
   const status = error?.response?.status;
   const responseData = error?.response?.data;
   const validationErrors = responseData?.validationErrors;
   const originalRequest = error?.config;
 
-  // Handle 401 Unauthorized - try to refresh token
+  if (originalRequest && shouldRetry(error, originalRequest._retryCount || 0)) {
+    const retryCount = originalRequest._retryCount || 0;
+    originalRequest._retryCount = retryCount + 1;
+    const delay = RETRY_DELAYS_MS[retryCount] ?? RETRY_DELAYS_MS[RETRY_DELAYS_MS.length - 1];
+    await sleep(delay);
+    return http(originalRequest);
+  }
+
   if (status === 401 && originalRequest && !originalRequest._retry) {
-    // Skip refresh for auth endpoints to prevent infinite loops
     const url = originalRequest.url || '';
-    const isAuthEndpoint = 
+    const isAuthEndpoint =
       url.includes('/api/v1/auth/login') ||
       url.includes('/api/v1/auth/register') ||
+      url.includes('/api/v1/auth/signup') ||
       url.includes('/api/v1/auth/refresh-token') ||
       url.includes('/api/v1/auth/logout') ||
       url.includes('/api/v1/auth/validate-token');
 
-    if (isAuthEndpoint) {
-      // For auth endpoints, don't try to refresh - just return the error
-    } else {
-      // Mark request as retried to prevent infinite loops
+    if (!isAuthEndpoint) {
       originalRequest._retry = true;
 
-      // If already refreshing, queue this request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then(token => {
-            // Update token and retry original request
             if (originalRequest.headers) {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
             return http(originalRequest);
           })
-          .catch(err => {
-            return Promise.reject(err);
-          });
+          .catch(err => Promise.reject(err));
       }
 
-      // Start refresh process
       isRefreshing = true;
-
       try {
         const { authService } = await import('../../core/auth/services/authService');
-        const refreshResponse = await authService.refreshToken();
-        
-        // Update token in memory
-        if (refreshResponse?.accessToken) {
-          await setToken(refreshResponse.accessToken);
-        }
-
-        // Process queued requests
-        processQueue(null, refreshResponse?.accessToken);
-
-        // Retry original request with new token
+        const { accessToken } = await authService.refreshToken();
+        await setToken(accessToken);
+        cachedToken = { value: accessToken, fetchedAt: Date.now() };
+        processQueue(null, accessToken);
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${refreshResponse.accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
-        
         isRefreshing = false;
         return http(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - clear all auth data and reject all queued requests
         isRefreshing = false;
         const { clearAllAuth } = await import('../storage/authStorage');
         await clearAllAuth();
         processQueue(refreshError);
-        
-        // Return original error
         const enhancedError: any =
           error && typeof error === 'object' ? error : new Error('Session expired. Please log in again.');
         enhancedError.message = 'Session expired. Please log in again.';
         enhancedError.status = 401;
         enhancedError.data = responseData;
-        if (!enhancedError.originalError) {
-          enhancedError.originalError = error;
-        }
+        if (!enhancedError.originalError) enhancedError.originalError = error;
         return Promise.reject(enhancedError);
       }
     }
@@ -196,23 +209,18 @@ const responseErrorHandler = async (error: any) => {
 
   const enhancedError: any =
     error && typeof error === 'object' ? error : new Error(message);
-
   enhancedError.message = message;
   enhancedError.status = status;
   enhancedError.data = responseData;
   enhancedError.validationErrors = validationErrors;
-  if (!enhancedError.originalError) {
-    enhancedError.originalError = error;
-  }
+  if (!enhancedError.originalError) enhancedError.originalError = error;
 
   return Promise.reject(enhancedError);
 };
 
-// Apply error handling to both clients
 http.interceptors.response.use(response => response, responseErrorHandler);
 httpUnauthenticated.interceptors.response.use(response => response, responseErrorHandler);
 
-// Utilities to persist token from API replies in one place
 export async function persistTokenFrom(data?: { token?: string | null }) {
   if (data?.token) {
     await setToken(data.token);

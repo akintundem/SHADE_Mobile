@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
   label: string;
@@ -9,29 +8,17 @@ type Props = {
 };
 
 export function Row({ label, icon, children }: Props) {
-  const { colors, spacing } = useTheme();
   return (
-    <View style={{ marginBottom: spacing.sm }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.xs,
-          }}
-        >
+    <View className="mb-sm">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-xs">
           {icon}
-          <Text style={{ color: colors.text.primary }}>{label}</Text>
+          <Text className="text-sm text-txt-primary dark:text-txt-dark-primary">
+            {label}
+          </Text>
         </View>
         {children}
       </View>
     </View>
   );
 }
-

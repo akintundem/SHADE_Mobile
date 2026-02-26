@@ -34,7 +34,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>We use the camera to let you capture photos and videos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>We use your location to show nearby places and improve your experience.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We use the microphone so your videos can include audio.</string>
 	<key>RCTNewArchEnabled</key>
@@ -50,6 +50,17 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>shade</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.capsule</string>
+		</dict>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

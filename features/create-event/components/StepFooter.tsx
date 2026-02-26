@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { ChevronRight, Check } from 'lucide-react-native';
+import { useI18n } from '../../../common/i18n/I18nProvider';
 import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
@@ -20,91 +21,57 @@ export function StepFooter({
   onClose,
   onCreate,
 }: Props) {
-  const { colors, typography, spacing, borderRadius, brand, isDark } = useTheme();
+  const { colors } = useTheme();
+  const { t } = useI18n();
 
   if (isLastStep) {
+    const createEnabled = canProceed && !isLoading;
     return (
-      <View style={{ flexDirection: 'row', gap: spacing.md }}>
+      <View className="flex-row gap-md">
         <TouchableOpacity
-          onPress={onClose}
-          style={{
-            flex: 1,
-            height: 48,
-            borderRadius: 999,
-            backgroundColor: colors.surface,
-            borderWidth: 1,
-            borderColor: colors.border,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          onPress={() => onClose?.()}
+          className="flex-1 h-12 rounded-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center"
+          activeOpacity={0.7}
         >
-          <Text
-            style={{
-              color: colors.text.primary,
-              fontWeight: typography.weight.semibold,
-            }}
-          >
-            Save Draft
+          <Text className="text-txt-primary dark:text-txt-dark-primary font-semibold">
+            {t('SaveDraft')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          disabled={!canProceed || isLoading}
+          disabled={!createEnabled}
           onPress={onCreate}
-          style={{
-            flex: 1,
-            height: 48,
-            borderRadius: 999,
-            backgroundColor: canProceed && !isLoading ? brand.secondary : colors.border,
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'row',
-            gap: spacing.sm,
-          }}
+          activeOpacity={0.8}
+          className={`flex-1 h-12 rounded-full items-center justify-center flex-row gap-sm ${
+            createEnabled ? 'bg-brand-secondary' : 'bg-light-surface-strong dark:bg-dark-surface-strong'
+          }`}
         >
-          <Text
-            style={{
-              color: colors.background,
-              fontWeight: typography.weight.semibold,
-            }}
-          >
-            {isLoading ? 'Creating...' : 'Create Event'}
+          <Text className={`font-semibold ${createEnabled ? 'text-txt-primary dark:text-txt-dark-primary' : 'text-txt-tertiary dark:text-txt-dark-tertiary'}`}>
+            {isLoading ? t('Creating') : t('CreateEvent')}
           </Text>
-          {!isLoading && <Check size={20} color={colors.background} />}
+          {!isLoading && (
+            <Check size={20} color={createEnabled ? colors.text.primary : colors.text.tertiary} />
+          )}
         </TouchableOpacity>
       </View>
     );
   }
 
+  const nextEnabled = canProceed;
+
   return (
-    <View style={{ alignItems: 'flex-end' }}>
+    <View className="items-end">
       <TouchableOpacity
-        disabled={!canProceed}
+        disabled={!nextEnabled}
         onPress={onNext}
-        style={{
-          height: 48,
-          borderRadius: 999,
-          backgroundColor: canProceed ? (isDark ? '#FFFFFF' : '#000000') : colors.border,
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'row',
-          gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
-          minWidth: 140,
-        }}
+        activeOpacity={0.8}
+        className={`h-12 rounded-full flex-row items-center justify-center gap-sm px-xl min-w-[140px] ${
+          nextEnabled ? 'bg-txt-primary dark:bg-txt-dark-primary' : 'bg-light-surface-strong dark:bg-dark-surface-strong'
+        }`}
       >
-        <Text
-          style={{
-            color: canProceed ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary,
-            fontWeight: typography.weight.semibold,
-            fontSize: typography.size.base,
-          }}
-        >
-          Next
+        <Text className={`text-base font-semibold ${nextEnabled ? 'text-txt-inverse dark:text-txt-dark-inverse' : 'text-txt-tertiary dark:text-txt-dark-tertiary'}`}>
+          {t('Next')}
         </Text>
-        <ChevronRight
-          size={18}
-          color={canProceed ? (isDark ? '#000000' : '#FFFFFF') : colors.text.tertiary}
-        />
+        <ChevronRight size={18} color={nextEnabled ? colors.text.inverse : colors.text.tertiary} />
       </TouchableOpacity>
     </View>
   );

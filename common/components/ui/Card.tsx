@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme } from '../../theme/ThemeProvider';
+import { View, TouchableOpacity } from 'react-native';
 
 type Props = {
   children: React.ReactNode;
@@ -11,25 +10,20 @@ type Props = {
 };
 
 export default function Card({ children, onPress, elevated = false, noPadding = false, style }: Props) {
-  const { colors, borderRadius, spacing, shadows } = useTheme();
-
-  const cardStyle = {
-    backgroundColor: elevated ? colors.cardElevated : colors.card,
-    borderRadius: borderRadius.xl,
-    padding: noPadding ? 0 : spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...(elevated && shadows.md),
-  };
+  const cardClasses = `rounded-2xl border border-light-border dark:border-dark-border ${
+    elevated 
+      ? 'bg-light-surface-elevated dark:bg-dark-surface-elevated' 
+      : 'bg-light-card dark:bg-dark-card'
+  } ${noPadding ? '' : 'p-lg'}`;
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={[cardStyle, style]}>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} className={cardClasses} style={style}>
         {children}
       </TouchableOpacity>
     );
   }
 
-  return <View style={[cardStyle, style]}>{children}</View>;
+  return <View className={cardClasses} style={style}>{children}</View>;
 }
 

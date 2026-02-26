@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Platform, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { launchImageLibrary, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { useTheme } from '../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../common/i18n/I18nProvider';
-import { UpdateUserProfileRequest } from '../../../core/auth/types/auth';
+import { JitSignupRequest } from '../../../core/auth/types/auth';
 import { authService } from '../../../core/auth/services/authService';
+import { AuthError, AuthErrorCode } from '../../../core/auth/errors/AuthError';
+import { mapToUser } from '../../../core/auth/utils/authUtils';
 import KeyboardAwareContainer from '../../../common/components/ui/KeyboardAwareContainer';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
 import { User } from '../../../core/auth/types/auth';
 import { Camera, X } from 'lucide-react-native';
 import NotificationModal, { NotificationInfo } from '../../../common/components/common/NotificationModal';
+import { useTheme } from '../../../common/theme/ThemeProvider';
+import { getImageUrl } from '../../../config/appConfig';
 
 type Props = {
   user: User;
   onComplete: (user: User) => void;
 };
 
+// Location verification temporarily disabled
+
 export default function OnboardingScreen({ user, onComplete }: Props) {
-  const { colors, spacing, typography, borderRadius, brand } = useTheme();
   const { t } = useI18n();
+  const { colors } = useTheme();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -32,13 +37,27 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<NotificationInfo | null>(null);
+  // Location verification temporarily disabled
+  // const [locationId, setLocationId] = useState<string | null>(null);
+  // const [fetchingLocation, setFetchingLocation] = useState(false);
+  // const [locationApproved, setLocationApproved] = useState(false);
 
-  const canSubmit = name.trim().length >= 2 && acceptTerms && acceptPrivacy;
+  const canSubmit =
+    name.trim().length >= 2 &&
+    username.trim().length >= 3 &&
+    phoneNumber.trim().length > 0 &&
+    acceptTerms &&
+    acceptPrivacy;
+
+  // // Fetch user location on mount and validate against approved locations
+  // useEffect(() => {
+  //   // Location verification disabled
+  // }, [t]);
 
   const handleImagePicker = () => {
     const options = {
       mediaType: 'photo' as MediaType,
-      quality: 0.8,
+      quality: 0.8 as const,
       maxWidth: 1024,
       maxHeight: 1024,
       includeBase64: false,
@@ -70,11 +89,11 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
       contentType,
     });
 
-    // Step 2: Upload image directly to S3
+    // Step 2: Upload image directly to S3 (resolve MinIO host so app can reach storage)
     const response = await fetch(imageUri);
     const blob = await response.blob();
-    
-    const uploadResponse = await fetch(uploadUrlResponse.uploadUrl, {
+    const uploadUrl = getImageUrl(uploadUrlResponse.uploadUrl) ?? uploadUrlResponse.uploadUrl;
+    const uploadResponse = await fetch(uploadUrl, {
       method: uploadUrlResponse.uploadMethod || 'PUT',
       body: blob,
       headers: uploadUrlResponse.headers,
@@ -96,19 +115,32 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
       setSubmitting(true);
       setError(null);
 
-      // Step 1: Upload image first (if selected)
-      // This will set profilePictureUrl on the user account
+      const signupRequest: JitSignupRequest = {
+        email: user.email,
+        username: username.trim(),
+        name: name.trim(),
+        phoneNumber: phoneNumber.trim(),
+        marketingOptIn,
+        acceptTerms,
+        acceptPrivacy,
+      };
+
+      let session = await authService.completeSignup(signupRequest);
+      let updatedUser = session.user;
+
+      // Upload image after user is created (if selected)
       if (profileImage) {
         try {
           setUploadingImage(true);
           await uploadImageToS3(profileImage);
+          session = await authService.getAuthSession();
+          updatedUser = session.user;
         } catch (imageError: any) {
-          setUploadingImage(false);
-          setError(imageError?.message || t('ImageUploadFailed'));
+          setError(t('ImageUploadFailed'));
           setNotification({
             type: 'error',
             title: t('ImageUploadFailed'),
-            message: imageError?.message || t('ImageUploadFailed'),
+            message: t('ImageUploadFailed'),
           });
           return;
         } finally {
@@ -116,33 +148,31 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
         }
       }
 
-      // Step 2: Update profile (image is already set if uploaded)
-      const request: UpdateUserProfileRequest = {
-        name: name.trim(),
-        username: username.trim() || undefined,
-        phoneNumber: phoneNumber.trim() || undefined,
-        dateOfBirth: undefined, // Can be added later if needed
-        acceptTerms,
-        acceptPrivacy,
-        marketingOptIn,
-      };
+      onComplete(mapToUser(updatedUser));
+    } catch (e: unknown) {
+      const code = AuthError.codeOf(e);
+      let title = t('OnboardingFailed');
+      let message = t('OnboardingFailed');
 
-      const updatedUser = await authService.updateUserProfile(user.id, request);
-      const mapped: User = {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        provider: 'password',
-      };
+      if (code === AuthErrorCode.USERNAME_TAKEN) {
+        title = t('UsernameTaken');
+        message = t('UsernameTaken');
+      } else if (code === AuthErrorCode.EMAIL_NOT_VERIFIED) {
+        title = t('EmailNotVerified');
+        message = t('EmailNotVerified');
+      } else if (
+        code === AuthErrorCode.ONBOARDING_EMAIL_MISMATCH ||
+        code === AuthErrorCode.VALIDATION_ERROR
+      ) {
+        title = t('EmailMismatch');
+        message = t('EmailMismatch');
+      }
 
-      onComplete(mapped);
-    } catch (e: any) {
-      const errorMessage = e?.message || t('RegistrationFailed');
-      setError(errorMessage);
+      setError(message);
       setNotification({
         type: 'error',
-        title: t('RegistrationFailed'),
-        message: errorMessage,
+        title,
+        message,
       });
     } finally {
       setSubmitting(false);
@@ -150,67 +180,41 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView className="flex-1 bg-light-background dark:bg-dark-background">
       <KeyboardAwareContainer
         style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingHorizontal: spacing['2xl'],
-          paddingTop: spacing['4xl'],
-          paddingBottom: spacing['2xl'],
-        }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        extraScrollHeight={spacing.lg}
+        extraScrollHeight={16}
         scrollEnabled={true}
       >
+        <View className="px-4 pt-[20px] pb-4">
         {/* Header */}
-        <View style={{ marginBottom: spacing['5xl'], alignItems: 'center' }}>
-          <Text
-            style={{
-              fontSize: typography.size['3xl'],
-              fontWeight: typography.weight.bold,
-              color: colors.text.primary,
-              marginBottom: spacing.md,
-              letterSpacing: -0.5,
-            }}
-          >
+        <View className="mb-xl items-center">
+          <Text className="text-xl font-bold text-txt-primary dark:text-txt-dark-primary mb-sm tracking-tight">
             {t('CompleteYourProfile')}
           </Text>
-          <Text
-            style={{
-              fontSize: typography.size.sm,
-              color: colors.text.secondary,
-              lineHeight: 22,
-              textAlign: 'center',
-              paddingHorizontal: spacing.lg,
-            }}
-          >
+          <Text className="text-xs text-txt-secondary dark:text-txt-dark-secondary leading-[18px] text-center px-md">
             {t('CompleteYourProfileDescription')}
           </Text>
         </View>
 
+        {/* Location Validation disabled temporarily */}
+
         {/* Profile Picture Section */}
-        <View style={{ alignItems: 'center', marginBottom: spacing['4xl'] }}>
+        <View className="items-center mb-xl">
           <TouchableOpacity
             onPress={handleImagePicker}
             activeOpacity={0.7}
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: borderRadius.full,
-              backgroundColor: colors.surface,
-              borderWidth: 1,
-              borderColor: profileImage ? 'transparent' : colors.border,
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}
+            className={`w-[100px] h-[100px] rounded-full bg-light-surface dark:bg-dark-surface border items-center justify-center overflow-hidden ${
+              profileImage ? 'border-transparent' : 'border-light-border dark:border-dark-border'
+            }`}
           >
             {profileImage ? (
-              <View style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <View className="w-full h-full relative">
                 <Image
                   source={{ uri: profileImage }}
-                  style={{ width: '100%', height: '100%' }}
+                  className="w-full h-full"
                   resizeMode="cover"
                 />
                 <TouchableOpacity
@@ -218,19 +222,7 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
                     e.stopPropagation();
                     setProfileImage(null);
                   }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    width: 32,
-                    height: 32,
-                    borderRadius: borderRadius.full,
-                    backgroundColor: colors.background,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                  }}
+                  className="absolute top-0 right-0 w-8 h-8 rounded-full bg-light-background dark:bg-dark-background items-center justify-center border border-light-border dark:border-dark-border"
                 >
                   <X size={16} color={colors.text.primary} />
                 </TouchableOpacity>
@@ -242,32 +234,26 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
           {!profileImage && (
             <TouchableOpacity
               onPress={handleImagePicker}
-              style={{ marginTop: spacing.md }}
+              className="mt-md"
               activeOpacity={0.7}
             >
-              <Text
-                style={{
-                  fontSize: typography.size.sm,
-                  color: brand.primary,
-                  fontWeight: typography.weight.medium,
-                }}
-              >
+              <Text className="text-sm text-brand-primary font-medium">
                 {t('AddPhoto')}
               </Text>
             </TouchableOpacity>
           )}
           {uploadingImage && (
-            <View style={{ marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <ActivityIndicator size="small" color={brand.primary} />
-              <Text style={{ fontSize: typography.size.xs, color: colors.text.secondary }}>
+            <View className="mt-md flex-row items-center gap-sm">
+              <ActivityIndicator size="small" color={colors.text.primary} />
+              <Text className="text-xs text-txt-secondary dark:text-txt-dark-secondary">
                 {t('UploadingImage')}
               </Text>
             </View>
           )}
         </View>
 
-        <View style={{ gap: spacing['2xl'] }}>
-          <View style={{ gap: spacing.lg }}>
+        <View className="gap-lg">
+          <View className="gap-md">
             <Input
               label={t('FullName')}
               value={name}
@@ -313,63 +299,32 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
 
           {error && !error.toLowerCase().includes('name') && !error.toLowerCase().includes('username') && !error.toLowerCase().includes('phone') ? (
             <View>
-              <Text
-                style={{
-                  color: colors.semantic.error,
-                  fontSize: typography.size.xs,
-                  fontWeight: typography.weight.medium,
-                }}
-              >
+              <Text className="text-xs font-medium text-semantic-error">
                 {error}
               </Text>
             </View>
           ) : null}
 
-          <View style={{ gap: spacing.lg, marginTop: spacing.md }}>
+          <View className="gap-md mt-sm">
             <TouchableOpacity
               onPress={() => setAcceptTerms(!acceptTerms)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: spacing.md,
-              }}
+              className="flex-row items-start gap-md"
               activeOpacity={0.7}
             >
               <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
-                  borderWidth: 1.5,
-                  borderColor: acceptTerms ? brand.primary : colors.border,
-                  backgroundColor: acceptTerms ? brand.primary : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginTop: 1,
-                }}
+                className={`w-5 h-5 rounded border-[1.5px] items-center justify-center mt-0.5 ${
+                  acceptTerms
+                    ? 'border-brand-primary bg-brand-primary'
+                    : 'border-light-border dark:border-dark-border bg-transparent'
+                }`}
               >
                 {acceptTerms && (
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 2,
-                      backgroundColor: colors.text.inverse,
-                    }}
-                  />
+                  <View className="w-2.5 h-2.5 rounded-sm bg-txt-inverse" />
                 )}
               </View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.sm,
-                  fontWeight: typography.weight.regular,
-                  flex: 1,
-                  lineHeight: 22,
-                }}
-              >
+              <Text className="flex-1 text-sm font-normal leading-[22px] text-txt-primary dark:text-txt-dark-primary">
                 {t('IAgreeTo')}{' '}
-                <Text style={{ color: brand.primary, fontWeight: typography.weight.medium }}>
+                <Text className="font-medium text-brand-primary dark:text-txt-dark-primary">
                   {t('TermsOfService')}
                 </Text>
               </Text>
@@ -377,48 +332,23 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
 
             <TouchableOpacity
               onPress={() => setAcceptPrivacy(!acceptPrivacy)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: spacing.md,
-              }}
+              className="flex-row items-start gap-md"
               activeOpacity={0.7}
             >
               <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
-                  borderWidth: 1.5,
-                  borderColor: acceptPrivacy ? brand.primary : colors.border,
-                  backgroundColor: acceptPrivacy ? brand.primary : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginTop: 1,
-                }}
+                className={`w-5 h-5 rounded border-[1.5px] items-center justify-center mt-0.5 ${
+                  acceptPrivacy
+                    ? 'border-brand-primary bg-brand-primary'
+                    : 'border-light-border dark:border-dark-border bg-transparent'
+                }`}
               >
                 {acceptPrivacy && (
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 2,
-                      backgroundColor: colors.text.inverse,
-                    }}
-                  />
+                  <View className="w-2.5 h-2.5 rounded-sm bg-txt-inverse" />
                 )}
               </View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.sm,
-                  fontWeight: typography.weight.regular,
-                  flex: 1,
-                  lineHeight: 22,
-                }}
-              >
+              <Text className="flex-1 text-sm font-normal leading-[22px] text-txt-primary dark:text-txt-dark-primary">
                 {t('IAgreeTo')}{' '}
-                <Text style={{ color: brand.primary, fontWeight: typography.weight.medium }}>
+                <Text className="font-medium text-brand-primary dark:text-txt-dark-primary">
                   {t('PrivacyPolicy')}
                 </Text>
               </Text>
@@ -426,52 +356,27 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
 
             <TouchableOpacity
               onPress={() => setMarketingOptIn(!marketingOptIn)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: spacing.md,
-              }}
+              className="flex-row items-start gap-md"
               activeOpacity={0.7}
             >
               <View
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 4,
-                  borderWidth: 1.5,
-                  borderColor: marketingOptIn ? brand.primary : colors.border,
-                  backgroundColor: marketingOptIn ? brand.primary : 'transparent',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginTop: 1,
-                }}
+                className={`w-5 h-5 rounded border-[1.5px] items-center justify-center mt-0.5 ${
+                  marketingOptIn
+                    ? 'border-brand-primary bg-brand-primary'
+                    : 'border-light-border dark:border-dark-border bg-transparent'
+                }`}
               >
                 {marketingOptIn && (
-                  <View
-                    style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 2,
-                      backgroundColor: colors.text.inverse,
-                    }}
-                  />
+                  <View className="w-2.5 h-2.5 rounded-sm bg-txt-inverse" />
                 )}
               </View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.sm,
-                  fontWeight: typography.weight.regular,
-                  flex: 1,
-                  lineHeight: 22,
-                }}
-              >
+              <Text className="flex-1 text-sm font-normal leading-[22px] text-txt-primary dark:text-txt-dark-primary">
                 {t('MarketingOptIn')}
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={{ marginTop: spacing['2xl'] }}>
+          <View className="mt-lg">
             <Button
               onPress={handleSubmit}
               disabled={!canSubmit || submitting}
@@ -484,13 +389,14 @@ export default function OnboardingScreen({ user, onComplete }: Props) {
             </Button>
           </View>
         </View>
+        </View>
       </KeyboardAwareContainer>
 
       <NotificationModal
+        visible={notification !== null}
         notification={notification}
         onClose={() => setNotification(null)}
       />
     </SafeAreaView>
   );
 }
-
