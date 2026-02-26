@@ -1,441 +1,473 @@
-import { http, httpUnauthenticated, persistTokenFrom } from '../../../common/services/httpClient';
+import { http } from '../../../common/services/httpClient';
 import {
-  ApiMessageResponse,
-  SecureAuthResponse,
   LoginRequest,
-  RefreshTokenRequest,
   RegisterRequest,
-  RegisterResponse,
-  PaginatedResponse,
-  PublicUserResponse,
+  SecureAuthResponse,
   SecureUserResponse,
-  ValidateTokenRequest,
+  User,
+  AuthSessionResponse,
+  Auth0JwtPayload,
+  JitSignupRequest,
   TokenValidationResponse,
-  ResetPasswordRequest,
-  ChangePasswordRequest,
-  ResendEmailVerificationRequest,
+  ValidateTokenRequest,
+  PasswordResponse,
   UpdateUserProfileRequest,
-  UserSessionResponse,
   ProfileImageUploadRequest,
   ProfileImageUploadResponse,
   ProfileImageCompleteRequest,
   ProfileImageCompleteResponse,
+  PaginatedResponse,
+  PublicUserResponse,
   LocationSearchResponse,
+  NotificationSettingsUpdateRequest,
+  PrivacySettingsUpdateRequest,
+  SecuritySettingsUpdateRequest,
 } from '../types/auth';
+import {
+  setToken,
+  setIdToken,
+  setRefreshToken,
+  clearAllAuth,
+  setUser,
+  getToken,
+  getRefreshToken,
+} from '../../../common/storage/authStorage';
+import { jwtDecode } from 'jwt-decode';
+import {
+  auth0PasswordLogin,
+  auth0SignUp,
+  auth0ChangePassword,
+  auth0RefreshToken,
+} from './auth0Api';
+import { AuthError, AuthErrorCode } from '../errors/AuthError';
+import { normalizeEmail, isBackendUserMissing } from '../utils/authUtils';
 
-// Lazy load authStorage to avoid circular dependencies
-let authStorage: typeof import('../../../common/storage/authStorage') | null = null;
-
-const getAuthStorage = async () => {
-  if (!authStorage) {
-    authStorage = await import('../../../common/storage/authStorage');
-  }
-  return authStorage;
+const buildPagedUrl = (base: string, page?: number, size?: number): string => {
+  const params = new URLSearchParams();
+  if (page !== undefined) params.append('page', page.toString());
+  if (size !== undefined) params.append('size', size.toString());
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
 };
 
-const updateUserCache = async (user: SecureUserResponse, onboardingRequired?: boolean) => {
-  const storage = await getAuthStorage();
-  await storage.setUser({
-    userId: user.id,
-    email: user.email,
-    username: user.username || user.email,
-    profilePictureUrl: user.profilePictureUrl ?? undefined,
-    profileComplete: onboardingRequired === undefined ? true : !onboardingRequired,
-  });
-};
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
 
-/**
- * Normalizes preferredLanguage from API format (EN, FR) to frontend format (en, fr)
- * @param user - User object with settings
- */
-const normalizeLanguageFromApi = (user: SecureUserResponse): void => {
-  if (user.settings?.preferredLanguage) {
-    const lang = user.settings.preferredLanguage;
-    if (typeof lang === 'string') {
-      user.settings.preferredLanguage = lang.toLowerCase() as 'en' | 'fr';
+function extractIdentityFromToken(accessToken: string): User | null {
+  try {
+    const decoded = jwtDecode<Auth0JwtPayload>(accessToken);
+    if (decoded.exp < Math.floor(Date.now() / 1000)) {
+      return null;
     }
+    const name =
+      decoded.name ||
+      [decoded.given_name, decoded.family_name].filter(Boolean).join(' ') ||
+      decoded.preferred_username;
+    return {
+      id: decoded.sub,
+      email: decoded.email || '',
+      name: name || undefined,
+      username: decoded.preferred_username || undefined,
+      emailVerified: decoded.email_verified === true,
+    };
+  } catch {
+    return null;
   }
-};
+}
 
-/**
- * Normalizes preferredLanguage from frontend format (en, fr) to API format (EN, FR)
- * @param lang - Language string in lowercase
- * @returns Language string in uppercase
- */
-const normalizeLanguageToApi = (lang: string | undefined): 'EN' | 'FR' | undefined => {
-  if (!lang || typeof lang !== 'string') return undefined;
-  return lang.toUpperCase() as 'EN' | 'FR';
-};
+async function persistTokens(
+  accessToken: string,
+  refreshToken?: string,
+  idToken?: string,
+): Promise<void> {
+  await setToken(accessToken);
+  if (idToken) await setIdToken(idToken);
+  if (refreshToken) await setRefreshToken(refreshToken);
+}
 
-export const securityService = {
+// ---------------------------------------------------------------------------
+// Service
+// ---------------------------------------------------------------------------
+
+export const authService = {
   /**
-   * Health check endpoint
-   * @returns Health status information
+   * Authenticate with email + password, store tokens, and resolve the
+   * backend session (or flag onboarding-required).
    */
-  async healthCheck() {
-    const res = await httpUnauthenticated.get<{ service: string; status: string; timestamp: string }>('/api/v1/auth/health');
-    return res.data;
-  },
+  async signIn(request: LoginRequest): Promise<SecureAuthResponse> {
+    const email = normalizeEmail(request.email);
+    const tokens = await auth0PasswordLogin(email, request.password);
 
-  /**
-   * Register a new user
-   * @param request - Registration request with email and password
-   * @returns Success message response
-   */
-  async registerNew(request: RegisterRequest): Promise<RegisterResponse> {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/register', {
-      email: request.email.toLowerCase().trim(),
-      password: request.password,
-      confirmPassword: request.confirmPassword,
-    });
+    await persistTokens(tokens.access_token, tokens.refresh_token, tokens.id_token);
+
+    const identity = extractIdentityFromToken(tokens.access_token);
+    if (!identity?.id) {
+      throw new AuthError(
+        AuthErrorCode.TOKEN_INVALID,
+        'Failed to retrieve authenticated user',
+      );
+    }
+    if (!identity.email && email.includes('@')) {
+      identity.email = email;
+    }
+
+    let session: AuthSessionResponse | null = null;
+    try {
+      session = await this.getAuthSession();
+    } catch (error: unknown) {
+      if (isBackendUserMissing(error)) {
+        session = null;
+      } else {
+        throw new AuthError(
+          AuthErrorCode.UNKNOWN,
+          'Unable to load user profile after sign-in. Please try again.',
+        );
+      }
+    }
+
+    const user = session?.user ?? identity;
+    const onboardingRequired = session?.onboardingRequired ?? true;
+    await setUser(user);
 
     return {
-      success: res.data.success,
-      message: res.data.message,
+      message: 'Login successful',
+      user,
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+      tokenType: 'Bearer',
+      onboardingRequired,
     };
   },
 
   /**
-   * Login a user and store authentication tokens
-   * @param request - Login credentials
-   * @returns Authentication response with tokens and user data
+   * Register a new user via Auth0 database signup.
+   * No tokens are issued — user must verify their email first.
    */
-  async loginNew(request: LoginRequest): Promise<SecureAuthResponse> {
-    const res = await httpUnauthenticated.post<SecureAuthResponse>('/api/v1/auth/login', {
-      email: request.email.toLowerCase().trim(),
-      password: request.password,
-      rememberMe: request.rememberMe ?? false,
-    });
-
-    if (!res.data) {
-      throw new Error('Login failed: No response data');
-    }
-
-    // Normalize language from API format to frontend format
-    normalizeLanguageFromApi(res.data.user);
-
-    // Store access token
-    await persistTokenFrom({ token: res.data.accessToken });
-
-    // Store refresh token, device ID, and user data
-    const storage = await getAuthStorage();
-    if (res.data.refreshToken) {
-      await storage.setRefreshToken(res.data.refreshToken);
-    }
-    if (res.data.deviceId) {
-      await storage.setDeviceId(res.data.deviceId);
-    }
-    await updateUserCache(res.data.user, res.data.onboardingRequired);
-
-    return res.data;
+  async signUp(
+    request: RegisterRequest,
+  ): Promise<{ success: boolean; message: string }> {
+    const email = normalizeEmail(request.email);
+    await auth0SignUp(email, request.password);
+    return {
+      success: true,
+      message: 'Registration successful. Please check your email for a verification link.',
+    };
   },
 
   /**
-   * Get the current authenticated user
-   * @returns Current user information
+   * Complete backend onboarding (JIT signup) after initial IdP auth.
    */
-  async getCurrentUser(): Promise<SecureUserResponse> {
-    const res = await http.get<SecureUserResponse>('/api/v1/auth/me');
-    
-    // Normalize language from API format to frontend format
-    normalizeLanguageFromApi(res.data);
-    
-    return res.data;
+  async completeSignup(request: JitSignupRequest): Promise<AuthSessionResponse> {
+    const payload: JitSignupRequest = {
+      ...request,
+      email: normalizeEmail(request.email),
+      username: request.username.trim(),
+      name: request.name?.trim(),
+      phoneNumber: request.phoneNumber?.trim(),
+    };
+    await http.post<SecureUserResponse>('/api/v1/auth/signup', payload);
+    const session = await this.getAuthSession();
+    await setUser(session.user);
+    return session;
   },
 
   /**
-   * Refresh the access token using refresh token
-   * @param request - Optional refresh token request (will use stored token if not provided)
-   * @returns New authentication tokens
+   * Validate the current access token, attempt a silent refresh if expired,
+   * and resolve the backend session user.
    */
-  async refreshToken(request?: RefreshTokenRequest): Promise<SecureAuthResponse> {
-    let refreshRequest = request;
-
-    // If no request provided, get refresh token from storage
-    if (!refreshRequest) {
-      const storage = await getAuthStorage();
-      const refreshToken = await storage.getRefreshToken();
-      const deviceId = await storage.getDeviceId();
-
-      if (!refreshToken) {
-        throw new Error('No refresh token available');
-      }
-
-      refreshRequest = {
-        refreshToken,
-        deviceId: deviceId || undefined,
-      };
-    }
-
-    const res = await http.post<SecureAuthResponse>('/api/v1/auth/refresh-token', refreshRequest);
-
-    if (!res.data) {
-      throw new Error('Token refresh failed: No response data');
-    }
-
-    // Normalize language from API format to frontend format
-    normalizeLanguageFromApi(res.data.user);
-
-    // Store new access token
-    await persistTokenFrom({ token: res.data.accessToken });
-
-    // Update refresh token and device ID if provided
-    const storage = await getAuthStorage();
-    if (res.data.refreshToken) {
-      await storage.setRefreshToken(res.data.refreshToken);
-    }
-    if (res.data.deviceId) {
-      await storage.setDeviceId(res.data.deviceId);
-    }
-
-    return res.data;
-  },
-
-  /**
-   * Validate a JWT token
-   * @param request - Token validation request
-   * @returns Token validation result with user data if valid
-   */
-  async validateToken({ token }: ValidateTokenRequest): Promise<TokenValidationResponse> {
-    if (!token) {
-      throw new Error('Token is required');
-    }
-
-    const res = await httpUnauthenticated.post<TokenValidationResponse>(
-      '/api/v1/auth/validate-token',
-      undefined,
-      { params: { token } }
-    );
-    
-    // Normalize language from API format to frontend format
-    if (res.data.user) {
-      normalizeLanguageFromApi(res.data.user);
-    }
-    
-    return res.data;
-  },
-
-  /**
-   * Logout the current user and clear all stored tokens
-   * @returns Success message
-   */
-  async logout(): Promise<ApiMessageResponse> {
+  async validateToken(
+    request: ValidateTokenRequest,
+  ): Promise<TokenValidationResponse> {
     try {
-      const res = await http.post<ApiMessageResponse>('/api/v1/auth/logout', { confirm: true });
-      const storage = await getAuthStorage();
-      await storage.clearAllAuth();
-      return res.data;
-    } catch (error) {
-      // Even if logout fails, clear client-side tokens
-      const storage = await getAuthStorage();
-      await storage.clearAllAuth();
-      throw error;
-    }
-  },
-
-  /**
-   * Request password reset email
-   * @param email - User email address
-   * @returns Success message
-   */
-  async forgotPassword(email: string): Promise<ApiMessageResponse> {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/forgot-password', {
-      email: email.toLowerCase().trim(),
-    });
-    return res.data;
-  },
-
-  /**
-   * Reset password using reset token
-   * @param request - Password reset request with token and new password
-   * @returns Success message
-   */
-  async resetPassword(request: ResetPasswordRequest): Promise<ApiMessageResponse> {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/reset-password', request);
-    return res.data;
-  },
-
-  /**
-   * Change password for authenticated user
-   * @param request - Password change request
-   * @returns Success message
-   */
-  async changePassword(request: ChangePasswordRequest): Promise<ApiMessageResponse> {
-    const res = await http.post<ApiMessageResponse>('/api/v1/auth/change-password', request);
-    return res.data;
-  },
-
-  /**
-   * Verify email address using verification token
-   * @param token - Email verification token from email link
-   * @returns HTML content of verification page
-   */
-  async verifyEmail(token: string): Promise<string> {
-    const res = await httpUnauthenticated.get<string>(
-      `/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`,
-      { headers: { Accept: 'text/html' } }
-    );
-    return res.data;
-  },
-
-  /**
-   * Resend email verification
-   * @param email - User email address
-   * @returns Success message
-   */
-  async resendEmailVerification(email: string): Promise<ApiMessageResponse> {
-    const res = await httpUnauthenticated.post<ApiMessageResponse>('/api/v1/auth/verify-email', {
-      email: email.toLowerCase().trim(),
-    } as ResendEmailVerificationRequest);
-    return res.data;
-  },
-
-  /**
-   * Update user profile information (handles both onboarding and profile updates)
-   * @param userId - User ID to update
-   * @param request - Profile update data
-   * @returns Updated user information
-   */
-  async updateUserProfile(userId: string, request: UpdateUserProfileRequest): Promise<SecureUserResponse> {
-    const payload: any = {
-      name: request.name.trim(),
-      username: request.username?.trim() || undefined,
-      phoneNumber: request.phoneNumber || null,
-      profilePictureUrl: request.profilePictureUrl || undefined,
-      dateOfBirth: request.dateOfBirth || null,
-      acceptTerms: request.acceptTerms,
-      acceptPrivacy: request.acceptPrivacy,
-      userType: request.userType,
-      preferences: request.preferences || undefined,
-      marketingOptIn: request.marketingOptIn ?? false,
-      deviceId: request.deviceId || undefined,
-    };
-
-    // Include settings if provided (patch-style update)
-    if (request.settings) {
-      const settingsPayload: any = { ...request.settings };
-      
-      // Normalize preferredLanguage from frontend format to API format
-      settingsPayload.preferredLanguage = normalizeLanguageToApi(settingsPayload.preferredLanguage);
-      
-      payload.settings = settingsPayload;
-    }
-
-    const res = await http.put<SecureUserResponse>(`/api/v1/auth/users/${userId}`, payload);
-
-    // Normalize language from API format to frontend format
-    normalizeLanguageFromApi(res.data);
-
-    await updateUserCache(res.data);
-
-    return res.data;
-  },
-
-  /**
-   * Directory search for public user information
-   * @param searchTerm - Optional search term (if empty returns all users)
-   * @param params - Optional pagination parameters
-   * @returns Paginated list of public user information
-   */
-  async searchDirectory(
-    searchTerm?: string,
-    params?: { page?: number; size?: number },
-  ): Promise<PaginatedResponse<PublicUserResponse>> {
-    const queryParams = new URLSearchParams();
-    if (searchTerm) {
-      queryParams.append('searchTerm', searchTerm.trim());
-    }
-    if (params?.page !== undefined) {
-      queryParams.append('page', params.page.toString());
-    }
-    if (params?.size !== undefined) {
-      queryParams.append('size', params.size.toString());
-    }
-
-    const res = await http.get<PaginatedResponse<PublicUserResponse>>(
-      `/api/v1/auth/users/directory?${queryParams.toString()}`,
-    );
-    return res.data;
-  },
-
-  /**
-   * Get presigned URL for profile image upload
-   * @param request - Image upload request with file metadata
-   * @returns Presigned upload URL and metadata
-   */
-  async getProfileImageUploadUrl(request: ProfileImageUploadRequest): Promise<ProfileImageUploadResponse> {
-    const res = await http.post<ProfileImageUploadResponse>('/api/v1/auth/profile-image/upload-url', request);
-    return res.data;
-  },
-
-  /**
-   * Complete profile image upload after S3 upload
-   * @param request - Upload completion request with S3 object details
-   * @returns Updated profile picture URL
-   */
-  async completeProfileImageUpload(request: ProfileImageCompleteRequest): Promise<ProfileImageCompleteResponse> {
-    const res = await http.post<ProfileImageCompleteResponse>('/api/v1/auth/profile-image/complete', request);
-
-    // Update cached user data with new profile picture URL
-    if (res.data.profilePictureUrl) {
-      const storage = await getAuthStorage();
-      const currentUser = await storage.getUser<SecureUserResponse>();
-      if (currentUser) {
-        await storage.setUser({
-          ...currentUser,
-          profilePictureUrl: res.data.profilePictureUrl,
-        });
+      let accessToken = await getToken();
+      if (!accessToken) {
+        return { valid: false, error: 'No active session', user: null };
       }
+
+      if (request.token && accessToken !== request.token) {
+        const decoded = jwtDecode<Auth0JwtPayload>(request.token);
+        if (decoded.exp < Math.floor(Date.now() / 1000)) {
+          return { valid: false, error: 'Token expired', user: null };
+        }
+      }
+
+      let identity = extractIdentityFromToken(accessToken);
+      if (!identity?.id) {
+        const refresh = await getRefreshToken();
+        if (refresh) {
+          try {
+            const tokens = await auth0RefreshToken(refresh);
+            await persistTokens(tokens.access_token, tokens.refresh_token, tokens.id_token);
+            accessToken = tokens.access_token;
+            identity = extractIdentityFromToken(accessToken);
+          } catch {
+            // fall through to invalid check
+          }
+        }
+      }
+      if (!identity?.id) {
+        return { valid: false, error: 'Invalid token payload', user: null };
+      }
+
+      try {
+        const session = await this.getAuthSession();
+        return { valid: true, error: null, user: session.user };
+      } catch (sessionError: unknown) {
+        if (isBackendUserMissing(sessionError)) {
+          return { valid: true, error: null, user: identity };
+        }
+        return { valid: false, error: 'Backend user not available', user: null };
+      }
+    } catch {
+      return { valid: false, error: 'Token validation failed', user: null };
     }
-
-    return res.data;
   },
 
-  /**
-   * Get all active user sessions
-   * @returns List of active sessions
-   */
-  async getActiveSessions(): Promise<UserSessionResponse[]> {
-    const res = await http.get<UserSessionResponse[]>('/api/v1/auth/sessions');
-    return res.data;
+  async getAuthSession(): Promise<AuthSessionResponse> {
+    const response = await http.get<AuthSessionResponse>('/api/v1/auth/session');
+    return response.data;
   },
 
-  /**
-   * Terminate all user sessions
-   * @returns Success message
-   */
-  async terminateAllSessions(): Promise<ApiMessageResponse> {
-    const res = await http.delete<ApiMessageResponse>('/api/v1/auth/sessions/all');
-    return res.data;
+  /** Current auth user ID from the stored token. */
+  async getCurrentAuthUser(): Promise<{ userId: string }> {
+    const token = await getToken();
+    if (!token) {
+      throw new AuthError(AuthErrorCode.NO_SESSION, 'No active session');
+    }
+    const identity = extractIdentityFromToken(token);
+    if (!identity?.id) {
+      throw new AuthError(AuthErrorCode.NO_SESSION, 'No active session');
+    }
+    return { userId: identity.id };
   },
 
-  /**
-   * Search for locations by query
-   * @param query - Search term (city, state, or country)
-   * @param params - Optional pagination parameters
-   * @returns Paginated list of location search results
-   */
+  async refreshToken(): Promise<{ accessToken: string; refreshToken?: string }> {
+    const refresh = await getRefreshToken();
+    if (!refresh) {
+      await clearAllAuth();
+      throw new AuthError(AuthErrorCode.NO_SESSION, 'No active session');
+    }
+    const tokens = await auth0RefreshToken(refresh);
+    await persistTokens(tokens.access_token, tokens.refresh_token, tokens.id_token);
+    if (!tokens.access_token) {
+      await clearAllAuth();
+      throw new AuthError(
+        AuthErrorCode.REFRESH_FAILED,
+        'Failed to refresh access token',
+      );
+    }
+    return {
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
+    };
+  },
+
+  async logout(): Promise<void> {
+    try {
+      await http.post('/api/v1/auth/logout', { confirm: true });
+    } catch {
+      // Server-side logout is best-effort
+    } finally {
+      await clearAllAuth();
+    }
+  },
+
+  async forgotPassword(email: string): Promise<PasswordResponse> {
+    await auth0ChangePassword(normalizeEmail(email));
+    return { success: true, message: 'Password reset email sent' };
+  },
+
+  // ---------------------------------------------------------------------------
+  // Profile / user management (passthrough to backend API)
+  // ---------------------------------------------------------------------------
+
+  async updateUserProfile(
+    userId: string,
+    request: UpdateUserProfileRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      `/api/v1/auth/users/${userId}`,
+      request,
+    );
+    return response.data;
+  },
+
+  async deleteUser(userId: string): Promise<void> {
+    await http.delete(`/api/v1/auth/users/${userId}`);
+  },
+
+  async getUser(userId: string): Promise<PublicUserResponse> {
+    const response = await http.get<PublicUserResponse>(
+      `/api/v1/auth/users/${userId}`,
+    );
+    return response.data;
+  },
+
+  async searchSecureUsers(
+    searchTerm: string,
+    pagination?: { page: number; size: number },
+  ): Promise<PaginatedResponse<SecureUserResponse>> {
+    const params = new URLSearchParams();
+    params.append('searchTerm', searchTerm.trim());
+    if (pagination) {
+      params.append('page', pagination.page.toString());
+      params.append('size', pagination.size.toString());
+    }
+    const response = await http.get<PaginatedResponse<SecureUserResponse>>(
+      `/api/v1/auth/users/search?${params.toString()}`,
+    );
+    return response.data;
+  },
+
   async searchLocations(
     query?: string,
-    params?: { page?: number; size?: number },
+    pagination?: { page: number; size: number },
   ): Promise<PaginatedResponse<LocationSearchResponse>> {
-    const queryParams = new URLSearchParams();
-    if (query) {
-      queryParams.append('query', query.trim());
+    const params = new URLSearchParams();
+    if (query) params.append('query', query);
+    if (pagination) {
+      params.append('page', pagination.page.toString());
+      params.append('size', pagination.size.toString());
     }
-    if (params?.page !== undefined) {
-      queryParams.append('page', params.page.toString());
-    }
-    if (params?.size !== undefined) {
-      queryParams.append('size', params.size.toString());
-    }
-
-    const res = await http.get<PaginatedResponse<LocationSearchResponse>>(
-      `/api/v1/auth/locations/search?${queryParams.toString()}`,
+    const response = await http.get<PaginatedResponse<LocationSearchResponse>>(
+      `/api/v1/auth/users/locations/search?${params.toString()}`,
     );
-    return res.data;
+    return response.data;
+  },
+
+  async searchDirectory(
+    query: string,
+    pagination?: { page: number; size: number },
+  ): Promise<PaginatedResponse<PublicUserResponse>> {
+    const params = new URLSearchParams();
+    params.append('searchTerm', query);
+    if (pagination) {
+      params.append('page', pagination.page.toString());
+      params.append('size', pagination.size.toString());
+    }
+    const response = await http.get<PaginatedResponse<PublicUserResponse>>(
+      `/api/v1/auth/users/directory?${params.toString()}`,
+    );
+    return response.data;
+  },
+
+  async listDirectory(
+    pagination?: { page: number; size: number },
+  ): Promise<PaginatedResponse<PublicUserResponse>> {
+    const params = new URLSearchParams();
+    params.append('searchTerm', '');
+    if (pagination) {
+      params.append('page', pagination.page.toString());
+      params.append('size', pagination.size.toString());
+    }
+    const response = await http.get<PaginatedResponse<PublicUserResponse>>(
+      `/api/v1/auth/users/directory?${params.toString()}`,
+    );
+    return response.data;
+  },
+
+  async getProfileImageUploadUrl(
+    request: ProfileImageUploadRequest,
+  ): Promise<ProfileImageUploadResponse> {
+    const response = await http.post<ProfileImageUploadResponse>(
+      '/api/v1/auth/profile-image/upload-url',
+      request,
+    );
+    return response.data;
+  },
+
+  async completeProfileImageUpload(
+    request: ProfileImageCompleteRequest,
+  ): Promise<ProfileImageCompleteResponse> {
+    const response = await http.post<ProfileImageCompleteResponse>(
+      '/api/v1/auth/profile-image/complete',
+      request,
+    );
+    return response.data;
+  },
+
+  async getMyPosts(
+    page?: number,
+    size?: number,
+  ): Promise<import('../../feeds/types/feeds').PostListResponse> {
+    const response = await http.get<import('../../feeds/types/feeds').PostListResponse>(
+      buildPagedUrl('/api/v1/auth/users/me/posts', page, size),
+    );
+    return response.data;
+  },
+
+  async getUserPosts(
+    userId: string,
+    page?: number,
+    size?: number,
+  ): Promise<import('../../feeds/types/feeds').PostListResponse> {
+    const response = await http.get<import('../../feeds/types/feeds').PostListResponse>(
+      buildPagedUrl(`/api/v1/auth/users/${userId}/posts`, page, size),
+    );
+    return response.data;
+  },
+
+  async updateMyNotificationSettings(
+    request: NotificationSettingsUpdateRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      '/api/v1/auth/users/me/notification-settings',
+      request,
+    );
+    return response.data;
+  },
+
+  async updateNotificationSettings(
+    userId: string,
+    request: NotificationSettingsUpdateRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      `/api/v1/auth/users/${userId}/notification-settings`,
+      request,
+    );
+    return response.data;
+  },
+
+  async updateMyPrivacySettings(
+    request: PrivacySettingsUpdateRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      '/api/v1/auth/users/me/privacy-settings',
+      request,
+    );
+    return response.data;
+  },
+
+  async updatePrivacySettings(
+    userId: string,
+    request: PrivacySettingsUpdateRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      `/api/v1/auth/users/${userId}/privacy-settings`,
+      request,
+    );
+    return response.data;
+  },
+
+  async updateMySecuritySettings(
+    request: SecuritySettingsUpdateRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      '/api/v1/auth/users/me/security-settings',
+      request,
+    );
+    return response.data;
+  },
+
+  async updateSecuritySettings(
+    userId: string,
+    request: SecuritySettingsUpdateRequest,
+  ): Promise<SecureUserResponse> {
+    const response = await http.put<SecureUserResponse>(
+      `/api/v1/auth/users/${userId}/security-settings`,
+      request,
+    );
+    return response.data;
   },
 };
-
-// Export as authService for backward compatibility
-export const authService = securityService;

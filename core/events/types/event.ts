@@ -2,6 +2,8 @@
  * Event related types
  */
 
+import { TicketTypeSummary } from '../../tickets/types/ticket';
+
 // Base Enums
 export enum EventType {
     CONFERENCE = 'CONFERENCE',
@@ -39,7 +41,60 @@ export enum EventType {
     FULL = 'FULL',
     FEED = 'FEED',
   }
-  
+
+  // Event Access Type - determines how users can access event content
+  export enum EventAccessType {
+    OPEN = 'OPEN',                 // Open to all (default)
+    RSVP_REQUIRED = 'RSVP_REQUIRED', // Requires RSVP confirmation
+    INVITE_ONLY = 'INVITE_ONLY',   // By invitation only
+    TICKETED = 'TICKETED',         // Requires valid ticket
+  }
+
+  // User's access status for an event
+  export enum UserAccessStatus {
+    OWNER = 'OWNER',
+    ORGANIZER = 'ORGANIZER',
+    COORDINATOR = 'COORDINATOR',
+    COLLABORATOR = 'COLLABORATOR',
+    TICKET_HOLDER = 'TICKET_HOLDER',
+    RSVP_CONFIRMED = 'RSVP_CONFIRMED',
+    RSVP_PENDING = 'RSVP_PENDING',
+    INVITE_ACCEPTED = 'INVITE_ACCEPTED',
+    INVITE_PENDING = 'INVITE_PENDING',
+    TICKET_PENDING = 'TICKET_PENDING',
+    MEMBER = 'MEMBER',
+    PUBLIC_VIEWER = 'PUBLIC_VIEWER',
+    NO_ACCESS = 'NO_ACCESS',
+  }
+
+  // User context for event - provides user-specific information
+  // eventRole matches EventUserType values from the backend collaborator role field
+  export type UserEventContext = {
+    accessStatus: UserAccessStatus;
+    isOwner: boolean;
+    isCollaborator: boolean;
+
+    /** Collaborator role string from the backend (EventUserType enum value) */
+    eventRole?: EventUserType | null;
+
+    /** Backend-computed permission flags */
+    canBuyTicket?: boolean | null;
+    canRsvp?: boolean | null;
+    canViewFeeds?: boolean | null;
+    primaryAction?: string | null;
+
+    hasRsvp?: boolean | null;
+    rsvpStatus?: string | null;
+
+    hasInvite?: boolean | null;
+    inviteStatus?: string | null;
+
+    hasValidTicket?: boolean | null;
+    ticketStatus?: string | null;
+    ticketId?: string | null;
+    ticketTypeName?: string | null;
+  };
+
   export enum AttendeeStatus {
     PENDING = 'PENDING',
     CONFIRMED = 'CONFIRMED',
@@ -96,6 +151,12 @@ export enum EventType {
     createdAt?: string | null; // ISO datetime
     updatedAt?: string | null; // ISO datetime
     scope?: EventScope; // FULL or FEED
+    feedsPublicAfterEvent?: boolean | null;
+    
+    // New access control fields
+    accessType?: EventAccessType | null;
+    userContext?: UserEventContext | null;
+    ticketTypes?: TicketTypeSummary[] | null;
   };
   
   // Event Request Types
@@ -127,6 +188,8 @@ export enum EventType {
     postEventTasks?: string | null;
     metadata?: string | null;
     venue?: VenueDto | null;
+    feedsPublicAfterEvent?: boolean | null;
+    accessType?: EventAccessType | null;
   };
   
   export type UpdateEventRequest = {
@@ -160,6 +223,18 @@ export enum EventType {
     venueId?: string | null; // UUID
     venueCleared?: boolean | null; // Set to true to remove venue association
     venue?: VenueDto | null;
+    feedsPublicAfterEvent?: boolean | null;
+    accessType?: EventAccessType | null;
+  };
+  
+  export type CloneEventRequest = {
+    name?: string | null; // Max 255 characters. If not provided, will use original name with ' (Copy)' suffix
+    startDateTime?: string | null; // ISO datetime. If not provided, will use original start date/time
+    endDateTime?: string | null; // ISO datetime. If not provided, will use original end date/time
+    cloneTicketTypes?: boolean | null; // Whether to clone ticket types from the original event, default: false
+    cloneVenue?: boolean | null; // Whether to clone venue information from the original event, default: true
+    cloneMedia?: boolean | null; // Whether to clone media/assets from the original event, default: false
+    eventStatus?: EventStatus | null; // Status for the cloned event. If not provided, will default to DRAFT
   };
   
   // Event List/Filter Types
@@ -200,6 +275,17 @@ export enum EventType {
     tags?: string | null; // Comma separated tags
     description?: string | null; // Human readable description
     metadata?: string | null; // Arbitrary metadata (stored as string/JSON)
+  };
+
+  export type EventMediaRequest = {
+    mediaType: string; // e.g., "image", "video", "document"
+    mediaName: string;
+    description?: string | null;
+    category?: string | null;
+    isPublic?: boolean | null;
+    tags?: string | null;
+    metadata?: string | null;
+    mediaUrl?: string | null;
   };
   
   export type EventPresignedUploadResponse = {
@@ -244,17 +330,6 @@ export enum EventType {
   export type EventCoverImageCompleteRequest = {
     coverId: string; // UUID - Cover object ID returned from the presigned upload response
     upload: EventMediaUploadCompleteRequest; // Upload completion payload
-  };
-  
-  // Event Create/Update with Cover Upload Types
-  export type CreateEventWithCoverUploadRequest = {
-    event: CreateEventRequest; // Required, event creation payload
-    coverUpload: EventMediaUploadRequest; // Required, cover image upload metadata
-  };
-  
-  export type CreateEventWithCoverUploadResponse = {
-    event: EventResponse; // Created event details
-    coverUpload: EventPresignedUploadResponse; // Presigned upload details for uploading the cover image to S3
   };
   
   export type UpdateEventWithCoverUploadRequest = {
@@ -305,6 +380,11 @@ export enum EventType {
     hasNext?: boolean | null; // Whether there is a next page
     hasPrevious?: boolean | null; // Whether there is a previous page
     scope?: EventScope; // Event scope: FULL (full details) or FEED (feed view), default: FEED
+    feedsPublicAfterEvent?: boolean | null;
+    
+    // New access control fields
+    accessType?: EventAccessType | null;
+    userContext?: UserEventContext | null;
   };
   
   // Attendee Types
@@ -363,7 +443,7 @@ export enum EventType {
 
   // Event Capacity Response Type
   export type EventCapacityResponse = {
-    id: string; // UUID
+    eventId: string; // UUID
     capacity?: number | null;
     currentAttendeeCount?: number | null;
     registrationDeadline?: string | null; // ISO datetime
@@ -374,10 +454,12 @@ export enum EventType {
 
   // Event Visibility Response Type
   export type EventVisibilityResponse = {
-    id: string; // UUID
+    eventId: string; // UUID
     isPublic?: boolean | null;
     requiresApproval?: boolean | null;
-    eventStatus?: EventStatus | null;
+    registrationDeadline?: string | null; // ISO datetime
+    accessLevel?: string | null;
+    updatedAt?: string | null; // ISO datetime
   };
   
   // Event Collaborator Types
@@ -422,39 +504,50 @@ export enum EventType {
     invitationMessage?: string | null;
   };
 
-  // Event Notification Types
-  export type EventNotificationChannel = 'EMAIL' | 'SMS' | 'PUSH' | 'IN_APP';
+  export enum RecipientType {
+    ALL_COLLABORATORS = 'ALL_COLLABORATORS',
+    ALL_GUESTS = 'ALL_GUESTS',
+    SPECIFIC_PERSON = 'SPECIFIC_PERSON',
+  }
 
-  export type EventNotificationRequest = {
-    channel: EventNotificationChannel;
-    subject?: string | null;
-    content: string;
-    recipientEmails?: string[] | null;
-    scheduledAt?: string | null;
-  };
-
-  export type EventNotificationSettingsResponse = {
-    channels?: Partial<Record<EventNotificationChannel, boolean>>;
-  };
+  export enum EmailTemplateType {
+    EVENT_REMINDER = 'EVENT_REMINDER',
+    REGISTRATION_CONFIRMATION = 'REGISTRATION_CONFIRMATION',
+    CUSTOM = 'CUSTOM',
+  }
 
   export type EventReminderRequest = {
-    title: string;
-    reminderTime: string; // ISO datetime
-    channel: EventNotificationChannel;
+    title: string; // Required, max 200 chars
+    description?: string | null;
+    reminderTime?: string | null; // ISO datetime - if not provided, defaults to 5 minutes from now
+    channel: string; // Required, max 30 chars (email, sms, push)
+    emailTemplateType?: EmailTemplateType | null; // Required when channel is 'email'
+    recipientTypes?: RecipientType[] | null; // Options: ALL_COLLABORATORS, ALL_GUESTS, SPECIFIC_PERSON
+    recipientUserIds?: string[] | null; // UUID list (required if SPECIFIC_PERSON is in recipientTypes)
+    recipientEmails?: string[] | null; // Email list (required if SPECIFIC_PERSON is in recipientTypes)
+    reminderType?: string | null; // event_start, registration_deadline, custom (default: custom), max 30 chars
+    isActive?: boolean | null; // Default: true
     customMessage?: string | null;
+    includeEventDetails?: boolean | null; // Default: true
   };
 
   export type EventReminderUpdateRequest = Partial<EventReminderRequest>;
 
   export type EventReminderResponse = {
     reminderId: string; // UUID
-    eventId?: string | null;
+    eventId?: string | null; // UUID
     title: string;
-    reminderTime?: string | null;
-    channel: EventNotificationChannel;
+    description?: string | null;
+    reminderTime?: string | null; // ISO datetime
+    channel: string;
+    reminderType?: string | null;
+    isActive?: boolean | null;
     customMessage?: string | null;
+    recipientCount?: number | null;
     createdAt?: string | null; // ISO datetime
     updatedAt?: string | null; // ISO datetime
+    wasSent?: boolean | null;
+    sentAt?: string | null; // ISO datetime
   };
 
   // Type aliases for backward compatibility
@@ -474,15 +567,3 @@ export enum EventType {
     return 'posts' in data && 'eventId' in data;
   }
 
-  // Placeholder types for features that may not be fully implemented yet
-  export type TimelineDTO = any;
-  export type TaskDTO = any;
-  export type BudgetDTO = any;
-  export type ExpenseDTO = any;
-  export type InvitationDTO = any;
-  export type AttendeeDTO = any;
-  export type Vendor = any;
-  export type RiskDTO = any;
-  export type EmergencyPlanDTO = any;
-  
-  

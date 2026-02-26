@@ -93,14 +93,19 @@ export function useAsync<T = any>(
     }
   }, []);
 
-  // Execute immediately if requested (only once on mount)
+  // Execute immediately if requested (only once on mount, using the ref to call the
+  // latest version of execute without adding it as a dependency — we deliberately
+  // don't re-run this effect when `execute` changes, only on initial mount).
   const hasExecutedRef = useRef(false);
+  const executeRef = useRef(execute);
+  useEffect(() => {
+    executeRef.current = execute;
+  });
   useEffect(() => {
     if (immediate && !hasExecutedRef.current) {
       hasExecutedRef.current = true;
-      execute();
+      executeRef.current();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [immediate]);
 
   const actions: AsyncActions<T> = {

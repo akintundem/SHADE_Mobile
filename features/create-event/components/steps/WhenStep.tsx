@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { CalendarDays, Clock, ChevronRight } from 'lucide-react-native';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
 import {
   DateTimePickerModal,
   formatDisplayDateTime,
@@ -10,178 +9,107 @@ import {
   toIsoDateString,
   toTimeString,
 } from '../../../../common/datetime';
+import { useCreateEvent } from '../../context';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
-type Props = {
-  startDate: string;
-  startTime: string;
-  endDate: string;
-  endTime: string;
-  onStartDateChange: (text: string) => void;
-  onStartTimeChange: (text: string) => void;
-  onEndDateChange: (text: string) => void;
-  onEndTimeChange: (text: string) => void;
-  onStartDateBlur: () => void;
-  onStartTimeBlur: () => void;
-  startDateError?: string;
-  startTimeError?: string;
-};
-
-export function WhenStep({
-  startDate,
-  startTime,
-  endDate,
-  endTime,
-  onStartDateChange,
-  onStartTimeChange,
-  onEndDateChange,
-  onEndTimeChange,
-  onStartDateBlur,
-  onStartTimeBlur,
-  startDateError,
-  startTimeError,
-}: Props) {
-  const { colors, typography, spacing, borderRadius } = useTheme();
+export function WhenStep() {
+  const { form, actions, validation } = useCreateEvent();
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const { colors } = useTheme();
+  const iconColor = colors.text.secondary;
+  const iconTertiary = colors.text.tertiary;
 
   const handleStartConfirm = (date: Date, time: { hour: number; minute: number }) => {
-    onStartDateChange(toIsoDateString(date));
-    onStartTimeChange(toTimeString(time));
-    onStartDateBlur();
-    onStartTimeBlur();
+    const isoDate = toIsoDateString(date);
+    const isoTime = toTimeString(time);
+    actions.setStartDate(isoDate);
+    actions.setStartTime(isoTime);
+    validation.setFieldTouched('startDate');
+    validation.setFieldTouched('startTime');
+    validation.validateField('startDate', isoDate);
+    validation.validateField('startTime', isoTime);
   };
 
   const handleEndConfirm = (date: Date, time: { hour: number; minute: number }) => {
-    onEndDateChange(toIsoDateString(date));
-    onEndTimeChange(toTimeString(time));
+    const isoDate = toIsoDateString(date);
+    const isoTime = toTimeString(time);
+    actions.setEndDate(isoDate);
+    actions.setEndTime(isoTime);
+    validation.validateField('endDate', isoDate);
+    validation.validateField('endTime', isoTime);
   };
 
-  const startDateObj = parseDateInput(startDate);
-  const startTimeObj = parseTimeInput(startTime);
-  const endDateObj = parseDateInput(endDate);
-  const endTimeObj = parseTimeInput(endTime);
-  const startDisplayValue = formatDisplayDateTime(startDate, startTime);
-  const endDisplayValue = formatDisplayDateTime(endDate, endTime);
+  const startDateObj = parseDateInput(form.startDate);
+  const startTimeObj = parseTimeInput(form.startTime);
+  const endDateObj = parseDateInput(form.endDate);
+  const endTimeObj = parseTimeInput(form.endTime);
+  const startDisplayValue = formatDisplayDateTime(form.startDate, form.startTime);
+  const endDisplayValue = formatDisplayDateTime(form.endDate, form.endTime);
+
+  const startDateError = validation.getFieldError('startDate');
+  const startTimeError = validation.getFieldError('startTime');
 
   return (
     <>
-      <ScrollView
-        contentContainerStyle={{
-          paddingBottom: 120,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.xl,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView keyboardShouldPersistTaps="handled">
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View>
-            <View style={{ marginBottom: spacing.xl }}>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontWeight: typography.weight.bold,
-                  fontSize: typography.size['2xl'],
-                  marginBottom: spacing.xs,
-                }}
-              >
+          <View className="px-lg pt-xl pb-[120px]">
+            <View className="mb-xl">
+              <Text className="text-2xl font-bold text-txt-primary dark:text-txt-dark-primary mb-xs">
                 When
               </Text>
-              <Text
-                style={{
-                  color: colors.text.secondary,
-                  fontSize: typography.size.sm,
-                }}
-              >
+              <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary">
                 Schedule your event
               </Text>
             </View>
 
-            <View style={{ gap: spacing.lg }}>
-              {/* Start */}
+            <View className="gap-lg">
               <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm }}>
-                  <CalendarDays size={20} color={colors.text.secondary} />
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.sm,
-                      fontWeight: typography.weight.medium,
-                    }}
-                  >
+                <View className="flex-row items-center gap-sm mb-sm">
+                  <CalendarDays size={20} color={iconColor} />
+                  <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
                     Start
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setShowStartPicker(true)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: borderRadius.lg,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.md,
-                    minHeight: 48,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
+                  className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-md py-md min-h-[48px] flex-row items-center justify-between"
+                  activeOpacity={0.7}
                 >
-                  <Text
-                    style={{
-                      fontSize: typography.size.base,
-                      color: startDisplayValue ? colors.text.primary : colors.text.tertiary,
-                    }}
-                  >
+                  <Text className={`text-base ${startDisplayValue ? 'text-txt-primary dark:text-txt-dark-primary' : 'text-txt-tertiary dark:text-txt-dark-tertiary'}`}>
                     {startDisplayValue || 'Select start date and time'}
                   </Text>
-                  <ChevronRight size={20} color={colors.text.tertiary} />
+                  <ChevronRight size={20} color={iconTertiary} />
                 </TouchableOpacity>
-                {startDateError && (
-                  <Text style={{ color: colors.semantic.error, fontSize: typography.size.xs, marginTop: spacing.xs }}>
+                {startDateError ? (
+                  <Text className="text-semantic-error text-xs mt-xs">
                     {startDateError}
                   </Text>
-                )}
-                {startTimeError && (
-                  <Text style={{ color: colors.semantic.error, fontSize: typography.size.xs, marginTop: spacing.xs }}>
+                ) : null}
+                {startTimeError ? (
+                  <Text className="text-semantic-error text-xs mt-xs">
                     {startTimeError}
                   </Text>
-                )}
+                ) : null}
               </View>
 
-              {/* End */}
               <View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm }}>
-                  <Clock size={20} color={colors.text.secondary} />
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.sm,
-                      fontWeight: typography.weight.medium,
-                    }}
-                  >
+                <View className="flex-row items-center gap-sm mb-sm">
+                  <Clock size={20} color={iconColor} />
+                  <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
                     End
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setShowEndPicker(true)}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: borderRadius.lg,
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.md,
-                    minHeight: 48,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
+                  className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-md py-md min-h-[48px] flex-row items-center justify-between"
+                  activeOpacity={0.7}
                 >
-                  <Text
-                    style={{
-                      fontSize: typography.size.base,
-                      color: endDisplayValue ? colors.text.primary : colors.text.tertiary,
-                    }}
-                  >
+                  <Text className={`text-base ${endDisplayValue ? 'text-txt-primary dark:text-txt-dark-primary' : 'text-txt-tertiary dark:text-txt-dark-tertiary'}`}>
                     {endDisplayValue || 'Select end date and time'}
                   </Text>
-                  <ChevronRight size={20} color={colors.text.tertiary} />
+                  <ChevronRight size={20} color={iconTertiary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -189,7 +117,6 @@ export function WhenStep({
         </TouchableWithoutFeedback>
       </ScrollView>
 
-      {/* Date/Time Pickers */}
       <DateTimePickerModal
         visible={showStartPicker}
         initialDate={startDateObj || new Date()}

@@ -1,7 +1,8 @@
 // Utility exports
+export * from './cache';
+export * from './colorUtils';
 export * from './errorHandler';
-export * from './offlineStorage';
 export * from './formValidation';
-export * from './gestureHandler';
 export * from './constants';
 export * from './helpers';
+export * from './notificationBus';

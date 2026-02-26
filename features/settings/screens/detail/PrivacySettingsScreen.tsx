@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback } from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Lock, Eye, EyeOff, Search } from 'lucide-react-native';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { SettingsSection, SettingsRow } from '../../components';
 import CustomSwitch from '../../../../common/components/ui/CustomSwitch';
-import { useCurrentUser } from '../../../../common/hooks/useCurrentUser';
-import { authService } from '../../../../core/auth/services/authService';
 import { VisibilityLevel } from '../../../../core/auth/types/auth';
+import { useSettings } from '../../context';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
 type Props = {
   onBack?: () => void;
@@ -16,164 +14,139 @@ type Props = {
 
 export default function PrivacySettingsScreen({ onBack }: Props) {
   const { t } = useI18n();
-  const { colors, spacing, typography } = useTheme();
-  const { user, refetch } = useCurrentUser();
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  const settings = user?.settings;
+  const { colors } = useTheme();
+  const iconColors = { primary: colors.text.primary, secondary: colors.text.secondary };
+  const borderColor = colors.borderLight;
+  const { settings, updatePrivacy, isUpdating } = useSettings();
 
-  const [profileVisibility, setProfileVisibility] = useState<VisibilityLevel>(
-    settings?.profileVisibility || VisibilityLevel.PUBLIC
+  const profileVisibility = settings?.profileVisibility ?? VisibilityLevel.PUBLIC;
+  const searchVisibility = settings?.searchVisibility ?? true;
+  const eventParticipationVisibility = settings?.eventParticipationVisibility ?? VisibilityLevel.PUBLIC;
+  const showInEventDirectory = settings?.showInEventDirectory ?? true;
+
+  const handleProfileVisibilityChange = useCallback(
+    async (value: VisibilityLevel) => {
+      await updatePrivacy({ profileVisibility: value });
+    },
+    [updatePrivacy]
   );
-  const [searchVisibility, setSearchVisibility] = useState<boolean>(
-    settings?.searchVisibility ?? true
+
+  const handleSearchVisibilityChange = useCallback(
+    async (value: boolean) => {
+      await updatePrivacy({ searchVisibility: value });
+    },
+    [updatePrivacy]
   );
 
-  useEffect(() => {
-    if (settings) {
-      setProfileVisibility(settings.profileVisibility || VisibilityLevel.PUBLIC);
-      setSearchVisibility(settings.searchVisibility ?? true);
-    }
-  }, [settings]);
+  const handleEventParticipationChange = useCallback(
+    async (value: VisibilityLevel) => {
+      await updatePrivacy({ eventParticipationVisibility: value });
+    },
+    [updatePrivacy]
+  );
 
-  const handleProfileVisibilityChange = async (value: VisibilityLevel) => {
-    if (!user) return;
-    setProfileVisibility(value);
-    setIsUpdating(true);
-    try {
-      await authService.updateUserProfile(user.id, {
-        name: user.name,
-        settings: { profileVisibility: value },
-      });
-      await refetch();
-    } catch (error) {
-      // Revert on error
-      setProfileVisibility(settings?.profileVisibility || VisibilityLevel.PUBLIC);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleSearchVisibilityChange = async (value: boolean) => {
-    if (!user) return;
-    setSearchVisibility(value);
-    setIsUpdating(true);
-    try {
-      await authService.updateUserProfile(user.id, {
-        name: user.name,
-        settings: { searchVisibility: value },
-      });
-      await refetch();
-    } catch (error) {
-      // Revert on error
-      setSearchVisibility(settings?.searchVisibility ?? true);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
+  const handleShowInDirectoryChange = useCallback(
+    async (value: boolean) => {
+      await updatePrivacy({ showInEventDirectory: value });
+    },
+    [updatePrivacy]
+  );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.md,
-          borderBottomWidth: 0.5,
-          borderColor: colors.divider,
-        }}
-      >
-        <TouchableOpacity onPress={onBack} style={{ padding: spacing.xs }}>
-          <ArrowLeft size={20} color={colors.text.primary} strokeWidth={1.5} />
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
+      <View className="flex-row items-center justify-between px-xl py-md">
+        <TouchableOpacity onPress={onBack} className="p-xs">
+          <ArrowLeft size={20} color={iconColors.primary} strokeWidth={1.5} />
         </TouchableOpacity>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.semibold,
-            fontSize: typography.size.base,
-          }}
-        >
+        <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary">
           {t('PrivacyAndSafety')}
         </Text>
-        <View style={{ width: 40 }} />
+        <View className="w-10" />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.xl }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View className="pb-5">
         <SettingsSection title={t('ProfileVisibility')} />
-        <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs, marginBottom: spacing.md }}>
+        <View className="px-xl py-sm">
+          <Text className="text-xs text-txt-secondary dark:text-txt-dark-secondary mb-md">
             {t('ControlWhoCanSeeYourProfile')}
           </Text>
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+          <View className="flex-row gap-sm">
             <TouchableOpacity
               onPress={() => handleProfileVisibilityChange(VisibilityLevel.PUBLIC)}
+              className="flex-1 p-md rounded-lg border"
               style={{
-                flex: 1,
-                padding: spacing.md,
-                borderRadius: 8,
-                borderWidth: 1,
                 borderColor:
-                  profileVisibility === VisibilityLevel.PUBLIC
-                    ? colors.text.primary
-                    : colors.divider,
+                  profileVisibility === VisibilityLevel.PUBLIC ? iconColors.primary : borderColor,
                 backgroundColor:
                   profileVisibility === VisibilityLevel.PUBLIC
                     ? colors.surfaceElevated
-                    : colors.background,
+                    : 'transparent',
               }}
+              disabled={isUpdating}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs }}>
-                <Eye size={16} color={colors.text.primary} />
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontWeight: typography.weight.semibold,
-                    fontSize: typography.size.sm,
-                  }}
-                >
+              <View className="flex-row items-center gap-xs mb-xs">
+                <Eye size={16} color={iconColors.primary} />
+                <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
                   {t('Public')}
                 </Text>
               </View>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
+              <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
                 {t('AnyoneCanSeeYourProfile')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handleProfileVisibilityChange(VisibilityLevel.PRIVATE)}
+              className="flex-1 p-md rounded-lg border"
               style={{
-                flex: 1,
-                padding: spacing.md,
-                borderRadius: 8,
-                borderWidth: 1,
                 borderColor:
-                  profileVisibility === VisibilityLevel.PRIVATE
-                    ? colors.text.primary
-                    : colors.divider,
+                  profileVisibility === VisibilityLevel.PRIVATE ? iconColors.primary : borderColor,
                 backgroundColor:
                   profileVisibility === VisibilityLevel.PRIVATE
                     ? colors.surfaceElevated
-                    : colors.background,
+                    : 'transparent',
               }}
+              disabled={isUpdating}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs }}>
-                <EyeOff size={16} color={colors.text.primary} />
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontWeight: typography.weight.semibold,
-                    fontSize: typography.size.sm,
-                  }}
-                >
+              <View className="flex-row items-center gap-xs mb-xs">
+                <EyeOff size={16} color={iconColors.primary} />
+                <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
                   {t('Private')}
                 </Text>
               </View>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
+              <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
                 {t('OnlyYouCanSeeYourProfile')}
               </Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        <SettingsSection title={t('EventParticipationVisibility')} />
+        <View className="px-xl py-sm">
+          <Text className="text-xs text-txt-secondary dark:text-txt-dark-secondary mb-md">
+            {t('ControlWhoSeesEventParticipation')}
+          </Text>
+          <View className="flex-row gap-sm">
+            {[VisibilityLevel.PUBLIC, VisibilityLevel.FRIENDS_ONLY, VisibilityLevel.PRIVATE].map(option => (
+              <TouchableOpacity
+                key={option}
+                onPress={() => handleEventParticipationChange(option)}
+                className="flex-1 p-md rounded-lg border"
+                style={{
+                  borderColor:
+                    eventParticipationVisibility === option ? iconColors.primary : borderColor,
+                  backgroundColor:
+                    eventParticipationVisibility === option
+                      ? colors.surfaceElevated
+                      : 'transparent',
+                }}
+                disabled={isUpdating}
+              >
+                <Text className="text-sm font-semibold text-center text-txt-primary dark:text-txt-dark-primary">
+                  {t(option === VisibilityLevel.PUBLIC ? 'Public' : option === VisibilityLevel.PRIVATE ? 'Private' : 'FriendsOnly')}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -190,9 +163,20 @@ export default function PrivacySettingsScreen({ onBack }: Props) {
             />
           }
         />
-
+        <SettingsRow
+          icon={Lock}
+          title={t('ShowInEventDirectory')}
+          subtitle={t('ShowInEventDirectoryDescription')}
+          end={
+            <CustomSwitch
+              value={showInEventDirectory}
+              onValueChange={handleShowInDirectoryChange}
+              disabled={isUpdating}
+            />
+          }
+        />
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-

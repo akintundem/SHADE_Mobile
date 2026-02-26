@@ -1,136 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback } from 'react';
 import { ScrollView, View, Text, TouchableOpacity, Alert } from 'react-native';
-import { ArrowLeft, Shield, Key } from 'lucide-react-native';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
+import { ArrowLeft, Shield } from 'lucide-react-native';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { SettingsSection, SettingsRow } from '../../components';
 import CustomSwitch from '../../../../common/components/ui/CustomSwitch';
-import { useCurrentUser } from '../../../../common/hooks/useCurrentUser';
-import { authService } from '../../../../core/auth/services/authService';
+import { useSettings } from '../../context';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
 type Props = {
   onBack?: () => void;
-  onChangePassword?: () => void;
 };
 
-export default function SecuritySettingsScreen({ onBack, onChangePassword }: Props) {
+export default function SecuritySettingsScreen({ onBack }: Props) {
   const { t } = useI18n();
-  const { colors, spacing, typography } = useTheme();
-  const { user, refetch } = useCurrentUser();
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  const settings = user?.settings;
+  const { colors } = useTheme();
+  const { settings, updateSecurity, isUpdating } = useSettings();
 
-  const [mfaEnabled, setMfaEnabled] = useState(settings?.mfaEnabled ?? false);
+  const mfaEnabled = settings?.mfaEnabled ?? false;
 
-  useEffect(() => {
-    if (settings) {
-      setMfaEnabled(settings.mfaEnabled ?? false);
-    }
-  }, [settings]);
-
-  const handleMfaToggle = async (value: boolean) => {
-    if (value && !mfaEnabled) {
-      // Enable MFA - show confirmation
-      Alert.alert(
-        t('EnableTwoFactorAuthentication'),
-        t('EnableMFAConfirmation'),
-        [
+  const handleMfaToggle = useCallback(
+    async (value: boolean) => {
+      if (value && !mfaEnabled) {
+        Alert.alert(t('EnableTwoFactorAuthentication'), t('EnableMFAConfirmation'), [
           { text: t('Cancel'), style: 'cancel' },
           {
             text: t('Enable'),
             onPress: async () => {
-              if (!user) return;
-              setMfaEnabled(true);
-              setIsUpdating(true);
-              try {
-                await authService.updateUserProfile(user.id, {
-                  name: user.name,
-                  settings: { mfaEnabled: true },
-                });
-                await refetch();
+              const ok = await updateSecurity({ mfaEnabled: true });
+              if (ok) {
                 Alert.alert(t('Success'), t('MFAEnabledSuccessfully'));
-              } catch (error) {
-                setMfaEnabled(false);
+              } else {
                 Alert.alert(t('Error'), t('FailedToEnableMFA'));
-              } finally {
-                setIsUpdating(false);
               }
             },
           },
-        ]
-      );
-    } else if (!value && mfaEnabled) {
-      // Disable MFA - show warning
-      Alert.alert(
-        t('DisableTwoFactorAuthentication'),
-        t('DisableMFAWarning'),
-        [
-          { text: t('Cancel'), style: 'cancel', onPress: () => setMfaEnabled(true) },
+        ]);
+      } else if (!value && mfaEnabled) {
+        Alert.alert(t('DisableTwoFactorAuthentication'), t('DisableMFAWarning'), [
+          { text: t('Cancel'), style: 'cancel' },
           {
             text: t('Disable'),
             style: 'destructive',
             onPress: async () => {
-              if (!user) return;
-              setMfaEnabled(false);
-              setIsUpdating(true);
-              try {
-                await authService.updateUserProfile(user.id, {
-                  name: user.name,
-                  settings: { mfaEnabled: false },
-                });
-                await refetch();
+              const ok = await updateSecurity({ mfaEnabled: false });
+              if (ok) {
                 Alert.alert(t('Success'), t('MFADisabledSuccessfully'));
-              } catch (error) {
-                setMfaEnabled(true);
+              } else {
                 Alert.alert(t('Error'), t('FailedToDisableMFA'));
-              } finally {
-                setIsUpdating(false);
               }
             },
           },
-        ]
-      );
-    }
-  };
+        ]);
+      }
+    },
+    [mfaEnabled, t, updateSecurity]
+  );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.md,
-          borderBottomWidth: 0.5,
-          borderColor: colors.divider,
-        }}
-      >
-        <TouchableOpacity onPress={onBack} style={{ padding: spacing.xs }}>
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
+      <View className="flex-row items-center justify-between px-xl py-md">
+        <TouchableOpacity onPress={onBack} className="p-xs">
           <ArrowLeft size={20} color={colors.text.primary} strokeWidth={1.5} />
         </TouchableOpacity>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.semibold,
-            fontSize: typography.size.base,
-          }}
-        >
+        <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary">
           {t('Security')}
         </Text>
-        <View style={{ width: 40 }} />
+        <View className="w-10" />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.xl }}>
-        <SettingsSection title={t('Authentication')} />
-        <SettingsRow
-          icon={Key}
-          title={t('ChangePassword')}
-          subtitle={t('UpdateYourPasswordSecurely')}
-          onPress={onChangePassword}
-        />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View className="pb-5">
+          <SettingsSection title={t('Authentication')} />
         <SettingsRow
           icon={Shield}
           title={t('TwoFactorAuthentication')}
@@ -143,15 +83,15 @@ export default function SecuritySettingsScreen({ onBack, onChangePassword }: Pro
             />
           }
         />
-        {mfaEnabled && (
-          <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.sm }}>
-            <Text style={{ color: colors.semantic.success, fontSize: typography.size.xs }}>
-              {t('MFAIsActive')}
-            </Text>
-          </View>
-        )}
+          {mfaEnabled ? (
+            <View className="px-xl py-sm">
+              <Text className="text-xs text-semantic-success">
+                {t('MFAIsActive')}
+              </Text>
+            </View>
+          ) : null}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -10,59 +10,30 @@ import {
   View,
 } from 'react-native';
 import { MapPin, X } from 'lucide-react-native';
+import { useCreateEvent } from '../../context';
+import { useLocationSearch } from '../../hooks';
 import { useTheme } from '../../../../common/theme/ThemeProvider';
-// Local Venue type for form input
-type Venue = {
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  zipCode?: string;
-  latitude?: number;
-  longitude?: number;
-  googlePlaceId?: string;
-  googlePlaceData?: string;
-};
+import EventLocationHeader from '../../../event-dashboard/dashboard/components/EventLocationHeader';
 
-type Props = {
-  venue: Venue | null;
-  locationSearchQuery: string;
-  onVenueChange: (venue: Venue | null) => void;
-  onLocationSearchChange: (query: string) => void;
-};
+export function LocationStep() {
+  const { form, actions, validation } = useCreateEvent();
+  const { colors } = useTheme();
+  const iconTertiary = colors.text.tertiary;
+  const iconSecondary = colors.text.secondary;
 
-type LocationSuggestion = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  latitude: number;
-  longitude: number;
-  displayName: string;
-  components: {
-    city?: string;
-    state?: string;
-    country?: string;
-    zipCode?: string;
-  };
-};
-
-export function LocationStep({
-  venue,
-  locationSearchQuery,
-  onLocationSearchChange,
-  onVenueChange,
-}: Props) {
-  const { colors, spacing, typography, borderRadius, isDark } = useTheme();
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchAbortRef = useRef<AbortController | null>(null);
+  const {
+    suggestions,
+    isSearching,
+    showSuggestions,
+    setShowSuggestions,
+    clearSuggestions,
+    canSearch,
+  } = useLocationSearch(form.locationSearchQuery);
 
   const handleSuggestionSelect = useCallback(
-    (suggestion: LocationSuggestion) => {
-      onVenueChange({
-        address: suggestion.displayName,
+    (suggestion: typeof suggestions[number]) => {
+      actions.setVenue({
+        address: suggestion.title || suggestion.displayName,
         city: suggestion.components.city,
         state: suggestion.components.state,
         country: suggestion.components.country,
@@ -70,24 +41,40 @@ export function LocationStep({
         latitude: suggestion.latitude,
         longitude: suggestion.longitude,
       });
-      onLocationSearchChange(suggestion.displayName);
-      setSuggestions([]);
-      setShowSuggestions(false);
+      actions.setLocationSearchQuery(suggestion.displayName);
+      validation.setFieldTouched('location');
+      validation.validateField('location', suggestion.displayName);
+      clearSuggestions();
     },
-    [onVenueChange, onLocationSearchChange],
+    [actions, clearSuggestions, validation],
   );
 
+  const venueLabelParts = useMemo(() => {
+    if (!form.venue) return null;
+    const parts = [form.venue.address, form.venue.city, form.venue.state, form.venue.country]
+      .filter(Boolean);
+    return parts.length > 0 ? parts : null;
+  }, [form.venue]);
+
+  const venueCoordinates = useMemo(() => {
+    const latitude = form.venue?.latitude;
+    const longitude = form.venue?.longitude;
+    if (typeof latitude === 'number' && typeof longitude === 'number') {
+      return { latitude, longitude };
+    }
+    return null;
+  }, [form.venue?.latitude, form.venue?.longitude]);
+
   const previewText = useMemo(() => {
-    if (venue?.address) {
-      const primary = venue.address;
-      const rest = [venue.city, venue.state, venue.country].filter(Boolean).join(', ');
+    if (venueLabelParts) {
+      const [primary, ...rest] = venueLabelParts;
       return {
         primary,
-        secondary: rest,
+        secondary: rest.length > 0 ? rest.join(', ') : '',
       };
     }
 
-    if (locationSearchQuery) {
+    if (form.locationSearchQuery) {
       return {
         primary: 'Keep typing to refine your search.',
         secondary: 'Select an address from the dropdown list when it appears.',
@@ -98,102 +85,15 @@ export function LocationStep({
       primary: 'Search and select a location to preview',
       secondary: 'Start typing an address or place to begin.',
     };
-  }, [locationSearchQuery, venue]);
+  }, [form.locationSearchQuery, venueLabelParts]);
 
-  useEffect(() => {
-    if (!locationSearchQuery || locationSearchQuery.trim().length < 2) {
-      searchDebounceRef.current && clearTimeout(searchDebounceRef.current);
-      searchAbortRef.current?.abort();
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-    setShowSuggestions(true);
-
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
-
-    searchDebounceRef.current = setTimeout(async () => {
-      try {
-        searchAbortRef.current?.abort();
-        const controller = new AbortController();
-        searchAbortRef.current = controller;
-
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(
-            locationSearchQuery,
-          )}`,
-          {
-            signal: controller.signal,
-            headers: {
-              'User-Agent': 'capsule-app/1.0',
-              Accept: 'application/json',
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch location suggestions');
-        }
-
-        const results: any[] = await response.json();
-        const mapped: LocationSuggestion[] = results.map((item, index) => {
-          const address = item.address || {};
-          const displayName: string = item.display_name || locationSearchQuery;
-          const [title, ...rest] = displayName.split(',');
-
-          return {
-            id: item.place_id?.toString() ?? `${item.lat}-${item.lon}-${index}`,
-            title: title?.trim() || displayName,
-            subtitle: rest.join(', ').trim(),
-            latitude: parseFloat(item.lat),
-            longitude: parseFloat(item.lon),
-            displayName,
-            components: {
-              city:
-                address.city ||
-                address.town ||
-                address.village ||
-                address.municipality ||
-                address.county,
-              state: address.state || address.region,
-              country: address.country,
-              zipCode: address.postcode,
-            },
-          };
-        });
-
-        setSuggestions(mapped);
-      } catch (error) {
-        // Location search error
-      } finally {
-        setIsSearching(false);
-      }
-    }, 350);
-
-    return () => {
-      if (searchDebounceRef.current) {
-        clearTimeout(searchDebounceRef.current);
-      }
-    };
-  }, [locationSearchQuery]);
-
-  useEffect(() => () => searchAbortRef.current?.abort(), []);
+  const locationError = validation.getFieldError('location');
 
   const handleClear = () => {
-    onLocationSearchChange('');
-    setSuggestions([]);
-    setShowSuggestions(false);
-    onVenueChange(null);
+    actions.setLocationSearchQuery('');
+    actions.setVenue(null);
+    clearSuggestions();
   };
-
-  const cardBackground = isDark ? '#0F1012' : '#FFFFFF';
-  const borderColor = isDark ? '#1F1F1F' : '#E5E7EB';
-  const previewBackground = isDark ? '#111214' : '#F6F7FB';
 
   return (
     <TouchableWithoutFeedback
@@ -203,234 +103,140 @@ export function LocationStep({
       }}
       accessible={false}
     >
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.xl,
-          paddingBottom: spacing['3xl'],
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={{ gap: spacing.xl }}>
-          <View style={{ gap: spacing.xs }}>
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size['2xl'],
-                fontWeight: typography.weight.bold,
-              }}
-            >
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <View className="px-lg pt-xl pb-[120px] gap-xl">
+          <View className="gap-xs">
+            <Text className="text-2xl font-bold text-txt-primary dark:text-txt-dark-primary">
               Event Location
             </Text>
-            <Text
-              style={{
-                color: colors.text.secondary,
-                fontSize: typography.size.sm,
-              }}
-            >
+            <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary">
               Search for an address or place to set your event location.
             </Text>
           </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.semibold,
-              }}
-            >
+          <View className="gap-sm">
+            <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
               Location
             </Text>
-            <View style={{ position: 'relative', zIndex: showSuggestions ? 10 : 1 }}>
+            <View className={`relative ${showSuggestions ? 'z-10' : 'z-0'}`}>
               <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: cardBackground,
-                  borderRadius: borderRadius['2xl'],
-                  borderWidth: 1,
-                  borderColor: borderColor,
-                  paddingHorizontal: spacing.lg,
-                  height: 56,
-                }}
+                className={`bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-2xl overflow-hidden ${
+                  showSuggestions && (isSearching || suggestions.length > 0) ? 'rounded-b-none' : ''
+                }`}
               >
-                <MapPin size={18} color={colors.text.tertiary} style={{ marginRight: spacing.sm }} />
-                <TextInput
-                  placeholder="Search for a location"
-                  placeholderTextColor={colors.text.tertiary}
-                  value={locationSearchQuery}
-                  onChangeText={(text) => {
-                    onLocationSearchChange(text);
-                    if (!text) {
-                      setShowSuggestions(false);
-                      setSuggestions([]);
-                      onVenueChange(null);
-                    }
-                  }}
-                  onFocus={() => {
-                    if (suggestions.length > 0) {
-                      setShowSuggestions(true);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    fontSize: typography.size.base,
-                    color: colors.text.primary,
-                  }}
-                />
-                {isSearching ? (
-                  <ActivityIndicator size="small" color={colors.text.secondary} />
-                ) : locationSearchQuery ? (
-                  <TouchableOpacity onPress={handleClear} hitSlop={8}>
-                    <X size={18} color={colors.text.secondary} />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-
-              {showSuggestions && (isSearching || suggestions.length > 0) && (
-                <View
-                  style={{
-                    marginTop: spacing.xs,
-                    backgroundColor: cardBackground,
-                    borderRadius: borderRadius['3xl'],
-                    borderWidth: 1,
-                    borderColor: borderColor,
-                    overflow: 'hidden',
-                    shadowColor: '#000',
-                    shadowOpacity: isDark ? 0.3 : 0.12,
-                    shadowOffset: { width: 0, height: 8 },
-                    shadowRadius: 20,
-                    elevation: 8,
-                  }}
-                >
-                  {isSearching && suggestions.length === 0 ? (
-                    <View
-                      style={{
-                        padding: spacing.lg,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: spacing.sm,
-                      }}
-                    >
-                      <ActivityIndicator size="small" color={colors.text.secondary} />
-                      <Text style={{ color: colors.text.secondary }}>Searching...</Text>
-                    </View>
-                  ) : (
-                    suggestions.map((suggestion, index) => (
-                      <TouchableOpacity
-                        key={suggestion.id}
-                        activeOpacity={0.9}
-                        onPress={() => handleSuggestionSelect(suggestion)}
-                        style={{
-                          paddingHorizontal: spacing.lg,
-                          paddingVertical: spacing.md,
-                          borderBottomWidth: index === suggestions.length - 1 ? 0 : 1,
-                          borderColor: borderColor,
-                          flexDirection: 'row',
-                          gap: spacing.md,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: borderRadius.full,
-                            backgroundColor: isDark ? '#1A1A1C' : '#F4F5F7',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <MapPin size={18} color={colors.text.secondary} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={{
-                              color: colors.text.primary,
-                              fontSize: typography.size.sm,
-                              fontWeight: typography.weight.semibold,
-                            }}
-                          >
-                            {suggestion.title}
-                          </Text>
-                          {suggestion.subtitle ? (
-                            <Text
-                              style={{
-                                color: colors.text.secondary,
-                                fontSize: typography.size.xs,
-                                marginTop: 2,
-                              }}
-                            >
-                              {suggestion.subtitle}
-                            </Text>
-                          ) : null}
-                        </View>
-                      </TouchableOpacity>
-                    ))
-                  )}
+                <View className="flex-row items-center px-lg h-14">
+                  <MapPin size={18} color={iconTertiary} />
+                  <TextInput
+                    placeholder="Search for a location"
+                    placeholderTextColor={iconTertiary}
+                    value={form.locationSearchQuery}
+                    onChangeText={(text) => {
+                      actions.setLocationSearchQuery(text);
+                      if (!text) {
+                        actions.setVenue(null);
+                        clearSuggestions();
+                        return;
+                      }
+                      if (form.venue?.address && form.venue.address !== text) {
+                        actions.setVenue(null);
+                      }
+                    }}
+                    onBlur={() => {
+                      validation.setFieldTouched('location');
+                      validation.validateField('location', form.venue?.address || '');
+                    }}
+                    onFocus={() => {
+                      if (suggestions.length > 0 || isSearching) {
+                        setShowSuggestions(true);
+                      }
+                    }}
+                    className="flex-1 text-base text-txt-primary dark:text-txt-dark-primary ml-sm"
+                  />
+                  {isSearching ? (
+                    <ActivityIndicator size="small" color={iconSecondary} />
+                  ) : form.locationSearchQuery ? (
+                    <TouchableOpacity onPress={handleClear} hitSlop={8}>
+                      <X size={18} color={iconSecondary} />
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
-              )}
+
+                {showSuggestions && (isSearching || suggestions.length > 0) && (
+                  <View className="border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface pb-1">
+                    {isSearching && suggestions.length === 0 ? (
+                      <View className="px-lg py-md flex-row items-center gap-sm">
+                        <ActivityIndicator size="small" color={iconSecondary} />
+                        <Text className="text-txt-secondary dark:text-txt-dark-secondary text-sm">
+                          Searching...
+                        </Text>
+                      </View>
+                    ) : (
+                      suggestions.map((suggestion, index) => (
+                        <TouchableOpacity
+                          key={suggestion.id}
+                          activeOpacity={0.7}
+                          onPress={() => handleSuggestionSelect(suggestion)}
+                          className="px-lg py-3 flex-row items-center gap-3"
+                        >
+                          <MapPin size={16} color={iconSecondary} />
+                          <View className="flex-1 min-w-0">
+                            <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary" numberOfLines={1}>
+                              {suggestion.title}
+                            </Text>
+                            {suggestion.subtitle ? (
+                              <Text className="text-xs text-txt-secondary dark:text-txt-dark-secondary mt-0.5" numberOfLines={2}>
+                                {suggestion.subtitle}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                )}
+              </View>
             </View>
+            {!canSearch && form.locationSearchQuery.length > 0 ? (
+              <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
+                Enter at least 2 characters to search.
+              </Text>
+            ) : null}
+            {locationError ? (
+              <Text className="text-xs text-semantic-error">
+                {locationError}
+              </Text>
+            ) : null}
           </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.semibold,
-              }}
-            >
+          <View className="gap-sm">
+            <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
               Location Preview
             </Text>
-            <View
-              style={{
-                minHeight: 220,
-                borderRadius: borderRadius['3xl'],
-                borderWidth: 1,
-                borderColor: borderColor,
-                backgroundColor: previewBackground,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: spacing.xl,
-                paddingVertical: spacing['2xl'],
-              }}
-            >
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: borderRadius.full,
-                  borderWidth: 1,
-                  borderColor: borderColor,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: spacing.md,
-                  backgroundColor: isDark ? '#111214' : '#FFFFFF',
-                }}
-              >
-                <MapPin size={28} color={colors.text.tertiary} />
+            <View className="min-h-[220px] rounded-3xl border border-light-border dark:border-dark-border bg-light-card dark:bg-dark-card overflow-hidden">
+              {venueCoordinates ? (
+                <View className="h-[150px]">
+                  <EventLocationHeader
+                    latitude={venueCoordinates.latitude}
+                    longitude={venueCoordinates.longitude}
+                  />
+                </View>
+              ) : (
+                <View className="h-[150px] items-center justify-center bg-light-background dark:bg-dark-background">
+                  <View className="w-14 h-14 rounded-full border border-light-border dark:border-dark-border items-center justify-center bg-light-card dark:bg-dark-card">
+                    <MapPin size={28} color={iconTertiary} />
+                  </View>
+                </View>
+              )}
+              <View className="px-xl py-lg items-center">
+                <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary text-center">
+                  {previewText.primary}
+                </Text>
+                {previewText.secondary ? (
+                  <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary text-center mt-xs">
+                    {previewText.secondary}
+                  </Text>
+                ) : null}
               </View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.semibold,
-                  textAlign: 'center',
-                }}
-              >
-                {previewText.primary}
-              </Text>
-              <Text
-                style={{
-                  color: colors.text.secondary,
-                  fontSize: typography.size.sm,
-                  textAlign: 'center',
-                  marginTop: spacing.xs,
-                }}
-              >
-                {previewText.secondary}
-              </Text>
             </View>
           </View>
         </View>

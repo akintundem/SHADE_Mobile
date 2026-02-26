@@ -12,15 +12,15 @@ export interface ErrorInfo {
   onRetry?: () => void;
 }
 
-interface ErrorModalProps {
+type ErrorModalProps = {
   visible: boolean;
   error: ErrorInfo | null;
   onClose: () => void;
   onRetry?: () => void;
-}
+};
 
-export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorModalProps) {
-  const { colors, typography, spacing, borderRadius, brand } = useTheme();
+export function ErrorModal({ visible, error, onClose, onRetry }: ErrorModalProps) {
+  const { colors } = useTheme();
   const { t } = useI18n();
 
   if (!error) return null;
@@ -41,67 +41,30 @@ export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorMo
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={{
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: spacing.lg
-      }}>
-        <View style={{
-          backgroundColor: colors.surface,
-          borderRadius: borderRadius.xl,
-          padding: spacing.lg,
-          width: '100%',
-          maxWidth: 400,
-          borderWidth: 1,
-          borderColor: colors.border
-        }}>
+      <View className="flex-1 items-center justify-center p-lg bg-light-overlay dark:bg-dark-overlay">
+        <View className="w-full max-w-[400px] rounded-xl p-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           {/* Header */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: spacing.md
-          }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <View className="flex-row items-center justify-between mb-md">
+            <View className="flex-row items-center gap-sm">
               <AlertTriangle size={24} color={colors.semantic.error} />
-              <Text style={{
-                color: colors.text.primary,
-                fontSize: typography.size.lg,
-                fontWeight: '700'
-              }}>
+              <Text className="font-bold text-lg text-txt-primary dark:text-txt-dark-primary">
                 {error.title}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={{ padding: spacing.xs }}>
+            <TouchableOpacity onPress={onClose} className="p-xs">
               <X size={20} color={colors.text.secondary} />
             </TouchableOpacity>
           </View>
 
           {/* Error Message */}
-          <Text style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.base,
-            lineHeight: 24,
-            marginBottom: spacing.md
-          }}>
+          <Text className="leading-6 text-base text-txt-secondary dark:text-txt-dark-secondary mb-md">
             {error.message}
           </Text>
 
           {/* Error Code */}
           {error.code && (
-            <View style={{
-              backgroundColor: colors.background,
-              padding: spacing.sm,
-              borderRadius: borderRadius.md,
-              marginBottom: spacing.md
-            }}>
-              <Text style={{
-                color: colors.text.tertiary,
-                fontSize: typography.size.sm,
-                fontFamily: 'monospace'
-              }}>
+            <View className="bg-light-background dark:bg-dark-background p-sm rounded-md mb-md">
+              <Text className="text-sm text-txt-tertiary dark:text-txt-dark-tertiary font-mono">
                 {t('ErrorCode')} {error.code}
               </Text>
             </View>
@@ -109,64 +72,30 @@ export default function ErrorModal({ visible, error, onClose, onRetry }: ErrorMo
 
           {/* Details */}
           {error.details && (
-            <View style={{
-              backgroundColor: colors.background,
-              padding: spacing.sm,
-              borderRadius: borderRadius.md,
-              marginBottom: spacing.md
-            }}>
-              <Text style={{
-                color: colors.text.tertiary,
-                fontSize: typography.size.sm
-              }}>
+            <View className="bg-light-background dark:bg-dark-background p-sm rounded-md mb-md">
+              <Text className="text-sm text-txt-tertiary dark:text-txt-dark-tertiary">
                 {error.details}
               </Text>
             </View>
           )}
 
           {/* Actions */}
-          <View style={{
-            flexDirection: 'row',
-            gap: spacing.sm,
-            justifyContent: 'flex-end'
-          }}>
+          <View className="flex-row justify-end gap-sm">
             <TouchableOpacity
               onPress={onClose}
-              style={{
-                paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
-                backgroundColor: colors.surface,
-                borderRadius: borderRadius.md,
-                borderWidth: 1,
-                borderColor: colors.border
-              }}
+              className="flex-row items-center px-lg py-sm rounded-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
             >
-              <Text style={{
-                color: colors.text.primary,
-                fontWeight: '600'
-              }}>
+              <Text className="font-semibold text-txt-primary dark:text-txt-dark-primary">
                 {t('Close')}
               </Text>
             </TouchableOpacity>
-            
             {error.retryable && (
               <TouchableOpacity
                 onPress={handleRetry}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.xs,
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  backgroundColor: brand.primary,
-                  borderRadius: borderRadius.md
-                }}
+                className="flex-row items-center gap-xs px-lg py-sm rounded-md bg-brand-primary"
               >
                 <RefreshCw size={16} color={colors.text.inverse} />
-                <Text style={{
-                  color: colors.text.inverse,
-                  fontWeight: '600'
-                }}>
+                <Text className="font-semibold text-txt-inverse">
                   {t('Retry')}
                 </Text>
               </TouchableOpacity>

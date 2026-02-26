@@ -27,7 +27,7 @@ export function DateTimePickerModal({
   onConfirm,
   title,
 }: Props) {
-  const { colors, typography, spacing, borderRadius, brand, isDark } = useTheme();
+  const { colors } = useTheme();
   
   // Convert 24-hour to 12-hour format for display
   const get12Hour = (hour24: number) => {
@@ -97,17 +97,6 @@ export function DateTimePickerModal({
     onClose();
   };
 
-  const formatTime = () => {
-    const hour12 = selectedHour === 0 ? 12 : selectedHour > 12 ? selectedHour - 12 : selectedHour;
-    const minuteStr = selectedMinute.toString().padStart(2, '0');
-    const period = isAM ? 'AM' : 'PM';
-    return `${hour12}:${minuteStr} ${period}`;
-  };
-
-  const formatDate = () => {
-    return `${currentYear} - ${(currentMonth + 1).toString().padStart(2, '0')} - ${currentDay.toString().padStart(2, '0')}`;
-  };
-
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   // Show minutes in 5-minute intervals for better UX
   const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
@@ -119,88 +108,48 @@ export function DateTimePickerModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'flex-end',
-        }}
-      >
+      <View className="flex-1 justify-end bg-light-overlay dark:bg-dark-overlay">
         <TouchableOpacity
-          style={{ flex: 1 }}
+          className="flex-1"
           activeOpacity={1}
           onPress={onClose}
         />
         <View
-          style={{
-            backgroundColor: colors.background,
-            borderTopLeftRadius: borderRadius.xl,
-            borderTopRightRadius: borderRadius.xl,
-            paddingTop: spacing.lg,
-            paddingBottom: Platform.OS === 'ios' ? spacing['6xl'] : spacing.xl,
-            maxHeight: '80%',
-          }}
+          className="bg-light-background dark:bg-dark-background rounded-t-xl pt-lg max-h-[80%]"
+          style={{ paddingBottom: Platform.OS === 'ios' ? 64 : 20 }}
         >
           {/* Header */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: spacing.lg,
-              marginBottom: spacing.lg,
-            }}
-          >
+          <View className="flex-row items-center justify-between px-lg mb-lg">
             <Text
-              style={{
-                color: colors.text.primary,
-                fontWeight: typography.weight.bold,
-                fontSize: typography.size.xl,
-              }}
+              className="text-xl font-bold text-txt-primary dark:text-txt-dark-primary"
             >
               {title}
             </Text>
-            <TouchableOpacity onPress={onClose} style={{ padding: spacing.xs }}>
+            <TouchableOpacity onPress={onClose} className="p-xs">
               <X size={24} color={colors.text.primary} />
             </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Date Picker */}
-            <View style={{ paddingHorizontal: spacing.lg, marginBottom: spacing.xl }}>
+            <View className="px-lg mb-xl">
               <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.semibold,
-                  marginBottom: spacing.md,
-                }}
+                className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary mb-md"
               >
                 Date
               </Text>
 
               {/* Month Navigation */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: spacing.md,
-                }}
-              >
-                <TouchableOpacity onPress={handlePrevMonth} style={{ padding: spacing.xs }}>
+              <View className="flex-row items-center justify-between mb-md">
+                <TouchableOpacity onPress={handlePrevMonth} className="p-xs">
                   <ChevronLeft size={24} color={colors.text.primary} />
                 </TouchableOpacity>
                 <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.lg,
-                    fontWeight: typography.weight.semibold,
-                  }}
+                  className="text-lg font-semibold text-txt-primary dark:text-txt-dark-primary"
                 >
                   {monthNames[currentMonth]} {currentYear}
                 </Text>
-                <TouchableOpacity onPress={handleNextMonth} style={{ padding: spacing.xs }}>
+                <TouchableOpacity onPress={handleNextMonth} className="p-xs">
                   <ChevronRight size={24} color={colors.text.primary} />
                 </TouchableOpacity>
               </View>
@@ -208,27 +157,14 @@ export function DateTimePickerModal({
               {/* Calendar Grid */}
               <View>
                 {/* Week day headers */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    marginBottom: spacing.sm,
-                  }}
-                >
+                <View className="flex-row mb-sm">
                   {weekDays.map((day) => (
                     <View
                       key={day}
-                      style={{
-                        flex: 1,
-                        alignItems: 'center',
-                        paddingVertical: spacing.sm,
-                      }}
+                      className="flex-1 items-center py-sm"
                     >
                       <Text
-                        style={{
-                          color: colors.text.secondary,
-                          fontSize: typography.size.sm,
-                          fontWeight: typography.weight.medium,
-                        }}
+                        className="text-sm font-medium text-txt-secondary dark:text-txt-dark-secondary"
                       >
                         {day}
                       </Text>
@@ -237,9 +173,9 @@ export function DateTimePickerModal({
                 </View>
 
                 {/* Calendar days */}
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                <View className="flex-row flex-wrap">
                   {emptyDays.map((_, index) => (
-                    <View key={`empty-${index}`} style={{ width: '14.28%', aspectRatio: 1 }} />
+                    <View key={`empty-${index}`} className="w-[14.28%] aspect-square" />
                   ))}
                   {days.map((day) => {
                     const isSelected = day === currentDay;
@@ -251,38 +187,19 @@ export function DateTimePickerModal({
                       <TouchableOpacity
                         key={day}
                         onPress={() => handleDaySelect(day)}
-                        style={{
-                          width: '14.28%',
-                          aspectRatio: 1,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginBottom: spacing.xs,
-                        }}
+                        className="items-center justify-center mb-xs w-[14.28%] aspect-square"
                       >
                         <View
-                          style={{
-                            width: '80%',
-                            aspectRatio: 1,
-                            borderRadius: borderRadius.full,
-                            backgroundColor: isSelected
-                              ? (isDark ? '#FFFFFF' : '#000000')
-                              : 'transparent',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderWidth: isToday && !isSelected ? 1 : 0,
-                            borderColor: colors.border,
-                          }}
+                          className={`items-center justify-center rounded-full w-[80%] aspect-square ${
+                            isSelected ? 'bg-neutral-black dark:bg-neutral-white' : 'bg-transparent'
+                          } ${isToday && !isSelected ? 'border border-light-border dark:border-dark-border' : ''}`}
                         >
                           <Text
-                            style={{
-                              color: isSelected
-                                ? (isDark ? '#000000' : '#FFFFFF')
-                                : colors.text.primary,
-                              fontSize: typography.size.base,
-                              fontWeight: isSelected
-                                ? typography.weight.semibold
-                                : typography.weight.regular,
-                            }}
+                            className={`text-base ${isSelected ? 'font-semibold' : 'font-normal'} ${
+                              isSelected
+                                ? 'text-txt-inverse dark:text-txt-dark-inverse'
+                                : 'text-txt-primary dark:text-txt-dark-primary'
+                            }`}
                           >
                             {day}
                           </Text>
@@ -295,49 +212,34 @@ export function DateTimePickerModal({
             </View>
 
             {/* Time Picker */}
-            <View style={{ paddingHorizontal: spacing.lg, marginBottom: spacing.xl }}>
+            <View className="px-lg mb-xl">
               <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.semibold,
-                  marginBottom: spacing.md,
-                }}
+                className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary mb-md"
               >
                 Time
               </Text>
 
-              <View style={{ flexDirection: 'row', gap: spacing.md }}>
+              <View className="flex-row gap-md">
                 {/* Hour */}
-                <View style={{ flex: 1 }}>
+                <View className="flex-1">
                   <ScrollView
-                    style={{
-                      maxHeight: 200,
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                    }}
+                    className="bg-light-surface dark:bg-dark-surface rounded-lg max-h-[200px]"
                     showsVerticalScrollIndicator={false}
                   >
                     {hours.map((hour) => (
                       <TouchableOpacity
                         key={hour}
                         onPress={() => setSelectedHour(hour)}
-                        style={{
-                          paddingVertical: spacing.md,
-                          paddingHorizontal: spacing.md,
-                          alignItems: 'center',
-                          backgroundColor: selectedHour === hour ? colors.border : 'transparent',
-                          borderRadius: borderRadius.md,
-                        }}
+                        className={`py-md px-md items-center rounded-md ${
+                          selectedHour === hour ? 'bg-light-border dark:bg-dark-border' : 'bg-transparent'
+                        }`}
                       >
                         <Text
-                          style={{
-                            color: selectedHour === hour ? colors.text.primary : colors.text.secondary,
-                            fontSize: typography.size.lg,
-                            fontWeight: selectedHour === hour
-                              ? typography.weight.semibold
-                              : typography.weight.regular,
-                          }}
+                          className={`text-lg ${
+                            selectedHour === hour ? 'font-semibold' : 'font-normal'
+                          } ${selectedHour === hour
+                            ? 'text-txt-primary dark:text-txt-dark-primary'
+                            : 'text-txt-secondary dark:text-txt-dark-secondary'}`}
                         >
                           {hour}
                         </Text>
@@ -347,35 +249,25 @@ export function DateTimePickerModal({
                 </View>
 
                 {/* Minute */}
-                <View style={{ flex: 1 }}>
+                <View className="flex-1">
                   <ScrollView
-                    style={{
-                      maxHeight: 200,
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                    }}
+                    className="bg-light-surface dark:bg-dark-surface rounded-lg max-h-[200px]"
                     showsVerticalScrollIndicator={false}
                   >
                     {minutes.map((minute) => (
                       <TouchableOpacity
                         key={minute}
                         onPress={() => setSelectedMinute(minute)}
-                        style={{
-                          paddingVertical: spacing.md,
-                          paddingHorizontal: spacing.md,
-                          alignItems: 'center',
-                          backgroundColor: selectedMinute === minute ? colors.border : 'transparent',
-                          borderRadius: borderRadius.md,
-                        }}
+                        className={`py-md px-md items-center rounded-md ${
+                          selectedMinute === minute ? 'bg-light-border dark:bg-dark-border' : 'bg-transparent'
+                        }`}
                       >
                         <Text
-                          style={{
-                            color: selectedMinute === minute ? colors.text.primary : colors.text.secondary,
-                            fontSize: typography.size.lg,
-                            fontWeight: selectedMinute === minute
-                              ? typography.weight.semibold
-                              : typography.weight.regular,
-                          }}
+                          className={`text-lg ${
+                            selectedMinute === minute ? 'font-semibold' : 'font-normal'
+                          } ${selectedMinute === minute
+                            ? 'text-txt-primary dark:text-txt-dark-primary'
+                            : 'text-txt-secondary dark:text-txt-dark-secondary'}`}
                         >
                           {minute.toString().padStart(2, '0')}
                         </Text>
@@ -385,46 +277,34 @@ export function DateTimePickerModal({
                 </View>
 
                 {/* AM/PM */}
-                <View style={{ flex: 0.6 }}>
+                <View className="flex-[0.6]">
                   <View
-                    style={{
-                      backgroundColor: colors.surface,
-                      borderRadius: borderRadius.lg,
-                      overflow: 'hidden',
-                    }}
+                    className="bg-light-surface dark:bg-dark-surface rounded-lg overflow-hidden"
                   >
                     <TouchableOpacity
                       onPress={() => setIsAM(true)}
-                      style={{
-                        paddingVertical: spacing.md,
-                        alignItems: 'center',
-                        backgroundColor: isAM ? (isDark ? '#FFFFFF' : '#000000') : 'transparent',
-                      }}
+                      className={`py-md items-center ${isAM ? 'bg-neutral-black dark:bg-neutral-white' : 'bg-transparent'}`}
                     >
                       <Text
-                        style={{
-                          color: isAM ? (isDark ? '#000000' : '#FFFFFF') : colors.text.secondary,
-                          fontSize: typography.size.base,
-                          fontWeight: isAM ? typography.weight.semibold : typography.weight.regular,
-                        }}
+                        className={`text-base ${isAM ? 'font-semibold' : 'font-normal'} ${
+                          isAM
+                            ? 'text-txt-inverse dark:text-txt-dark-inverse'
+                            : 'text-txt-secondary dark:text-txt-dark-secondary'
+                        }`}
                       >
                         AM
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setIsAM(false)}
-                      style={{
-                        paddingVertical: spacing.md,
-                        alignItems: 'center',
-                        backgroundColor: !isAM ? (isDark ? '#FFFFFF' : '#000000') : 'transparent',
-                      }}
+                      className={`py-md items-center ${!isAM ? 'bg-neutral-black dark:bg-neutral-white' : 'bg-transparent'}`}
                     >
                       <Text
-                        style={{
-                          color: !isAM ? (isDark ? '#000000' : '#FFFFFF') : colors.text.secondary,
-                          fontSize: typography.size.base,
-                          fontWeight: !isAM ? typography.weight.semibold : typography.weight.regular,
-                        }}
+                        className={`text-base ${!isAM ? 'font-semibold' : 'font-normal'} ${
+                          !isAM
+                            ? 'text-txt-inverse dark:text-txt-dark-inverse'
+                            : 'text-txt-secondary dark:text-txt-dark-secondary'
+                        }`}
                       >
                         PM
                       </Text>
@@ -436,23 +316,13 @@ export function DateTimePickerModal({
           </ScrollView>
 
           {/* Confirm Button */}
-          <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
+          <View className="px-lg pt-md">
             <TouchableOpacity
               onPress={handleConfirm}
-              style={{
-                height: 56,
-                borderRadius: borderRadius.lg,
-                backgroundColor: isDark ? '#FFFFFF' : '#000000',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className="h-14 rounded-lg items-center justify-center bg-neutral-black dark:bg-neutral-white"
             >
               <Text
-                style={{
-                  color: isDark ? '#000000' : '#FFFFFF',
-                  fontWeight: typography.weight.semibold,
-                  fontSize: typography.size.lg,
-                }}
+                className="text-lg font-semibold text-txt-inverse dark:text-txt-dark-inverse"
               >
                 Confirm
               </Text>

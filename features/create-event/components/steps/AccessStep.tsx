@@ -1,140 +1,96 @@
 import React from 'react';
 import { View, Text, ScrollView, Switch } from 'react-native';
 import { Globe, DollarSign, Users } from 'lucide-react-native';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
 import Input from '../../../../common/components/ui/Input';
 import { Section } from '../Section';
 import { Row } from '../Row';
 import { RadioRow } from '../RadioRow';
 import { FieldLabel } from '../FieldLabel';
+import { useCreateEvent } from '../../context';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
-type Props = {
-  isPublic: boolean;
-  free: boolean;
-  price: string;
-  capacity: string;
-  onPublicChange: (value: boolean) => void;
-  onFreeChange: (value: boolean) => void;
-  onPriceChange: (text: string) => void;
-  onPriceBlur: () => void;
-  priceError?: string;
-  onCapacityChange: (text: string) => void;
-  onCapacityBlur: () => void;
-  capacityError?: string;
-};
+export function AccessStep() {
+  const { form, actions, validation } = useCreateEvent();
+  const { colors } = useTheme();
+  const iconColor = colors.text.secondary;
 
-export function AccessStep({
-  isPublic,
-  free,
-  price,
-  capacity,
-  onPublicChange,
-  onFreeChange,
-  onPriceChange,
-  onPriceBlur,
-  priceError,
-  onCapacityChange,
-  onCapacityBlur,
-  capacityError,
-}: Props) {
-  const { colors, typography, spacing, borderRadius, isDark } = useTheme();
-
-  const cardBackgroundColor = isDark ? '#000000' : '#FFFFFF';
-  const borderColor = isDark ? '#1F1F1F' : '#E5E7EB';
+  const priceError = validation.getFieldError('price');
+  const capacityError = validation.getFieldError('capacity');
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-      <Section title="Visibility">
-        <View
-          style={{
-            borderWidth: 1,
-            borderColor: borderColor,
-            borderRadius: borderRadius.lg,
-            padding: spacing.md,
-            backgroundColor: cardBackgroundColor,
-          }}
-        >
-          <Row
-            label="Public Event"
-            icon={<Globe size={16} color={colors.text.secondary} />}
-          >
-            <Switch value={isPublic} onValueChange={onPublicChange} />
-          </Row>
-          <Text
-            style={{ color: colors.text.tertiary, fontSize: typography.size.sm }}
-          >
-            {isPublic ? 'Visible to everyone' : 'Visible to invited only'}
-          </Text>
-        </View>
-      </Section>
+    <ScrollView>
+      <View className="pb-[120px]">
+        <Section title="Visibility">
+          <View className="border border-light-border dark:border-dark-border rounded-lg p-md bg-light-surface dark:bg-dark-surface">
+            <Row
+              label="Public Event"
+              icon={<Globe size={16} color={iconColor} />}
+            >
+              <Switch value={form.isPublic} onValueChange={actions.setIsPublic} />
+            </Row>
+            <Text className="text-sm text-txt-tertiary dark:text-txt-dark-tertiary">
+              {form.isPublic ? 'Visible to everyone' : 'Visible to invited only'}
+            </Text>
+          </View>
+        </Section>
 
-      <Section title="Access">
-        <View
-          style={{
-            borderWidth: 1,
-            borderColor: borderColor,
-            borderRadius: borderRadius.lg,
-            padding: spacing.md,
-            backgroundColor: cardBackgroundColor,
-          }}
-        >
-          <RadioRow
-            label="Free"
-            active={free}
-            onPress={() => onFreeChange(true)}
-          />
-          <RadioRow
-            label="Paid"
-            active={!free}
-            onPress={() => onFreeChange(false)}
-          />
-          {!free && (
-            <View style={{ marginTop: spacing.md }}>
-              <FieldLabel
-                icon={<DollarSign size={16} color={colors.text.secondary} />}
-                label="Price (USD)"
-              />
-              <Input
-                placeholder="e.g. 25"
-                keyboardType="decimal-pad"
-                value={price}
-                onChangeText={onPriceChange}
-                onBlur={onPriceBlur}
-                error={priceError}
-              />
-            </View>
-          )}
-        </View>
-      </Section>
+        <Section title="Access">
+          <View className="border border-light-border dark:border-dark-border rounded-lg p-md bg-light-surface dark:bg-dark-surface">
+            <RadioRow
+              label="Free"
+              active={form.free}
+              onPress={() => actions.setFree(true)}
+            />
+            <RadioRow
+              label="Paid"
+              active={!form.free}
+              onPress={() => actions.setFree(false)}
+            />
+            {!form.free && (
+              <View className="mt-md">
+                <FieldLabel
+                  icon={<DollarSign size={16} color={iconColor} />}
+                  label="Price (USD)"
+                />
+                <Input
+                  placeholder="e.g. 25"
+                  keyboardType="decimal-pad"
+                  value={form.price}
+                  onChangeText={(text) => {
+                    actions.setPrice(text);
+                    validation.validateField('price', text);
+                  }}
+                  onBlur={() => validation.setFieldTouched('price')}
+                  error={priceError || undefined}
+                />
+              </View>
+            )}
+          </View>
+        </Section>
 
-      <Section title="Capacity">
-        <View
-          style={{
-            borderWidth: 1,
-            borderColor: borderColor,
-            borderRadius: borderRadius.lg,
-            padding: spacing.md,
-            backgroundColor: cardBackgroundColor,
-            gap: spacing.md,
-          }}
-        >
-          <FieldLabel
-            icon={<Users size={16} color={colors.text.secondary} />}
-            label="Maximum attendees"
-          />
-          <Input
-            placeholder="e.g. 150"
-            keyboardType="number-pad"
-            value={capacity}
-            onChangeText={onCapacityChange}
-            onBlur={onCapacityBlur}
-            error={capacityError}
-          />
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
-            Leave blank if you do not want to enforce a capacity limit.
-          </Text>
-        </View>
-      </Section>
+        <Section title="Capacity">
+          <View className="border border-light-border dark:border-dark-border rounded-lg p-md bg-light-surface dark:bg-dark-surface gap-md">
+            <FieldLabel
+              icon={<Users size={16} color={iconColor} />}
+              label="Maximum attendees"
+            />
+            <Input
+              placeholder="e.g. 150"
+              keyboardType="number-pad"
+              value={form.capacity}
+              onChangeText={(text) => {
+                actions.setCapacity(text);
+                validation.validateField('capacity', text);
+              }}
+              onBlur={() => validation.setFieldTouched('capacity')}
+              error={capacityError || undefined}
+            />
+            <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
+              Leave blank if you do not want to enforce a capacity limit.
+            </Text>
+          </View>
+        </Section>
+      </View>
     </ScrollView>
   );
 }

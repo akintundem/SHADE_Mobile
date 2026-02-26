@@ -91,3 +91,16 @@ export const formatDisplayDateTime = (dateStr?: string, timeStr?: string): strin
 
   return null;
 };
+
+export const combineDateTimeToISO = (dateStr: string, timeStr: string): string => {
+  const date = parseDateInput(dateStr);
+  const time = parseTimeInput(timeStr);
+  
+  if (!date || !time) {
+    throw new Error('Invalid date or time format');
+  }
+  
+  const combined = new Date(date);
+  combined.setHours(time.hour, time.minute, 0, 0);
+  return combined.toISOString();
+};

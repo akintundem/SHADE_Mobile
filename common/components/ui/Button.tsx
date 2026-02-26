@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, ActivityIndicator, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -30,116 +30,115 @@ export default function Button({
   rightIcon,
   style,
 }: Props) {
-  const { colors, brand, typography, spacing, borderRadius, shadows } = useTheme();
-
-  const getButtonStyle = () => {
-    const baseStyle: any = {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: borderRadius.xl,
-      paddingHorizontal: size === 'sm' ? spacing.lg : size === 'md' ? spacing.xl : spacing['2xl'],
-      height: size === 'sm' ? 44 : size === 'md' ? 48 : 52,
-      gap: spacing.sm,
-    };
-
-    if (fullWidth) {
-      baseStyle.width = '100%';
-    }
-
-    switch (variant) {
-      case 'primary':
-        return {
-          ...baseStyle,
-          backgroundColor: disabled ? colors.text.disabled : brand.primary,
-        };
-      case 'secondary':
-        return {
-          ...baseStyle,
-          backgroundColor: disabled ? colors.text.disabled : brand.secondary,
-        };
-      case 'outline':
-        return {
-          ...baseStyle,
-          backgroundColor: 'transparent',
-          borderWidth: 1,
-          borderColor: disabled ? colors.border : brand.primary,
-        };
-      case 'ghost':
-        return {
-          ...baseStyle,
-          backgroundColor: 'transparent',
-        };
-      case 'danger':
-        return {
-          ...baseStyle,
-          backgroundColor: disabled ? colors.text.disabled : colors.semantic.error,
-        };
-      default:
-        return baseStyle;
-    }
+  const { colors, disabledButtonBackground } = useTheme();
+  const isDisabled = disabled || loading;
+  // Size classes
+  const sizeClasses = {
+    container: {
+      sm: 'px-lg h-[44px]',
+      md: 'px-xl h-[48px]',
+      lg: 'px-2xl h-[52px]',
+    },
+    text: {
+      sm: 'text-xs',
+      md: 'text-sm',
+      lg: 'text-base',
+    },
   };
 
-  const getTextStyle = () => {
-    const baseStyle: any = {
-      fontSize: size === 'sm' ? typography.size.xs : size === 'md' ? typography.size.sm : typography.size.base,
-      fontWeight: typography.weight.medium,
-      letterSpacing: 0.2,
-    };
-
+  // Button container classes (disabled bg overridden via style for primary/secondary/danger)
+  const getButtonClasses = () => {
+    const baseClasses = 'flex-row items-center justify-center rounded-2xl gap-sm';
+    const sizeClass = sizeClasses.container[size];
+    const widthClass = fullWidth ? 'w-full' : '';
+    
+    let variantClasses = '';
     switch (variant) {
       case 'primary':
-        return {
-          ...baseStyle,
-          color: colors.text.inverse,
-        };
       case 'secondary':
-      case 'danger':
-        return {
-          ...baseStyle,
-          color: '#FFFFFF',
-        };
+        variantClasses = isDisabled ? '' : 'bg-black dark:bg-white';
+        break;
       case 'outline':
-        return {
-          ...baseStyle,
-          color: disabled ? colors.text.disabled : brand.primary,
-        };
+        variantClasses = `bg-transparent border ${isDisabled ? 'border-light-border dark:border-dark-border' : 'border-black dark:border-white'}`;
+        break;
       case 'ghost':
-        return {
-          ...baseStyle,
-          color: disabled ? colors.text.disabled : colors.text.primary,
-        };
-      default:
-        return baseStyle;
+        variantClasses = 'bg-transparent';
+        break;
+      case 'danger':
+        variantClasses = isDisabled ? '' : 'bg-semantic-error';
+        break;
     }
+    
+    return `${baseClasses} ${sizeClass} ${widthClass} ${variantClasses}`;
+  };
+
+  const getBackgroundStyle = () => {
+    if (!isDisabled) return undefined;
+    if (variant === 'primary' || variant === 'secondary' || variant === 'danger') {
+      return { backgroundColor: disabledButtonBackground };
+    }
+    return undefined;
+  };
+
+  // Text classes
+  const getTextClasses = () => {
+    const baseClasses = 'font-medium tracking-[0.2px]';
+    const sizeClass = sizeClasses.text[size];
+    
+    let colorClass = '';
+    switch (variant) {
+      case 'primary':
+      case 'secondary':
+        colorClass = isDisabled ? 'text-txt-tertiary dark:text-txt-dark-tertiary' : 'text-white dark:text-black';
+        break;
+      case 'danger':
+        colorClass = isDisabled ? 'text-txt-tertiary dark:text-txt-dark-tertiary' : 'text-txt-inverse';
+        break;
+      case 'outline':
+        colorClass = isDisabled
+          ? 'text-txt-disabled dark:text-txt-dark-tertiary'
+          : 'text-black dark:text-white';
+        break;
+      case 'ghost':
+        colorClass = isDisabled 
+          ? 'text-txt-disabled dark:text-txt-dark-tertiary' 
+          : 'text-txt-primary dark:text-txt-dark-primary';
+        break;
+    }
+    
+    return `${baseClasses} ${sizeClass} ${colorClass}`;
+  };
+
+  const getActivityIndicatorColor = () => {
+    if (variant === 'primary') {
+      return colors.text.inverse;
+    }
+    if (variant === 'outline' || variant === 'ghost') {
+      return colors.text.primary;
+    }
+    return colors.text.inverse;
   };
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       activeOpacity={0.7}
-      style={[getButtonStyle(), style]}
+      className={getButtonClasses()}
+      style={[getBackgroundStyle(), style]}
     >
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={
-            variant === 'primary'
-              ? colors.text.inverse
-              : variant === 'outline' || variant === 'ghost'
-              ? brand.primary
-              : '#FFFFFF'
-          }
+          color={getActivityIndicatorColor()}
         />
       ) : (
         <>
           {leftIcon}
-          <Text style={getTextStyle()}>{children}</Text>
+          <Text className={getTextClasses()}>{children}</Text>
           {rightIcon}
         </>
       )}
     </TouchableOpacity>
   );
 }
-

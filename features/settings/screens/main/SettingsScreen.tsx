@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import {
   Bell,
@@ -17,187 +16,153 @@ import {
 import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { SettingsHeader, SettingsSection, SettingsRow } from '../../components';
-import ChangePasswordScreen from '../detail/ChangePasswordScreen';
 import PrivacySettingsScreen from '../detail/PrivacySettingsScreen';
 import NotificationSettingsScreen from '../detail/NotificationSettingsScreen';
 import SecuritySettingsScreen from '../detail/SecuritySettingsScreen';
 import DataSettingsScreen from '../detail/DataSettingsScreen';
-import { useCurrentUser } from '../../../../common/hooks/useCurrentUser';
-import { authService } from '../../../../core/auth/services/authService';
 import { ThemePreference } from '../../../../core/auth/types/auth';
+import { SettingsProvider, useSettings } from '../../context';
+import { useSettingsFlow } from '../../hooks';
+import type { SettingsBanner } from '../../types';
+import { ConfirmModal } from '../../../../common/components/ui/ConfirmModal';
+import { authService } from '../../../../core/auth/services/authService';
+import { clearAllAuth } from '../../../../common/storage/authStorage';
 
 type Props = {
   onClose?: () => void;
   onLogout?: () => void;
 };
 
-type BannerState = {
-  text: string;
-  tone: 'success' | 'error';
-};
+function SettingsScreenContent({ onClose, onLogout }: Props) {
+  const { t, lang, setLang } = useI18n();
+  const { themePreference, setThemePreference, colors } = useTheme();
+  const iconColors = { primary: colors.text.primary, secondary: colors.text.secondary };
 
-type ActiveScreen = 
-  | 'main' 
-  | 'changePassword' 
-  | 'privacy' 
-  | 'notifications' 
-  | 'security' 
-  | 'data';
+  const { settings, updateProfileSettings, userId } = useSettings();
+  const flow = useSettingsFlow();
 
-export default function SettingsScreen({
-  onClose,
-  onLogout,
-}: Props) {
-  const { themePreference, setThemePreference, colors, spacing, typography, borderRadius } = useTheme();
-  const { lang, setLang, t } = useI18n();
-  const { user, refetch } = useCurrentUser();
-  
-  const settings = user?.settings;
+  const [banner, setBanner] = useState<SettingsBanner | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('main');
-  const [banner, setBanner] = useState<BannerState | null>(null);
-
-  // Sync theme preference from user settings on load (only if different)
-  useEffect(() => {
-    if (settings?.themePreference && settings.themePreference !== themePreference) {
-      setThemePreference(settings.themePreference);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings?.themePreference]);
-
-  // Handle theme preference change
-  const handleThemePreferenceChange = async (pref: ThemePreference) => {
-    if (!user) return;
-    // Update local state immediately for instant feedback
-    setThemePreference(pref);
-    try {
-      await authService.updateUserProfile(user.id, {
-        name: user.name,
-        settings: { themePreference: pref },
-      });
-      // Refetch to sync with backend
-      await refetch();
-    } catch (error) {
-      // Revert on error
-      if (settings?.themePreference) {
-        setThemePreference(settings.themePreference);
-      } else {
-        setThemePreference(ThemePreference.SYSTEM);
+  const handleThemePreferenceChange = useCallback(
+    async (pref: ThemePreference) => {
+      // Apply immediately — local AsyncStorage is source of truth, so this
+      // persists regardless of whether the backend sync succeeds.
+      await setThemePreference(pref);
+      // Best-effort sync to backend; never revert the local choice on failure.
+      if (userId) {
+        const ok = await updateProfileSettings({ themePreference: pref });
+        if (!ok) {
+          setBanner({ text: t('FailedToSyncTheme'), tone: 'error' });
+        }
       }
-    }
-  };
+    },
+    [setThemePreference, t, updateProfileSettings, userId]
+  );
 
-  // Handle language change
-  const handleLanguageChange = async (value: string) => {
-    if (!user) return;
-    // Use lowercase value (en, fr) - conversion to uppercase happens in authService
-    const localValue = value.toLowerCase() as 'en' | 'fr';
-    
-    // Immediately update the app language for instant feedback
-    setLang(localValue);
+  const handleLanguageChange = useCallback(
+    async (value: string) => {
+      if (!userId) return;
+      const localValue = value.toLowerCase() as 'en' | 'fr';
+      const previous = lang;
+      setLang(localValue);
+      const ok = await updateProfileSettings({ preferredLanguage: localValue });
+      if (!ok) {
+        setLang(previous as 'en' | 'fr');
+        setBanner({ text: t('FailedToUpdateProfile'), tone: 'error' });
+      }
+    },
+    [lang, setLang, t, updateProfileSettings, userId]
+  );
+
+  const themeOptions = useMemo(
+    () => [
+      { value: ThemePreference.LIGHT, label: t('Light') },
+      { value: ThemePreference.DARK, label: t('Dark') },
+      { value: ThemePreference.SYSTEM, label: t('System') },
+    ],
+    [t]
+  );
+
+  const languageOptions = useMemo(
+    () => [
+      { value: 'en', label: t('English') },
+      { value: 'fr', label: t('French') },
+    ],
+    [t]
+  );
+
+  const activePillBackground = colors.text.primary;
+  const activePillText = colors.text.inverse;
+  const inactivePillBackground = colors.surface;
+  const inactiveBorder = colors.borderLight;
+
+  const handleDeleteAccount = useCallback(async () => {
+    if (!userId) return;
+
+    setIsDeleting(true);
     try {
-      await authService.updateUserProfile(user.id, {
-        name: user.name,
-        settings: { preferredLanguage: localValue }, // Will be converted to uppercase in authService
-      });
-      // Refetch to sync with backend
-      await refetch();
+      await authService.deleteUser(userId);
+      await clearAllAuth();
+      setBanner({ text: t('DeleteAccountSuccess'), tone: 'success' });
+      // Call logout after a brief delay to show success message
+      setTimeout(() => {
+        onLogout?.();
+      }, 1500);
     } catch (error) {
-      // Revert on error
-      const previousLang = settings?.preferredLanguage?.toLowerCase() || 'en';
-      setLang(previousLang as 'en' | 'fr');
+      if (__DEV__) console.error('Failed to delete account:', error);
+      setBanner({ text: t('DeleteAccountError'), tone: 'error' });
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
-  };
+  }, [userId, t, onLogout]);
 
-  if (activeScreen === 'changePassword') {
-    return (
-      <ChangePasswordScreen
-        onBack={() => setActiveScreen('main')}
-        onSuccess={() => {
-          setBanner({
-            text: t('PasswordChangedSuccessfully'),
-            tone: 'success',
-          });
-          setActiveScreen('main');
-        }}
-      />
-    );
+  if (flow.view === 'privacy') {
+    return <PrivacySettingsScreen onBack={flow.goBack} />;
   }
 
-  if (activeScreen === 'privacy') {
-    return <PrivacySettingsScreen onBack={() => setActiveScreen('main')} />;
+  if (flow.view === 'notifications') {
+    return <NotificationSettingsScreen onBack={flow.goBack} />;
   }
 
-  if (activeScreen === 'notifications') {
-    return <NotificationSettingsScreen onBack={() => setActiveScreen('main')} />;
+  if (flow.view === 'security') {
+    return <SecuritySettingsScreen onBack={flow.goBack} />;
   }
 
-
-  if (activeScreen === 'security') {
-    return (
-      <SecuritySettingsScreen
-        onBack={() => setActiveScreen('main')}
-        onChangePassword={() => setActiveScreen('changePassword')}
-      />
-    );
-  }
-
-  if (activeScreen === 'data') {
-    return <DataSettingsScreen onBack={() => setActiveScreen('main')} />;
+  if (flow.view === 'data') {
+    return <DataSettingsScreen onBack={flow.goBack} />;
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: spacing.xs }}
-      >
-        <SettingsHeader onClose={onClose} />
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View className="pb-2">
+          <SettingsHeader onClose={onClose} />
 
         {banner ? (
           <View
+            className="mx-lg mt-md rounded-lg border px-sm py-sm"
             style={{
-              marginHorizontal: spacing.lg,
-              marginTop: spacing.md,
-              padding: spacing.sm,
-              borderRadius: 8,
               backgroundColor:
-                banner.tone === 'success'
-                  ? colors.semantic.successLight
-                  : colors.semantic.errorLight,
-              borderWidth: 0.5,
+                banner.tone === 'success' ? colors.semantic.successLight : colors.semantic.errorLight,
               borderColor:
-                banner.tone === 'success'
-                  ? colors.semantic.success
-                  : colors.semantic.error,
-              gap: spacing.xs,
+                banner.tone === 'success' ? colors.semantic.success : colors.semantic.error,
             }}
           >
             <Text
+              className="text-xs font-semibold"
               style={{
-                color:
-                  banner.tone === 'success'
-                    ? colors.semantic.successDark
-                    : colors.semantic.errorDark,
-                fontWeight: typography.weight.semibold,
-                fontSize: typography.size.xs,
+                color: banner.tone === 'success' ? colors.semantic.successDark : colors.semantic.errorDark,
               }}
             >
               {banner.text}
             </Text>
-            <TouchableOpacity
-              onPress={() => setBanner(null)}
-              accessibilityRole="button"
-            >
+            <TouchableOpacity onPress={() => setBanner(null)} accessibilityRole="button">
               <Text
+                className="text-xs font-medium underline mt-xs"
                 style={{
-                  color:
-                    banner.tone === 'success'
-                      ? colors.semantic.successDark
-                      : colors.semantic.errorDark,
-                  fontWeight: typography.weight.medium,
-                  fontSize: typography.size.xs,
-                  textDecorationLine: 'underline',
+                  color: banner.tone === 'success' ? colors.semantic.successDark : colors.semantic.errorDark,
                 }}
               >
                 {t('Dismiss')}
@@ -211,26 +176,24 @@ export default function SettingsScreen({
           icon={Lock}
           title={t('PrivacyAndSafety')}
           subtitle={t('ControlWhoCanSeeYourContent')}
-          onPress={() => setActiveScreen('privacy')}
+          onPress={() => flow.goTo('privacy')}
         />
         <SettingsRow
           icon={Bell}
           title={t('Notifications')}
           subtitle={t('ManageYourNotificationPreferences')}
-          onPress={() => setActiveScreen('notifications')}
+          onPress={() => flow.goTo('notifications')}
         />
         <SettingsRow
           icon={Shield}
           title={t('Security')}
           subtitle={t('TwoFactorAuthenticationAndMore')}
-          onPress={() => setActiveScreen('security')}
+          onPress={() => flow.goTo('security')}
           end={
             settings?.mfaEnabled ? (
-              <Text style={{ color: colors.semantic.success, fontSize: typography.size.xs }}>
-                {t('Enabled')}
-              </Text>
+              <Text className="text-xs text-semantic-success">{t('Enabled')}</Text>
             ) : (
-              <Text style={{ color: colors.text.secondary, fontSize: typography.size.xs }}>
+              <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
                 {t('SetupRecommended')}
               </Text>
             )
@@ -238,52 +201,35 @@ export default function SettingsScreen({
         />
 
         <SettingsSection title={t('QuickSettings')} />
-        <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: 0.5, borderColor: colors.divider }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
-            <View style={{
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Moon size={16} color={colors.text.primary} strokeWidth={1.5} />
+        <View className="px-xl py-md">
+          <View className="flex-row items-center gap-md mb-sm">
+            <View className="w-7 h-7 rounded-md bg-light-surface dark:bg-dark-surface items-center justify-center">
+              <Moon size={16} color={iconColors.primary} strokeWidth={1.5} />
             </View>
-            <Text style={{
-              color: colors.text.primary,
-              fontWeight: typography.weight.semibold,
-              fontSize: typography.size.sm,
-              letterSpacing: -0.1,
-            }}>
+            <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary tracking-[-0.1px]">
               {t('Theme')}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: spacing.xs, marginLeft: 36 }}>
-            {[
-              { value: ThemePreference.LIGHT, label: t('Light') },
-              { value: ThemePreference.DARK, label: t('Dark') },
-              { value: ThemePreference.SYSTEM, label: t('System') },
-            ].map((option) => {
+          <View className="flex-row gap-xs ml-9">
+            {themeOptions.map((option) => {
               const isActive = themePreference === option.value;
               return (
                 <TouchableOpacity
                   key={option.value}
                   onPress={() => handleThemePreferenceChange(option.value)}
+                  className="px-md py-xs rounded-md border"
                   style={{
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.xs,
-                    borderRadius: borderRadius.md,
-                    backgroundColor: isActive ? colors.text.primary : colors.surface,
-                    borderWidth: 1,
-                    borderColor: isActive ? colors.text.primary : colors.divider,
+                    backgroundColor: isActive ? activePillBackground : inactivePillBackground,
+                    borderColor: isActive ? activePillBackground : inactiveBorder,
                   }}
                 >
-                  <Text style={{
-                    color: isActive ? colors.text.inverse : colors.text.secondary,
-                    fontSize: typography.size.xs,
-                    fontWeight: isActive ? typography.weight.semibold : typography.weight.medium,
-                  }}>
+                  <Text
+                    className="text-xs"
+                    style={{
+                      color: isActive ? activePillText : iconColors.secondary,
+                      fontWeight: isActive ? '600' : '500',
+                    }}
+                  >
                     {option.label}
                   </Text>
                 </TouchableOpacity>
@@ -291,51 +237,36 @@ export default function SettingsScreen({
             })}
           </View>
         </View>
-        <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: 0.5, borderColor: colors.divider }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.sm }}>
-            <View style={{
-              width: 28,
-              height: 28,
-              borderRadius: 6,
-              backgroundColor: colors.surface,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Globe size={16} color={colors.text.primary} strokeWidth={1.5} />
+
+        <View className="px-xl py-md">
+          <View className="flex-row items-center gap-md mb-sm">
+            <View className="w-7 h-7 rounded-md bg-light-surface dark:bg-dark-surface items-center justify-center">
+              <Globe size={16} color={iconColors.primary} strokeWidth={1.5} />
             </View>
-            <Text style={{
-              color: colors.text.primary,
-              fontWeight: typography.weight.semibold,
-              fontSize: typography.size.sm,
-              letterSpacing: -0.1,
-            }}>
+            <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary tracking-[-0.1px]">
               {t('Language')}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: spacing.xs, marginLeft: 36 }}>
-            {[
-              { value: 'en', label: t('English') },
-              { value: 'fr', label: t('French') },
-            ].map((option) => {
+          <View className="flex-row gap-xs ml-9">
+            {languageOptions.map((option) => {
               const isActive = lang === option.value;
               return (
                 <TouchableOpacity
                   key={option.value}
                   onPress={() => handleLanguageChange(option.value)}
+                  className="px-md py-xs rounded-md border"
                   style={{
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.xs,
-                    borderRadius: borderRadius.md,
-                    backgroundColor: isActive ? colors.text.primary : colors.surface,
-                    borderWidth: 1,
-                    borderColor: isActive ? colors.text.primary : colors.divider,
+                    backgroundColor: isActive ? activePillBackground : inactivePillBackground,
+                    borderColor: isActive ? activePillBackground : inactiveBorder,
                   }}
                 >
-                  <Text style={{
-                    color: isActive ? colors.text.inverse : colors.text.secondary,
-                    fontSize: typography.size.xs,
-                    fontWeight: isActive ? typography.weight.semibold : typography.weight.medium,
-                  }}>
+                  <Text
+                    className="text-xs"
+                    style={{
+                      color: isActive ? activePillText : iconColors.secondary,
+                      fontWeight: isActive ? '600' : '500',
+                    }}
+                  >
                     {option.label}
                   </Text>
                 </TouchableOpacity>
@@ -349,7 +280,7 @@ export default function SettingsScreen({
           icon={HardDrive}
           title={t('DataAndStorage')}
           subtitle={t('ManageDownloadsAndStorage')}
-          onPress={() => setActiveScreen('data')}
+          onPress={() => flow.goTo('data')}
         />
 
         <SettingsSection title={t('SupportAbout')} />
@@ -375,6 +306,7 @@ export default function SettingsScreen({
           title={t('DeleteAccount')}
           subtitle={t('PermanentlyDeleteYourAccountAndData')}
           danger
+          onPress={() => setShowDeleteConfirm(true)}
         />
         <SettingsRow
           icon={LogOut}
@@ -384,25 +316,38 @@ export default function SettingsScreen({
           danger
         />
 
-        <View
-          style={{
-            alignItems: 'center',
-            paddingHorizontal: spacing.xl,
-            paddingTop: spacing.md,
-            paddingBottom: spacing.xs,
-            gap: spacing.xs / 2,
-          }}
-        >
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, fontWeight: typography.weight.medium }}>Shade v1.0.0</Text>
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
-            Terms • Privacy • Cookies
+        <View className="items-center px-xl pt-md pb-xs">
+          <Text className="text-xs font-medium text-txt-tertiary dark:text-txt-dark-tertiary">
+            {t('AppNameWithVersion', { app: 'Shade', version: '1.0.0' })}
           </Text>
-          <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginTop: spacing.xs / 2 }}>
-            © {new Date().getFullYear()} Shade. All rights reserved.
+          <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
+            {t('LegalLinks', { defaultValue: 'Terms • Privacy • Cookies' })}
+          </Text>
+          <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mt-xs">
+            {t('AllRightsReserved', { year: new Date().getFullYear(), app: 'Shade' })}
           </Text>
         </View>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+      <ConfirmModal
+        visible={showDeleteConfirm}
+        title={t('DeleteAccountConfirmTitle')}
+        message={t('DeleteAccountConfirmMessage')}
+        confirmLabel={t('DeleteAccountConfirmButton')}
+        cancelLabel={t('Cancel')}
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleDeleteAccount}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+    </View>
   );
 }
 
+export default function SettingsScreen({ onClose, onLogout }: Props) {
+  return (
+    <SettingsProvider>
+      <SettingsScreenContent onClose={onClose} onLogout={onLogout} />
+    </SettingsProvider>
+  );
+}

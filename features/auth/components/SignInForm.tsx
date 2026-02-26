@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react-native';
-import { User, LoginRequest } from '../../../core/auth/types/auth';
-import { authService } from '../../../core/auth/services/authService';
-import { setUser } from '../../../common/storage/authStorage';
-import { useTheme } from '../../../common/theme/ThemeProvider';
+import { Lock, Mail } from 'lucide-react-native';
+import { User } from '../../../core/auth/types/auth';
 import Input from '../../../common/components/ui/Input';
 import Button from '../../../common/components/ui/Button';
 import { useI18n } from '../../../common/i18n/I18nProvider';
+import { useSignIn } from '../hooks';
+import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
   onLogin?: (user: User, onboardingRequired: boolean) => void;
@@ -16,31 +15,46 @@ type Props = {
 };
 
 export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Props) => {
-  const { colors, brand, typography, spacing } = useTheme();
   const { t } = useI18n();
+  const { colors } = useTheme();
+  const iconColor = colors.text.tertiary;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { loading: submitting, error: signInError, actions } = useSignIn();
+
   const canSignIn = useMemo(() => !!email && !!password, [email, password]);
 
+  const error = useMemo(() => {
+    if (!signInError) return null;
+    switch (signInError) {
+      case 'PASSWORD_INCORRECT':
+        return t('PasswordIncorrect');
+      case 'EMAIL_NOT_VERIFIED':
+        return t('EmailNotVerified');
+      case 'SIGN_IN_FAILED':
+      default:
+        return t('SignInFailed');
+    }
+  }, [signInError, t]);
+
   return (
-    <View style={{ gap: spacing.xl }}>
-      <View style={{ gap: spacing.lg }}>
+    <View className="gap-xl">
+      <View className="gap-lg">
         <Input
           label={t('Email')}
           value={email}
           onChangeText={text => {
             setEmail(text);
-            setError(null);
+            actions.clearError();
           }}
           placeholder={t('EmailAddress')}
           inputType="email"
           enableNativeAutocomplete={true}
-          leftIcon={<Mail size={20} color={colors.text.tertiary} />}
-          error={error && error.toLowerCase().includes('email') ? error : undefined}
+          leftIcon={<Mail size={20} color={iconColor} />}
+          error={signInError === 'EMAIL_NOT_VERIFIED' ? error || undefined : undefined}
           containerStyle={{ marginBottom: 0 }}
         />
 
@@ -50,142 +64,67 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
             value={password}
             onChangeText={text => {
               setPassword(text);
-              setError(null);
+              actions.clearError();
             }}
             placeholder={t('Password')}
             inputType="password"
-            enableNativeAutocomplete={true}
-            leftIcon={<Lock size={20} color={colors.text.tertiary} />}
-            rightIcon={
-              showPassword ? (
-                <EyeOff size={20} color={colors.text.tertiary} />
-              ) : (
-                <Eye size={20} color={colors.text.tertiary} />
-              )
-            }
-            onRightIconPress={() => setShowPassword(v => !v)}
-            error={error && !error.toLowerCase().includes('email') ? error : undefined}
+            enableNativeAutocomplete={false}
+            autoComplete="off"
+            textContentType="none"
+            leftIcon={<Lock size={20} color={iconColor} />}
+            error={signInError === 'PASSWORD_INCORRECT' ? error || undefined : undefined}
             containerStyle={{ marginBottom: 0 }}
           />
-          <TouchableOpacity
-            onPress={() => onForgotPassword?.()}
-            style={{ marginTop: spacing.sm, alignSelf: 'flex-end' }}
-            activeOpacity={0.7}
-          >
-            <Text
-              style={{
-                color: brand.primary,
-                fontSize: typography.size.xs,
-                fontWeight: typography.weight.medium,
-                letterSpacing: 0.1,
-              }}
-            >
-              {t('ForgotPassword')}
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.xs }}>
         <TouchableOpacity
-          onPress={() => setRememberMe(!rememberMe)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.sm,
-          }}
+          onPress={() => onForgotPassword?.()}
+          className="self-end"
           activeOpacity={0.7}
         >
-          <View
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 4,
-              borderWidth: 1.5,
-              borderColor: rememberMe ? brand.primary : colors.border,
-              backgroundColor: rememberMe ? brand.primary : 'transparent',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {rememberMe && (
-              <View
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2,
-                  backgroundColor: colors.text.inverse,
-                }}
-              />
-            )}
-          </View>
-          <Text
-            style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.xs,
-            fontWeight: typography.weight.regular,
-            letterSpacing: 0.1,
-          }}
-        >
-          {t('RememberMe')}
+          <Text className="text-xs font-medium tracking-wide text-brand-primary dark:text-txt-dark-primary">
+            {t('ForgotPassword')}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {error && !error.toLowerCase().includes('email') && !error.toLowerCase().includes('password') ? (
-        <View style={{ marginTop: spacing.sm }}>
-          <Text
-            style={{
-              color: colors.semantic.error,
-              textAlign: 'center',
-              fontSize: typography.size.xs,
-              fontWeight: typography.weight.regular,
-            }}
+      <View className="flex-row justify-between items-center mt-xs">
+        <TouchableOpacity
+          onPress={() => setRememberMe(!rememberMe)}
+          className="flex-row items-center gap-sm"
+          activeOpacity={0.7}
+        >
+          <View
+            className={`w-[18px] h-[18px] rounded items-center justify-center border-[1.5px] ${
+              rememberMe
+                ? 'border-brand-primary bg-brand-primary'
+                : 'border-light-border dark:border-dark-border bg-transparent'
+            }`}
           >
+            {rememberMe && (
+              <View className="w-2 h-2 rounded-sm bg-txt-inverse" />
+            )}
+          </View>
+          <Text className="text-xs font-normal tracking-wide text-txt-secondary dark:text-txt-dark-secondary">
+            {t('RememberMe')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {signInError === 'SIGN_IN_FAILED' && error ? (
+        <View className="mt-sm">
+          <Text className="text-xs font-normal text-center text-semantic-error">
             {error}
           </Text>
         </View>
       ) : null}
 
-      <View style={{ marginTop: spacing.lg }}>
+      <View className="mt-lg">
         <Button
           onPress={async () => {
-            try {
-              setSubmitting(true);
-              setError(null);
-              const loginRequest: LoginRequest = {
-                email,
-                password,
-                rememberMe,
-              };
-              const authResponse = await authService.loginNew(loginRequest);
-              await setUser(authResponse.user);
-              
-              const mapped: User = {
-                id: authResponse.user.id ?? authResponse.user.email,
-                email: authResponse.user.email,
-                name: authResponse.user.name,
-                provider: 'password',
-              };
-              
-              onLogin?.(mapped, authResponse.onboardingRequired);
-            } catch (e: any) {
-              const errorMessage = e?.message || '';
-              // Check if error is related to password/authentication failure
-              const isPasswordError = 
-                errorMessage.toLowerCase().includes('password') ||
-                errorMessage.toLowerCase().includes('incorrect') ||
-                errorMessage.toLowerCase().includes('invalid credentials') ||
-                errorMessage.toLowerCase().includes('authentication failed') ||
-                (e?.status === 401 && !errorMessage.toLowerCase().includes('email'));
-              
-              if (isPasswordError) {
-                setError(t('PasswordIncorrect'));
-              } else {
-                setError(errorMessage || t('SignIn'));
-              }
-            } finally {
-              setSubmitting(false);
+            const result = await actions.signIn(email, password, rememberMe);
+            if (result) {
+              onLogin?.(result.user, result.onboardingRequired);
             }
           }}
           disabled={!canSignIn || submitting}
@@ -198,32 +137,12 @@ export const SignInForm = ({ onLogin, onSwitchToSignUp, onForgotPassword }: Prop
         </Button>
       </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          marginTop: spacing.xl,
-          gap: spacing.xs,
-        }}
-      >
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-            fontWeight: typography.weight.regular,
-          }}
-        >
+      <View className="flex-row justify-center mt-xl gap-xs">
+        <Text className="text-sm font-normal text-txt-secondary dark:text-txt-dark-secondary">
           {t('DontHaveAccount')}
         </Text>
         <TouchableOpacity onPress={onSwitchToSignUp} activeOpacity={0.7}>
-          <Text
-            style={{
-              color: brand.primary,
-              fontSize: typography.size.sm,
-              fontWeight: typography.weight.semibold,
-              letterSpacing: 0.1,
-            }}
-          >
+          <Text className="text-sm font-semibold tracking-wide text-brand-primary dark:text-txt-dark-primary">
             {t('SignUp')}
           </Text>
         </TouchableOpacity>

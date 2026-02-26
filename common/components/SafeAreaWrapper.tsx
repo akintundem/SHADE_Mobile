@@ -1,6 +1,5 @@
 import React from 'react';
 import { SafeAreaView, SafeAreaViewProps } from 'react-native-safe-area-context';
-import { useTheme } from '../theme/ThemeProvider';
 
 interface SafeAreaWrapperProps extends Omit<SafeAreaViewProps, 'style'> {
   children: React.ReactNode;
@@ -16,15 +15,12 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
   style,
   ...props
 }) => {
-  const { colors } = useTheme();
-  
   return (
     <SafeAreaView
+      className={!backgroundColor ? 'flex-1 bg-light-background dark:bg-dark-background' : undefined}
       style={[
-        {
-          flex: 1,
-          backgroundColor: backgroundColor || colors.background,
-        },
+        { flex: 1 },
+        backgroundColor ? { backgroundColor } : undefined,
         style,
       ]}
       edges={edges}

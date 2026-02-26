@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
   icon?: React.ReactNode;
@@ -8,19 +7,12 @@ type Props = {
 };
 
 export function FieldLabel({ icon, label }: Props) {
-  const { colors, spacing } = useTheme();
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.xs,
-        marginBottom: spacing.xs,
-      }}
-    >
+    <View className="flex-row items-center gap-xs mb-xs">
       {icon}
-      <Text style={{ color: colors.text.primary }}>{label}</Text>
+      <Text className="text-sm text-txt-primary dark:text-txt-dark-primary">
+        {label}
+      </Text>
     </View>
   );
 }
-

@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ScrollView, View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { ArrowLeft, Bell, Mail, MessageSquare, Users, Calendar, Clock, CheckCircle } from 'lucide-react-native';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
 import { useI18n } from '../../../../common/i18n/I18nProvider';
 import { SettingsSection, SettingsRow } from '../../components';
 import CustomSwitch from '../../../../common/components/ui/CustomSwitch';
-import { useCurrentUser } from '../../../../common/hooks/useCurrentUser';
-import { authService } from '../../../../core/auth/services/authService';
-import { UserSettings } from '../../../../core/auth/types/auth';
+import { useSettings } from '../../context';
+import type { NotificationSettingsUpdateRequest } from '../../../../core/auth/types/auth';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
 type Props = {
   onBack?: () => void;
@@ -16,104 +14,59 @@ type Props = {
 
 export default function NotificationSettingsScreen({ onBack }: Props) {
   const { t } = useI18n();
-  const { colors, spacing, typography } = useTheme();
-  const { user, refetch } = useCurrentUser();
-  const [isUpdating, setIsUpdating] = useState(false);
-  
-  const settings = user?.settings;
+  const { colors } = useTheme();
+  const { settings, updateNotifications, updateSecurity, isUpdating } = useSettings();
 
-  const [emailNotifications, setEmailNotifications] = useState(settings?.emailNotificationsEnabled ?? true);
-  const [pushNotifications, setPushNotifications] = useState(settings?.pushNotificationsEnabled ?? true);
-  const [eventInvitations, setEventInvitations] = useState(settings?.eventInvitationsEnabled ?? true);
-  const [eventUpdates, setEventUpdates] = useState(settings?.eventUpdatesEnabled ?? true);
-  const [eventReminders, setEventReminders] = useState(settings?.eventRemindersEnabled ?? true);
-  const [rsvpNotifications, setRsvpNotifications] = useState(settings?.rsvpNotificationsEnabled ?? true);
-  const [commentNotifications, setCommentNotifications] = useState(settings?.commentNotificationsEnabled ?? true);
-  const [collaborationRequests, setCollaborationRequests] = useState(settings?.collaborationRequestsEnabled ?? true);
-  const [weeklyDigest, setWeeklyDigest] = useState(settings?.weeklyDigestEnabled ?? false);
-  const [activityFeed, setActivityFeed] = useState(settings?.activityFeedNotificationsEnabled ?? true);
-  const [autoAcceptInvitations, setAutoAcceptInvitations] = useState(settings?.autoAcceptInvitations ?? false);
+  const reminderTimingValue = useMemo(() => {
+    if (settings?.reminderTimingMinutes === null || settings?.reminderTimingMinutes === undefined) {
+      return '30';
+    }
+    return String(settings.reminderTimingMinutes);
+  }, [settings?.reminderTimingMinutes]);
+
+  const [reminderTiming, setReminderTiming] = useState(reminderTimingValue);
 
   useEffect(() => {
-    if (settings) {
-      setEmailNotifications(settings.emailNotificationsEnabled ?? true);
-      setPushNotifications(settings.pushNotificationsEnabled ?? true);
-      setEventInvitations(settings.eventInvitationsEnabled ?? true);
-      setEventUpdates(settings.eventUpdatesEnabled ?? true);
-      setEventReminders(settings.eventRemindersEnabled ?? true);
-      setRsvpNotifications(settings.rsvpNotificationsEnabled ?? true);
-      setCommentNotifications(settings.commentNotificationsEnabled ?? true);
-      setCollaborationRequests(settings.collaborationRequestsEnabled ?? true);
-      setWeeklyDigest(settings.weeklyDigestEnabled ?? false);
-      setActivityFeed(settings.activityFeedNotificationsEnabled ?? true);
-      setAutoAcceptInvitations(settings.autoAcceptInvitations ?? false);
-    }
-  }, [settings]);
+    setReminderTiming(reminderTimingValue);
+  }, [reminderTimingValue]);
 
-  const handleToggle = async (
-    key: keyof Pick<UserSettings, 
-      | 'emailNotificationsEnabled'
-      | 'pushNotificationsEnabled'
-      | 'eventInvitationsEnabled'
-      | 'eventUpdatesEnabled'
-      | 'eventRemindersEnabled'
-      | 'rsvpNotificationsEnabled'
-      | 'commentNotificationsEnabled'
-      | 'collaborationRequestsEnabled'
-      | 'weeklyDigestEnabled'
-      | 'activityFeedNotificationsEnabled'
-      | 'autoAcceptInvitations'
-    >,
-    value: boolean,
-    setter: (v: boolean) => void
-  ) => {
-    if (!user) return;
-    setter(value);
-    setIsUpdating(true);
-    try {
-      await authService.updateUserProfile(user.id, {
-        name: user.name,
-        settings: { [key]: value },
-      });
-      await refetch();
-    } catch (error) {
-      // Revert on error
-      setter(settings?.[key] as boolean ?? false);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  const handleToggle = useCallback(
+    async (key: keyof NotificationSettingsUpdateRequest, value: boolean) => {
+      await updateNotifications({ [key]: value });
+    },
+    [updateNotifications]
+  );
 
+  const handleReminderTimingChange = useCallback(async () => {
+    const minutes = parseInt(reminderTiming, 10);
+    if (Number.isNaN(minutes) || minutes < 1) {
+      setReminderTiming(reminderTimingValue);
+      return;
+    }
+    const ok = await updateNotifications({ reminderTimingMinutes: minutes });
+    if (!ok) {
+      setReminderTiming(reminderTimingValue);
+    }
+  }, [reminderTiming, reminderTimingValue, updateNotifications]);
+
+  const handleAutoAcceptChange = useCallback(async (value: boolean) => {
+    await updateSecurity({ autoAcceptInvitations: value });
+  }, [updateSecurity]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.md,
-          borderBottomWidth: 0.5,
-          borderColor: colors.divider,
-        }}
-      >
-        <TouchableOpacity onPress={onBack} style={{ padding: spacing.xs }}>
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
+      <View className="flex-row items-center justify-between px-xl py-md">
+        <TouchableOpacity onPress={onBack} className="p-xs">
           <ArrowLeft size={20} color={colors.text.primary} strokeWidth={1.5} />
         </TouchableOpacity>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.semibold,
-            fontSize: typography.size.base,
-          }}
-        >
+        <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary">
           {t('Notifications')}
         </Text>
-        <View style={{ width: 40 }} />
+        <View className="w-10" />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing.xl }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View className="pb-5">
         <SettingsSection title={t('NotificationChannels')} />
         <SettingsRow
           icon={Mail}
@@ -121,8 +74,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('ReceiveNotificationsViaEmail')}
           end={
             <CustomSwitch
-              value={emailNotifications}
-              onValueChange={(v) => handleToggle('emailNotificationsEnabled', v, setEmailNotifications)}
+              value={settings?.emailNotificationsEnabled ?? true}
+              onValueChange={(v) => handleToggle('emailNotificationsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -133,8 +86,20 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('ReceivePushNotificationsOnDevice')}
           end={
             <CustomSwitch
-              value={pushNotifications}
-              onValueChange={(v) => handleToggle('pushNotificationsEnabled', v, setPushNotifications)}
+              value={settings?.pushNotificationsEnabled ?? true}
+              onValueChange={(v) => handleToggle('pushNotificationsEnabled', v)}
+              disabled={isUpdating}
+            />
+          }
+        />
+        <SettingsRow
+          icon={MessageSquare}
+          title={t('SMSNotifications')}
+          subtitle={t('ReceiveNotificationsViaSMS')}
+          end={
+            <CustomSwitch
+              value={settings?.smsNotificationsEnabled ?? false}
+              onValueChange={(v) => handleToggle('smsNotificationsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -147,8 +112,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetNotifiedAboutNewInvitations')}
           end={
             <CustomSwitch
-              value={eventInvitations}
-              onValueChange={(v) => handleToggle('eventInvitationsEnabled', v, setEventInvitations)}
+              value={settings?.eventInvitationsEnabled ?? true}
+              onValueChange={(v) => handleToggle('eventInvitationsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -159,8 +124,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetNotifiedAboutEventChanges')}
           end={
             <CustomSwitch
-              value={eventUpdates}
-              onValueChange={(v) => handleToggle('eventUpdatesEnabled', v, setEventUpdates)}
+              value={settings?.eventUpdatesEnabled ?? true}
+              onValueChange={(v) => handleToggle('eventUpdatesEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -171,10 +136,31 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetRemindersBeforeEvents')}
           end={
             <CustomSwitch
-              value={eventReminders}
-              onValueChange={(v) => handleToggle('eventRemindersEnabled', v, setEventReminders)}
+              value={settings?.eventRemindersEnabled ?? true}
+              onValueChange={(v) => handleToggle('eventRemindersEnabled', v)}
               disabled={isUpdating}
             />
+          }
+        />
+        <SettingsRow
+          icon={Clock}
+          title={t('ReminderTiming')}
+          subtitle={t('ReminderTimingDescription')}
+          end={
+            <View className="flex-row items-center gap-xs">
+              <TextInput
+                value={reminderTiming}
+                onChangeText={(text) => setReminderTiming(text.replace(/[^0-9]/g, ''))}
+                onBlur={handleReminderTimingChange}
+                keyboardType="number-pad"
+                className="w-16 px-sm py-xs border rounded-md text-center text-sm text-txt-primary dark:text-txt-dark-primary"
+                style={{ borderColor: colors.borderLight }}
+                editable={!isUpdating}
+              />
+              <Text className="text-sm text-txt-tertiary dark:text-txt-dark-tertiary">
+                {t('Minutes')}
+              </Text>
+            </View>
           }
         />
 
@@ -185,8 +171,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetNotifiedAboutRSVPs')}
           end={
             <CustomSwitch
-              value={rsvpNotifications}
-              onValueChange={(v) => handleToggle('rsvpNotificationsEnabled', v, setRsvpNotifications)}
+              value={settings?.rsvpNotificationsEnabled ?? true}
+              onValueChange={(v) => handleToggle('rsvpNotificationsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -197,8 +183,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetNotifiedAboutComments')}
           end={
             <CustomSwitch
-              value={commentNotifications}
-              onValueChange={(v) => handleToggle('commentNotificationsEnabled', v, setCommentNotifications)}
+              value={settings?.commentNotificationsEnabled ?? true}
+              onValueChange={(v) => handleToggle('commentNotificationsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -209,8 +195,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetNotifiedAboutCollaborationRequests')}
           end={
             <CustomSwitch
-              value={collaborationRequests}
-              onValueChange={(v) => handleToggle('collaborationRequestsEnabled', v, setCollaborationRequests)}
+              value={settings?.collaborationRequestsEnabled ?? true}
+              onValueChange={(v) => handleToggle('collaborationRequestsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -221,8 +207,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('GetNotifiedAboutActivityFeedUpdates')}
           end={
             <CustomSwitch
-              value={activityFeed}
-              onValueChange={(v) => handleToggle('activityFeedNotificationsEnabled', v, setActivityFeed)}
+              value={settings?.activityFeedNotificationsEnabled ?? true}
+              onValueChange={(v) => handleToggle('activityFeedNotificationsEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -233,8 +219,8 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('ReceiveWeeklySummaryOfActivity')}
           end={
             <CustomSwitch
-              value={weeklyDigest}
-              onValueChange={(v) => handleToggle('weeklyDigestEnabled', v, setWeeklyDigest)}
+              value={settings?.weeklyDigestEnabled ?? false}
+              onValueChange={(v) => handleToggle('weeklyDigestEnabled', v)}
               disabled={isUpdating}
             />
           }
@@ -245,14 +231,14 @@ export default function NotificationSettingsScreen({ onBack }: Props) {
           subtitle={t('AutomaticallyAcceptEventInvitations')}
           end={
             <CustomSwitch
-              value={autoAcceptInvitations}
-              onValueChange={(v) => handleToggle('autoAcceptInvitations', v, setAutoAcceptInvitations)}
+              value={settings?.autoAcceptInvitations ?? false}
+              onValueChange={handleAutoAcceptChange}
               disabled={isUpdating}
             />
           }
         />
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-

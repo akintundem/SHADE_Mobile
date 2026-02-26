@@ -93,7 +93,7 @@ export class FormValidator {
   }
 
   if (rule.phone && typeof value === 'string') {
-    const phonePattern = /^[\+]?[1-9][\d]{0,15}$/;
+    const phonePattern = /^[+]?[1-9][\d]{0,15}$/;
     if (!phonePattern.test(value)) {
       return rule.message || 'Invalid phone number';
     }
@@ -145,7 +145,7 @@ export const commonRules = {
   }),
 
   phone: (message?: string): ValidationRule => ({
-    pattern: /^[\+]?[1-9][\d]{0,15}$/,
+    pattern: /^[+]?[1-9][\d]{0,15}$/,
     message: message || 'Please enter a valid phone number',
   }),
 

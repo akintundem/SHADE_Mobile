@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../../common/theme/ThemeProvider';
 
 type Props = {
   title: string;
@@ -8,21 +7,12 @@ type Props = {
 };
 
 export function Section({ title, children }: Props) {
-  const { colors, spacing, typography } = useTheme();
   return (
-    <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
-      <Text
-        style={{
-          color: colors.text.primary,
-          fontWeight: typography.weight.semibold,
-          marginBottom: spacing.md,
-          fontSize: typography.size.base,
-        }}
-      >
+    <View className="px-lg pt-lg">
+      <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary mb-md">
         {title}
       </Text>
       {children}
     </View>
   );
 }
-

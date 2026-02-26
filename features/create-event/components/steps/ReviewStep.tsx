@@ -1,58 +1,19 @@
 import React, { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { Sparkles, Upload, Calendar, MapPin, Users, DollarSign, Tag, Clock, Edit3 } from 'lucide-react-native';
+import { Sparkles, Upload, Calendar, MapPin, DollarSign, Tag, Clock, Edit3 } from 'lucide-react-native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import { useTheme } from '../../../../common/theme/ThemeProvider';
-import { EventType } from '../../../../core/events/types/event';
 import { formatDisplayDateTime } from '../../../../common/datetime';
-import devConfig from '../../../../dev-config.json';
+import { appConfig } from '../../../../config/appConfig';
+import { EVENT_CATEGORIES } from '../../../../core/events/constants';
+import { useCreateEvent } from '../../context';
+import { formatVenueLocation } from '../../utils';
+import { useTheme } from '../../../../common/theme/ThemeProvider';
 
-type Props = {
-  title: string;
-  description: string;
-  selectedEventType: EventType | null;
-  startDate: string;
-  startTime: string;
-  endDate: string;
-  endTime: string;
-  venue: {
-    address?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    latitude?: number;
-    longitude?: number;
-  } | null;
-  isPublic: boolean;
-  free: boolean;
-  price: string;
-  capacity: string;
-  enableContrib: boolean;
-  contributionAmount: string;
-  onEditStep: (step: number) => void;
-  onImageSelected?: (imageUri: string) => void;
-};
-
-export function ReviewStep({
-  title,
-  description,
-  selectedEventType,
-  startDate,
-  startTime,
-  endDate,
-  endTime,
-  venue,
-  isPublic,
-  free,
-  price,
-  capacity,
-  enableContrib,
-  contributionAmount,
-  onEditStep,
-  onImageSelected,
-}: Props) {
-  const mapApiKey = devConfig?.geoapifyApiKey || 'demo';
-  const { colors, typography, spacing, borderRadius, brand, shadows, isDark } = useTheme();
+export function ReviewStep() {
+  const { form, actions } = useCreateEvent();
+  const { colors } = useTheme();
+  const accentColor = colors.semantic.warning;
+  const mapApiKey = appConfig.geoapifyApiKey || 'demo';
 
   const handleUploadImage = async () => {
     try {
@@ -67,9 +28,9 @@ export function ReviewStep({
         return;
       }
 
-      const uri = result.assets?.[0]?.uri;
-      if (uri && onImageSelected) {
-        onImageSelected(uri);
+      const asset = result.assets?.[0];
+      if (asset) {
+        actions.setCoverImage(asset);
       }
     } catch (error) {
       // Error selecting image
@@ -77,609 +38,299 @@ export function ReviewStep({
   };
 
   const staticMapUrl = useMemo(() => {
-    if (venue?.latitude && venue?.longitude && mapApiKey) {
+    if (form.venue?.latitude && form.venue?.longitude && mapApiKey) {
       const zoom = 13;
-      return `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=300&center=lonlat:${venue.longitude},${venue.latitude}&zoom=${zoom}&marker=lonlat:${venue.longitude},${venue.latitude};type:material;color:%23F59E0B;size:medium&apiKey=${mapApiKey}`;
+      const encodedAccent = encodeURIComponent(accentColor);
+      return `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=300&center=lonlat:${form.venue.longitude},${form.venue.latitude}&zoom=${zoom}&marker=lonlat:${form.venue.longitude},${form.venue.latitude};type:material;color:${encodedAccent};size:medium&apiKey=${mapApiKey}`;
     }
     return null;
-  }, [venue?.latitude, venue?.longitude, mapApiKey]);
+  }, [form.venue?.latitude, form.venue?.longitude, mapApiKey, accentColor]);
 
-  const getCategoryDisplay = () => {
-    const categoryMap: Record<EventType, string> = {
-      [EventType.CONFERENCE]: 'Conference',
-      [EventType.WORKSHOP]: 'Workshop',
-      [EventType.SEMINAR]: 'Seminar',
-      [EventType.MEETING]: 'Meeting',
-      [EventType.PARTY]: 'Party',
-      [EventType.WEDDING]: 'Wedding',
-      [EventType.BIRTHDAY]: 'Birthday',
-      [EventType.CORPORATE_EVENT]: 'Corporate Event',
-      [EventType.TRADE_SHOW]: 'Exhibition',
-      [EventType.CONCERT]: 'Concert',
-      [EventType.FESTIVAL]: 'Festival',
-      [EventType.SPORTS_EVENT]: 'Sports Event',
-      [EventType.CHARITY_EVENT]: 'Charity Event',
-      [EventType.NETWORKING]: 'Networking',
-      [EventType.TRAINING]: 'Training',
-      [EventType.RETREAT]: 'Retreat',
-      [EventType.OTHER]: 'Other',
-    };
-    return selectedEventType ? categoryMap[selectedEventType] || selectedEventType : 'Not set';
-  };
-
-  const formatLocation = () => {
-    if (!venue?.address) return 'Location not set';
-    const parts = [];
-    if (venue.address) parts.push(venue.address);
-    if (venue.city) parts.push(venue.city);
-    if (venue.state) parts.push(venue.state);
-    return parts.join(', ');
-  };
+  const categoryLabel = useMemo(() => {
+    if (!form.selectedEventType) return 'Not set';
+    return EVENT_CATEGORIES.find((category) => category.value === form.selectedEventType)?.label
+      || form.selectedEventType;
+  }, [form.selectedEventType]);
 
   const formattedStart = useMemo(
-    () => formatDisplayDateTime(startDate, startTime),
-    [startDate, startTime],
+    () => formatDisplayDateTime(form.startDate, form.startTime),
+    [form.startDate, form.startTime],
   );
 
   const formattedEnd = useMemo(
-    () => formatDisplayDateTime(endDate, endTime),
-    [endDate, endTime],
+    () => formatDisplayDateTime(form.endDate, form.endTime),
+    [form.endDate, form.endTime],
   );
 
-  // Pure black and white for cards
-  const cardBackgroundColor = isDark ? '#000000' : '#FFFFFF';
-  const posterBackgroundColor = isDark ? '#000000' : '#1F2937';
-
   return (
-    <ScrollView
-      contentContainerStyle={{
-        paddingBottom: 120,
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.xl,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={{ marginBottom: spacing.xl }}>
-        <Text
-          style={{
-            color: colors.text.primary,
-            fontWeight: typography.weight.bold,
-            fontSize: typography.size['2xl'],
-            marginBottom: spacing.xs,
-          }}
-        >
-          Event Poster
-        </Text>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-          }}
-        >
-          AI-generated based on your details
-        </Text>
-      </View>
-
-      {/* Poster Preview Card */}
-      <View
-        style={{
-          backgroundColor: cardBackgroundColor,
-          borderRadius: borderRadius.xl,
-          borderWidth: 1,
-          borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-          overflow: 'hidden',
-          marginBottom: spacing.lg,
-          ...shadows.lg,
-        }}
-      >
-        {/* Poster Image/Placeholder */}
-        <View
-          style={{
-            height: 420,
-            backgroundColor: posterBackgroundColor,
-            position: 'relative',
-            justifyContent: 'flex-end',
-            paddingHorizontal: spacing.xl,
-            paddingBottom: spacing['2xl'],
-          }}
-        >
-          {/* Top right badge - clean and simple */}
-          <View
-            style={{
-              position: 'absolute',
-              top: spacing.lg,
-              right: spacing.lg,
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.xs,
-              borderRadius: borderRadius.full,
-            }}
-          >
-            <Text
-              style={{
-                color: '#1F2937',
-                fontSize: typography.size.xs,
-                fontWeight: typography.weight.semibold,
-              }}
-            >
-              Event
-            </Text>
-          </View>
-
-          {/* Event Name - direct on image, no background */}
-          <Text
-            style={{
-              color: '#FFFFFF',
-              fontSize: 48,
-              fontWeight: '700',
-              textAlign: 'left',
-              letterSpacing: -0.5,
-              lineHeight: 52,
-            }}
-            numberOfLines={3}
-          >
-            {title || 'Event Name'}
+    <ScrollView showsVerticalScrollIndicator={false}>
+      <View className="px-lg pt-xl pb-[120px]">
+        <View className="mb-xl">
+          <Text className="text-2xl font-bold text-txt-primary dark:text-txt-dark-primary mb-xs">
+            Event Poster
+          </Text>
+          <Text className="text-sm text-txt-secondary dark:text-txt-dark-secondary">
+            AI-generated based on your details
           </Text>
         </View>
 
-        {/* Action Buttons */}
-        <View
-          style={{
-            flexDirection: 'row',
-            gap: spacing.sm,
-            padding: spacing.md,
-            backgroundColor: cardBackgroundColor,
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: spacing.xs,
-              paddingVertical: spacing.md,
-              borderRadius: borderRadius.lg,
-              borderWidth: 1,
-              borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-              backgroundColor: cardBackgroundColor,
-            }}
-          >
-            <Sparkles size={18} color={colors.text.primary} />
+        <View className="bg-light-background dark:bg-dark-background rounded-xl border border-light-border dark:border-dark-border overflow-hidden mb-lg">
+          <View className="h-[420px] relative justify-end px-xl pb-2xl bg-brand-primary">
+            <View className="absolute top-lg right-lg bg-neutral-white/95 rounded-full px-md py-xs">
+              <Text className="text-xs font-semibold text-neutral-black">Event</Text>
+            </View>
             <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.semibold,
-              }}
+              className="text-txt-inverse text-[48px] font-bold leading-[52px] tracking-[-0.5px]"
+              numberOfLines={3}
             >
-              Regenerate
+              {form.title || 'Event Name'}
             </Text>
-          </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            onPress={handleUploadImage}
-            style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: spacing.xs,
-              paddingVertical: spacing.md,
-              borderRadius: borderRadius.lg,
-              borderWidth: 1,
-              borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-              backgroundColor: cardBackgroundColor,
-            }}
-          >
-            <Upload size={18} color={colors.text.primary} />
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size.sm,
-                fontWeight: typography.weight.semibold,
-              }}
+          <View className="flex-row gap-sm p-md bg-light-background dark:bg-dark-background">
+            <TouchableOpacity
+              className="flex-1 flex-row items-center justify-center gap-xs py-md rounded-lg border border-light-border dark:border-dark-border"
+              activeOpacity={0.7}
             >
-              Upload Own
-            </Text>
-          </TouchableOpacity>
+              <Sparkles size={18} color={colors.text.primary} />
+              <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
+                Regenerate
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleUploadImage}
+              className="flex-1 flex-row items-center justify-center gap-xs py-md rounded-lg border border-light-border dark:border-dark-border"
+              activeOpacity={0.7}
+            >
+              <Upload size={18} color={colors.text.primary} />
+              <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
+                Upload Own
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {/* Event Summary Header */}
-      <View style={{ marginBottom: spacing.lg, marginTop: spacing.md }}>
-        <Text
-          style={{
-            color: colors.text.secondary,
-            fontSize: typography.size.sm,
-            fontWeight: typography.weight.medium,
-            letterSpacing: 0.5,
-            textTransform: 'uppercase',
-          }}
-        >
-          Event Summary
-        </Text>
-      </View>
+        <View className="mb-lg mt-md">
+          <Text className="text-sm font-medium uppercase tracking-[0.5px] text-txt-secondary dark:text-txt-dark-secondary">
+            Event Summary
+          </Text>
+        </View>
 
-      {/* Summary Cards */}
-      <View style={{ gap: spacing.md }}>
-        {/* Basic Info Card */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onEditStep(0)}
-          style={{
-            backgroundColor: cardBackgroundColor,
-            borderRadius: borderRadius.xl,
-            borderWidth: 1,
-            borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-            padding: spacing.lg,
-            ...shadows.sm,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: brand.primary + '15',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Tag size={16} color={brand.primary} />
-              </View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.bold,
-                }}
-              >
-                Basic Info
-              </Text>
-            </View>
-            <View
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: borderRadius.full,
-                backgroundColor: colors.border + '40',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Edit3 size={14} color={colors.text.secondary} />
-            </View>
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <View>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
-                Event Name
-              </Text>
-              <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                {title || 'Not set'}
-              </Text>
-            </View>
-            <View>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
-                Description
-              </Text>
-              <Text
-                style={{ color: colors.text.primary, fontSize: typography.size.sm, lineHeight: 18 }}
-                numberOfLines={2}
-              >
-                {description || 'Not set'}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* Category Card */}
-        {selectedEventType && (
+        <View className="gap-md">
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => onEditStep(1)}
-            style={{
-              backgroundColor: cardBackgroundColor,
-              borderRadius: borderRadius.xl,
-              borderWidth: 1,
-              borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-              padding: spacing.lg,
-              ...shadows.sm,
-            }}
+            onPress={() => actions.goToStep(0)}
+            className="bg-light-background dark:bg-dark-background rounded-xl border border-light-border dark:border-dark-border p-lg"
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: borderRadius.lg,
-                    backgroundColor: brand.secondary + '15',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Tag size={16} color={brand.secondary} />
+            <View className="flex-row items-start justify-between mb-md">
+                <View className="flex-row items-center gap-sm">
+                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                    <Tag size={16} color={colors.text.primary} />
+                  </View>
+                  <Text className="text-base font-bold text-txt-primary dark:text-txt-dark-primary">
+                    Basic Info
+                  </Text>
                 </View>
-                <View>
-                  <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
-                    Category
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text.primary,
-                      fontSize: typography.size.sm,
-                      fontWeight: typography.weight.semibold,
-                    }}
-                  >
-                    {getCategoryDisplay()}
-                  </Text>
+                <View className="w-7 h-7 rounded-full items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                  <Edit3 size={14} color={colors.text.tertiary} />
                 </View>
               </View>
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: borderRadius.full,
-                  backgroundColor: colors.border + '40',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Edit3 size={14} color={colors.text.secondary} />
+
+            <View className="gap-sm">
+              <View>
+                <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mb-[2px]">
+                  Event Name
+                </Text>
+                <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                  {form.title || 'Not set'}
+                </Text>
+              </View>
+              <View>
+                <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mb-[2px]">
+                  Description
+                </Text>
+                <Text
+                  className="text-sm text-txt-primary dark:text-txt-dark-primary leading-[18px]"
+                  numberOfLines={2}
+                >
+                  {form.description || 'Not set'}
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
-        )}
 
-        {/* Date & Time Card */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onEditStep(2)}
-          style={{
-            backgroundColor: cardBackgroundColor,
-            borderRadius: borderRadius.xl,
-            borderWidth: 1,
-            borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-            padding: spacing.lg,
-            ...shadows.sm,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: brand.primary + '15',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Calendar size={16} color={brand.primary} />
-              </View>
-              <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.bold,
-                }}
-              >
-                Date & Time
-              </Text>
-            </View>
-            <View
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: borderRadius.full,
-                backgroundColor: colors.border + '40',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+          {form.selectedEventType ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => actions.goToStep(1)}
+              className="bg-light-background dark:bg-dark-background rounded-xl border border-light-border dark:border-dark-border p-lg"
             >
-              <Edit3 size={14} color={colors.text.secondary} />
-            </View>
-          </View>
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-sm">
+                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-brand-secondary/10">
+                    <Tag size={16} color={accentColor} />
+                  </View>
+                  <View>
+                    <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
+                      Category
+                    </Text>
+                    <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
+                      {categoryLabel}
+                    </Text>
+                  </View>
+                </View>
+                <View className="w-7 h-7 rounded-full items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                  <Edit3 size={14} color={colors.text.tertiary} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ) : null}
 
-          <View style={{ gap: spacing.sm }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-              <Clock size={14} color={colors.text.tertiary} />
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
-                Start
-              </Text>
-            </View>
-            <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-              {formattedStart || 'Not set'}
-            </Text>
-
-            {formattedEnd && (
-              <>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs }}>
-                  <Clock size={14} color={colors.text.tertiary} />
-                  <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs }}>
-                    End
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => actions.goToStep(2)}
+            className="bg-light-background dark:bg-dark-background rounded-xl border border-light-border dark:border-dark-border p-lg"
+          >
+            <View className="flex-row items-start justify-between mb-md">
+                <View className="flex-row items-center gap-sm">
+                  <View className="w-8 h-8 rounded-lg items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                    <Calendar size={16} color={colors.text.primary} />
+                  </View>
+                  <Text className="text-base font-bold text-txt-primary dark:text-txt-dark-primary">
+                    Date & Time
                   </Text>
                 </View>
-                <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                  {formattedEnd}
-                </Text>
-              </>
-            )}
-          </View>
-        </TouchableOpacity>
-
-        {/* Location Card */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onEditStep(3)}
-          style={{
-            backgroundColor: cardBackgroundColor,
-            borderRadius: borderRadius.xl,
-            borderWidth: 1,
-            borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-            overflow: 'hidden',
-            ...shadows.sm,
-          }}
-        >
-          {staticMapUrl && (
-            <View style={{ height: 160, overflow: 'hidden' }}>
-              <Image
-                source={{ uri: staticMapUrl }}
-                style={{ width: '100%', height: '100%' }}
-                resizeMode="cover"
-              />
-            </View>
-          )}
-
-          <View style={{ padding: spacing.lg }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.sm }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: borderRadius.lg,
-                    backgroundColor: brand.secondary + '15',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <MapPin size={16} color={brand.secondary} />
+                <View className="w-7 h-7 rounded-full items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                  <Edit3 size={14} color={colors.text.tertiary} />
                 </View>
-                <Text
-                  style={{
-                    color: colors.text.primary,
-                    fontSize: typography.size.base,
-                    fontWeight: typography.weight.bold,
-                  }}
-                >
-                  Location
+              </View>
+
+            <View className="gap-sm">
+              <View className="flex-row items-center gap-xs">
+                <Clock size={14} color={colors.text.tertiary} />
+                <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
+                  Start
                 </Text>
               </View>
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: borderRadius.full,
-                  backgroundColor: colors.border + '40',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Edit3 size={14} color={colors.text.secondary} />
-              </View>
+              <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                {formattedStart || 'Not set'}
+              </Text>
+
+              {formattedEnd ? (
+                <>
+                  <View className="flex-row items-center gap-xs mt-xs">
+                    <Clock size={14} color={colors.text.tertiary} />
+                    <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary">
+                      End
+                    </Text>
+                  </View>
+                  <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                    {formattedEnd}
+                  </Text>
+                </>
+              ) : null}
             </View>
+          </TouchableOpacity>
 
-            <Text
-              style={{
-                color: colors.text.primary,
-                fontSize: typography.size.sm,
-                lineHeight: 18,
-              }}
-              numberOfLines={2}
-            >
-              {formatLocation()}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Access & Pricing Card */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onEditStep(4)}
-          style={{
-            backgroundColor: cardBackgroundColor,
-            borderRadius: borderRadius.xl,
-            borderWidth: 1,
-            borderColor: isDark ? '#1F1F1F' : '#E5E7EB',
-            padding: spacing.lg,
-            ...shadows.sm,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: brand.primary + '15',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <DollarSign size={16} color={brand.primary} />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => actions.goToStep(3)}
+            className="bg-light-background dark:bg-dark-background rounded-xl border border-light-border dark:border-dark-border overflow-hidden"
+          >
+            {staticMapUrl ? (
+              <View className="h-40 overflow-hidden">
+                <Image
+                  source={{ uri: staticMapUrl }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
               </View>
+            ) : null}
+
+            <View className="p-lg">
+                <View className="flex-row items-start justify-between mb-sm">
+                  <View className="flex-row items-center gap-sm">
+                    <View className="w-8 h-8 rounded-lg items-center justify-center bg-brand-secondary/10">
+                      <MapPin size={16} color={accentColor} />
+                    </View>
+                    <Text className="text-base font-bold text-txt-primary dark:text-txt-dark-primary">
+                      Location
+                    </Text>
+                  </View>
+                  <View className="w-7 h-7 rounded-full items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                    <Edit3 size={14} color={colors.text.tertiary} />
+                  </View>
+                </View>
+
               <Text
-                style={{
-                  color: colors.text.primary,
-                  fontSize: typography.size.base,
-                  fontWeight: typography.weight.bold,
-                }}
+                className="text-sm text-txt-primary dark:text-txt-dark-primary leading-[18px]"
+                numberOfLines={2}
               >
-                Access & Pricing
+                {formatVenueLocation(form.venue)}
               </Text>
             </View>
-            <View
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: borderRadius.full,
-                backgroundColor: colors.border + '40',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Edit3 size={14} color={colors.text.secondary} />
-            </View>
-          </View>
+          </TouchableOpacity>
 
-          <View style={{ flexDirection: 'row', gap: spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
-                Visibility
-              </Text>
-              <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                {isPublic ? 'Public' : 'Private'}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
-                Price
-              </Text>
-              <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                {free ? 'Free' : `$${price}`}
-              </Text>
-            </View>
-            {capacity && (
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
-                  Capacity
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => actions.goToStep(4)}
+            className="bg-light-background dark:bg-dark-background rounded-xl border border-light-border dark:border-dark-border p-lg"
+          >
+                <View className="flex-row items-start justify-between mb-md">
+                  <View className="flex-row items-center gap-sm">
+                    <View className="w-8 h-8 rounded-lg items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                      <DollarSign size={16} color={colors.text.primary} />
+                    </View>
+                    <Text className="text-base font-bold text-txt-primary dark:text-txt-dark-primary">
+                      Access & Pricing
+                    </Text>
+                  </View>
+                  <View className="w-7 h-7 rounded-full items-center justify-center bg-light-surface-strong dark:bg-dark-surface-strong">
+                    <Edit3 size={14} color={colors.text.tertiary} />
+                  </View>
+                </View>
+
+            <View className="flex-row gap-md">
+              <View className="flex-1">
+                <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mb-[2px]">
+                  Visibility
                 </Text>
-                <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                  {capacity}
+                <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                  {form.isPublic ? 'Public' : 'Private'}
                 </Text>
               </View>
-            )}
-          </View>
-          {enableContrib && (
-            <View style={{ marginTop: spacing.md }}>
-              <Text style={{ color: colors.text.tertiary, fontSize: typography.size.xs, marginBottom: 2 }}>
-                Team Contributions
-              </Text>
-              <Text style={{ color: colors.text.primary, fontSize: typography.size.sm, fontWeight: typography.weight.medium }}>
-                {contributionAmount ? `Suggested: $${contributionAmount}` : 'Enabled'}
-              </Text>
+              <View className="flex-1">
+                <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mb-[2px]">
+                  Price
+                </Text>
+                <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                  {form.free ? 'Free' : form.price ? `$${form.price}` : 'Paid'}
+                </Text>
+              </View>
+              {form.capacity ? (
+                <View className="flex-1">
+                  <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mb-[2px]">
+                    Capacity
+                  </Text>
+                  <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                    {form.capacity}
+                  </Text>
+                </View>
+              ) : null}
             </View>
-          )}
-        </TouchableOpacity>
+            {form.enableContrib ? (
+              <View className="mt-md">
+                <Text className="text-xs text-txt-tertiary dark:text-txt-dark-tertiary mb-[2px]">
+                  Team Contributions
+                </Text>
+                <Text className="text-sm font-medium text-txt-primary dark:text-txt-dark-primary">
+                  {form.contributionAmount ? `Suggested: $${form.contributionAmount}` : 'Enabled'}
+                </Text>
+              </View>
+            ) : null}
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );

@@ -1,20 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import EnhancedInput from '../ui/Input';
+import BaseInput from '../ui/Input';
 
 // Section Component
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const { colors, typography, spacing } = useTheme();
+  const { typography, spacing } = useTheme();
   
   return (
     <View>
-      <Text style={{ 
-        color: colors.text.primary,
-        fontSize: typography.size.lg,
-        fontWeight: '700',
-        marginBottom: spacing.md
-      }}>
+      <Text
+        className="font-bold text-txt-primary dark:text-txt-dark-primary"
+        style={{
+          fontSize: typography.size.lg,
+          marginBottom: spacing.md
+        }}
+      >
         {title}
       </Text>
       <View style={{ gap: spacing.md }}>
@@ -26,16 +27,12 @@ export function Section({ title, children }: { title: string; children: React.Re
 
 // Field Label Component
 export function FieldLabel({ icon, label }: { icon: React.ReactNode; label: string }) {
-  const { colors, spacing } = useTheme();
+  const { spacing } = useTheme();
   
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs }}>
+    <View className="flex-row items-center" style={{ gap: spacing.xs, marginBottom: spacing.xs }}>
       {icon}
-      <Text style={{ 
-        color: colors.text.primary,
-        fontWeight: '600',
-        fontSize: 14
-      }}>
+      <Text className="text-sm font-semibold text-txt-primary dark:text-txt-dark-primary">
         {label}
       </Text>
     </View>
@@ -66,11 +63,11 @@ export function Input({
   onChangeText, 
   error,
   onBlur,
-  inputType = 'default',
+  inputType,
   ...props 
-}: InputProps & { inputType?: string }) {
+}: InputProps & { inputType?: 'email' | 'password' | 'name' | 'location' | 'event' | 'description' | 'phone' | 'url' | 'date' | 'capacity' | 'category' }) {
   return (
-    <EnhancedInput
+    <BaseInput
       placeholder={placeholder}
       value={value}
       onChangeText={onChangeText}
@@ -98,7 +95,7 @@ interface SelectInputProps {
 }
 
 export function SelectInput({ value, onValueChange, options, placeholder = 'Select an option' }: SelectInputProps) {
-  const { colors, borderRadius, spacing } = useTheme();
+  const { spacing } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   
   const selectedOption = options.find(opt => opt.value === value);
@@ -107,31 +104,17 @@ export function SelectInput({ value, onValueChange, options, placeholder = 'Sele
     <View>
       <TouchableOpacity
         onPress={() => setIsOpen(!isOpen)}
-        style={{
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: borderRadius.lg,
-          paddingHorizontal: spacing.md,
-          height: 48,
-          justifyContent: 'center',
-          backgroundColor: colors.surface,
-        }}
+        className="h-12 justify-center rounded-lg px-md border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
       >
-        <Text style={{ color: colors.text.primary }}>
+        <Text className="text-txt-primary dark:text-txt-dark-primary">
           {selectedOption?.label || placeholder}
         </Text>
       </TouchableOpacity>
       
       {isOpen && (
-        <View style={{
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: borderRadius.lg,
-          backgroundColor: colors.surface,
-          marginTop: spacing.xs,
-          overflow: 'hidden',
-          maxHeight: 200
-        }}>
+        <View
+          className="overflow-hidden max-h-[200px] rounded-lg mt-xs border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
+        >
           {options.map((option) => (
             <TouchableOpacity
               key={option.value}
@@ -139,15 +122,10 @@ export function SelectInput({ value, onValueChange, options, placeholder = 'Sele
                 onValueChange(option.value);
                 setIsOpen(false);
               }}
-              style={{
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
-                backgroundColor: value === option.value ? colors.brand.primary : 'transparent'
-              }}
+              className={value === option.value ? 'bg-brand-primary' : 'bg-transparent'}
+              className="px-md py-sm"
             >
-              <Text style={{ 
-                color: value === option.value ? colors.text.inverse : colors.text.primary
-              }}>
+              <Text className={value === option.value ? 'text-txt-inverse' : 'text-txt-primary dark:text-txt-dark-primary'}>
                 {option.label}
               </Text>
             </TouchableOpacity>
@@ -174,55 +152,32 @@ export function ToggleRow({
   icon, 
   description 
 }: ToggleRowProps) {
-  const { colors, spacing, borderRadius } = useTheme();
+  const { spacing } = useTheme();
   
   return (
     <TouchableOpacity
       onPress={() => onValueChange(!value)}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: spacing.sm,
-        paddingHorizontal: spacing.md,
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.lg,
-        borderWidth: 1,
-        borderColor: colors.border
-      }}
+      className="flex-row items-center justify-between py-sm px-md rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
+      <View className="flex-row items-center flex-1" style={{ gap: spacing.sm }}>
         {icon}
-        <View style={{ flex: 1 }}>
-          <Text style={{ 
-            color: colors.text.primary,
-            fontWeight: '600',
-            fontSize: 16
-          }}>
+        <View className="flex-1">
+          <Text className="text-base font-semibold text-txt-primary dark:text-txt-dark-primary">
             {label}
           </Text>
           {description && (
-            <Text style={{ 
-              color: colors.text.secondary,
-              fontSize: 14,
-              marginTop: 2
-            }}>
+            <Text className="text-sm mt-[2px] text-txt-secondary dark:text-txt-dark-secondary">
               {description}
             </Text>
           )}
         </View>
       </View>
       
-      <View style={{
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: value ? colors.brand.primary : colors.border,
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
+      <View
+        className={`w-6 h-6 rounded-full items-center justify-center ${value ? 'bg-brand-primary' : 'bg-light-border dark:bg-dark-border'}`}
+      >
         {value && (
-          <Text style={{ color: colors.text.inverse, fontSize: 12, fontWeight: 'bold' }}>
+          <Text className="text-xs font-bold text-txt-inverse">
           </Text>
         )}
       </View>
@@ -238,22 +193,14 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, color }: StatCardProps) {
-  const { colors, typography, spacing } = useTheme();
+  const { typography } = useTheme();
 
   return (
-    <View style={{ alignItems: 'center' }}>
-      <Text style={{ 
-        color: color,
-        fontSize: typography.size.xl,
-        fontWeight: '700'
-      }}>
+    <View className="items-center">
+      <Text className="font-bold" style={{ color, fontSize: typography.size.xl }}>
         {value}
       </Text>
-      <Text style={{ 
-        color: colors.text.secondary,
-        fontSize: typography.size.sm,
-        fontWeight: '600'
-      }}>
+      <Text className="font-semibold text-txt-secondary dark:text-txt-dark-secondary" style={{ fontSize: typography.size.sm }}>
         {label}
       </Text>
     </View>
